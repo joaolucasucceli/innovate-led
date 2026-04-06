@@ -54,7 +54,7 @@ export function LeadsAlerta() {
         >
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">{lead.nome}</span>
-            <StatusBadge status={lead.statusFunil} variante="funil" />
+            <StatusBadge status={lead.statusFunil} />
           </div>
           <span className="text-xs text-muted-foreground">
             {diasAtras(lead.ultimaMovimentacaoEm || lead.atualizadoEm)}

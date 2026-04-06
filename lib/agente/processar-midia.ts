@@ -29,7 +29,7 @@ export async function descreverImagem(imagemUrl: string): Promise<string> {
         content: [
           {
             type: "text",
-            text: "Descreva esta imagem de forma concisa em português. Se for uma foto médica ou de procedimento estético, descreva o que é visível.",
+            text: "Descreva esta imagem de forma concisa em português. Se for uma foto de painel LED, instalação ou projeto, descreva o que é visível.",
           },
           {
             type: "image_url",

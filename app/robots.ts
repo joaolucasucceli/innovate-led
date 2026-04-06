@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/configuracoes/", "/leads/"],
     },
-    sitemap: `${process.env.NEXTAUTH_URL || "https://drlucasfelipe.com.br"}/sitemap.xml`,
+    sitemap: `${process.env.NEXTAUTH_URL || "https://central-innovate.vercel.app"}/sitemap.xml`,
   }
 }

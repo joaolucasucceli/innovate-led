@@ -70,7 +70,7 @@ export function LeadsFollowUpAtivos() {
         >
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">{lead.nome}</span>
-            <StatusBadge status={lead.statusFunil} variante="funil" />
+            <StatusBadge status={lead.statusFunil} />
           </div>
           <UltimoFollowUp followUpEnviados={lead.followUpEnviados} />
         </div>

@@ -25,7 +25,7 @@ export function ModuloRelatorios() {
 {
             icone: <MessageSquare />,
             titulo: "Relatório do agente IA",
-            descricao: "Volume de mensagens, conversas ativas, efetividade dos follow-ups e taxa de resposta dos pacientes.",
+            descricao: "Volume de mensagens, conversas ativas, efetividade dos follow-ups e taxa de resposta dos leads.",
           },
         ]}
       />

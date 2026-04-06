@@ -17,7 +17,7 @@ import { DicaImportante } from "../DicaImportante"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-type Categoria = "Marketing" | "IA" | "Clínica" | "Expansão"
+type Categoria = "Marketing" | "IA" | "Operacional" | "Expansão"
 
 interface Sugestao {
   icone: React.ReactNode
@@ -30,14 +30,14 @@ interface Sugestao {
 const corCategoria: Record<Categoria, string> = {
   Marketing: "text-orange-600",
   IA: "text-violet-600",
-  Clínica: "text-emerald-600",
+  Operacional: "text-emerald-600",
   Expansão: "text-blue-600",
 }
 
 const dotCategoria: Record<Categoria, string> = {
   Marketing: "bg-orange-500",
   IA: "bg-violet-500",
-  Clínica: "bg-emerald-500",
+  Operacional: "bg-emerald-500",
   Expansão: "bg-blue-500",
 }
 
@@ -58,21 +58,21 @@ const sugestoes: Sugestao[] = [
     descricao:
       "Uma Andressa dedicada ao Instagram: responde mensagens diretas com a mesma inteligência do WhatsApp, qualifica leads e move-os pelo kanban — tudo integrado ao sistema.",
     valorDeNegocio:
-      "Atinge pacientes onde eles estão e dobra o alcance do atendimento automatizado sem aumentar a equipe.",
+      "Atinge clientes onde eles estão e dobra o alcance do atendimento automatizado sem aumentar a equipe.",
   },
   {
     icone: <Megaphone className="h-6 w-6" />,
     categoria: "Marketing",
     titulo: "Campanhas de Disparo em Massa",
     descricao:
-      "Envio de mensagens segmentadas para grupos de pacientes: aniversariantes do mês, inativos, pós-procedimento ou por procedimento de interesse.",
+      "Envio de mensagens segmentadas para grupos de clientes: aniversariantes do mês, inativos, pós-venda ou por produto de interesse.",
     valorDeNegocio:
       "Reativa clientes inativos e gera oportunidades de venda sem esforço manual.",
   },
   {
     icone: <UserCircle className="h-6 w-6" />,
     categoria: "Expansão",
-    titulo: "Portal do Paciente",
+    titulo: "Portal do Cliente",
     descricao:
       "Área exclusiva onde o cliente acessa histórico de atendimentos, documentos e recebe atualizações sobre pedidos.",
     valorDeNegocio:
@@ -89,21 +89,21 @@ const sugestoes: Sugestao[] = [
   },
   {
     icone: <Star className="h-6 w-6" />,
-    categoria: "Clínica",
+    categoria: "Operacional",
     titulo: "NPS e Pesquisa de Satisfação",
     descricao:
-      "Envio automático de pesquisa de satisfação via WhatsApp após cada procedimento. Dashboard com histórico de NPS, comentários e evolução ao longo do tempo.",
+      "Envio automático de pesquisa de satisfação via WhatsApp após cada venda. Dashboard com histórico de NPS, comentários e evolução ao longo do tempo.",
     valorDeNegocio:
       "Identifica pontos de melhoria antes que se tornem reclamações públicas.",
   },
   {
     icone: <Smartphone className="h-6 w-6" />,
     categoria: "Expansão",
-    titulo: "App Mobile para Pacientes",
+    titulo: "App Mobile para Clientes",
     descricao:
       "Aplicativo nativo para iOS e Android onde o cliente acompanha pedidos, recebe lembretes e troca documentos com a empresa.",
     valorDeNegocio:
-      "Eleva a experiência do paciente e cria um canal direto de comunicação fora do WhatsApp.",
+      "Eleva a experiência do cliente e cria um canal direto de comunicação fora do WhatsApp.",
   },
   {
     icone: <MessageSquare className="h-6 w-6" />,
@@ -112,7 +112,7 @@ const sugestoes: Sugestao[] = [
     descricao:
       "Agente IA de atendimento integrado ao Google Meu Negócio. Responde automaticamente dúvidas, coleta dados e encaminha o lead para o kanban.",
     valorDeNegocio:
-      "Captura pacientes com alta intenção de compra no exato momento em que pesquisam pelo serviço no Google.",
+      "Captura clientes com alta intenção de compra no exato momento em que pesquisam pelo serviço no Google.",
   },
   {
     icone: <LayoutGrid className="h-6 w-6" />,
@@ -139,7 +139,7 @@ const sugestoes: Sugestao[] = [
     descricao:
       "Agente inteligente que conduz conversas de cobrança via WhatsApp: lembra vencimentos, negocia parcelamentos de forma natural e registra acordos automaticamente no sistema.",
     valorDeNegocio:
-      "Reduz inadimplência sem desgaste da equipe e sem constrangimento para o paciente.",
+      "Reduz inadimplência sem desgaste da equipe e sem constrangimento para o cliente.",
   },
 ]
 

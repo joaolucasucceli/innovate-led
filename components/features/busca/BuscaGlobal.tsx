@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { User, Stethoscope } from "lucide-react"
+import { User } from "lucide-react"
 import {
   Command,
   CommandDialog,
@@ -14,7 +14,6 @@ import {
 
 interface ResultadoBusca {
   leads: { id: string; nome: string; whatsapp: string; statusFunil: string }[]
-  procedimentos: { id: string; nome: string; ativo: boolean }[]
   total: number
 }
 
@@ -63,21 +62,18 @@ export function BuscaGlobal({ aberto, onFechar }: BuscaGlobalProps) {
     window.location.href = href
   }
 
-  const temResultados =
-    resultado &&
-    (resultado.leads.length > 0 ||
-      resultado.procedimentos.length > 0)
+  const temResultados = resultado && resultado.leads.length > 0
 
   return (
     <CommandDialog
       open={aberto}
       onOpenChange={(open) => !open && onFechar()}
       title="Busca global"
-      description="Buscar leads e procedimentos"
+      description="Buscar leads no sistema"
     >
       <Command>
       <CommandInput
-        placeholder="Buscar leads, procedimentos..."
+        placeholder="Buscar leads..."
         value={termo}
         onValueChange={setTermo}
       />
@@ -103,24 +99,6 @@ export function BuscaGlobal({ aberto, onFechar }: BuscaGlobalProps) {
                 <span className="ml-auto text-xs text-muted-foreground">
                   {lead.whatsapp}
                 </span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
-
-        {resultado && resultado.procedimentos.length > 0 && (
-          <CommandGroup heading="Procedimentos">
-            {resultado.procedimentos.map((proc) => (
-              <CommandItem
-                key={proc.id}
-                value={`procedimento-${proc.id}-${proc.nome}`}
-                onSelect={() => navegar(`/procedimentos/${proc.id}`)}
-              >
-                <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                <span>{proc.nome}</span>
-                {!proc.ativo && (
-                  <span className="ml-auto text-xs text-muted-foreground">Inativo</span>
-                )}
               </CommandItem>
             ))}
           </CommandGroup>
