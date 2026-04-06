@@ -2,12 +2,7 @@ import {
   LayoutDashboard,
   UserSearch,
   Kanban,
-  Stethoscope,
-  Bot,
-  BarChart3,
   Settings,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react"
 import { PageHeader } from "@/components/features/shared/PageHeader"
 import { TabsDocumentacao } from "@/components/features/documentacao/TabsDocumentacao"
@@ -15,11 +10,7 @@ import { BotaoDownloadDoc } from "@/components/features/documentacao/BotaoDownlo
 import { ModuloDashboard } from "@/components/features/documentacao/modulos/ModuloDashboard"
 import { ModuloLeads } from "@/components/features/documentacao/modulos/ModuloLeads"
 import { ModuloAtendimentos } from "@/components/features/documentacao/modulos/ModuloAtendimentos"
-import { ModuloAndressa } from "@/components/features/documentacao/modulos/ModuloAndressa"
-import { ModuloRelatorios } from "@/components/features/documentacao/modulos/ModuloRelatorios"
 import { ModuloConfiguracoes } from "@/components/features/documentacao/modulos/ModuloConfiguracoes"
-import { ModuloUsuarios } from "@/components/features/documentacao/modulos/ModuloUsuarios"
-import { ModuloSugestoes } from "@/components/features/documentacao/modulos/ModuloSugestoes"
 
 export default function DocumentacaoPage() {
   const abas = [
@@ -30,46 +21,22 @@ export default function DocumentacaoPage() {
       conteudo: <ModuloDashboard />,
     },
     {
-      valor: "leads",
-      titulo: "Leads",
-      icone: <UserSearch className="h-3.5 w-3.5" />,
-      conteudo: <ModuloLeads />,
-    },
-    {
       valor: "atendimentos",
       titulo: "Atendimentos",
       icone: <Kanban className="h-3.5 w-3.5" />,
       conteudo: <ModuloAtendimentos />,
     },
     {
-      valor: "andressa",
-      titulo: "Andressa",
-      icone: <Bot className="h-3.5 w-3.5" />,
-      conteudo: <ModuloAndressa />,
-    },
-    {
-      valor: "relatorios",
-      titulo: "Relatórios",
-      icone: <BarChart3 className="h-3.5 w-3.5" />,
-      conteudo: <ModuloRelatorios />,
+      valor: "leads",
+      titulo: "Leads",
+      icone: <UserSearch className="h-3.5 w-3.5" />,
+      conteudo: <ModuloLeads />,
     },
     {
       valor: "configuracoes",
       titulo: "Configurações",
       icone: <Settings className="h-3.5 w-3.5" />,
       conteudo: <ModuloConfiguracoes />,
-    },
-    {
-      valor: "usuarios",
-      titulo: "Usuários e Permissões",
-      icone: <ShieldCheck className="h-3.5 w-3.5" />,
-      conteudo: <ModuloUsuarios />,
-    },
-    {
-      valor: "sugestoes",
-      titulo: "Sugestões",
-      icone: <Sparkles className="h-3.5 w-3.5" />,
-      conteudo: <ModuloSugestoes />,
     },
   ]
 
