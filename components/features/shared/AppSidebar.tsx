@@ -8,6 +8,7 @@ import {
   UserSearch,
   Bot,
   Settings,
+  BookOpen,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -63,6 +64,11 @@ const navGroups: NavGroup[] = [
   {
     label: "Sistema",
     itens: [
+      {
+        titulo: "Documentação",
+        href: "/documentacao",
+        icone: <BookOpen className="h-4 w-4" />,
+      },
       {
         titulo: "Configurações",
         href: "/configuracoes",

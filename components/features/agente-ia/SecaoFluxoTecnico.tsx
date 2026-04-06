@@ -13,6 +13,8 @@ import {
   Calendar,
   Mic,
   Image,
+  VolumeX,
+  RotateCcw,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -143,6 +145,62 @@ export function SecaoFluxoTecnico() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Comportamentos especiais */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <VolumeX className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Silêncio Automático</CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              A IA não responde quando o lead está nos seguintes status — o humano está conduzindo.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">em_negociacao</Badge>
+              <Badge variant="secondary">venda_realizada</Badge>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Também fica em silêncio se a conversa estiver em modo &quot;humano&quot; (modoConversa).
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <RotateCcw className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Contato de Retorno</CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Quando um lead com status &quot;venda_realizada&quot; ou &quot;perdido&quot; envia mensagem novamente.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                Abre novo ciclo automaticamente
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                Reseta status para &quot;qualificacao&quot;
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                Cria nova conversa vinculada ao ciclo
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                Pula acolhimento — vai direto para qualificação
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Follow-ups */}
