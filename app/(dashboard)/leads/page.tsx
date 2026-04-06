@@ -31,7 +31,6 @@ interface Lead {
   nome: string
   whatsapp: string
   email: string | null
-  procedimentoInteresse: string | null
   statusFunil: string
   origem: string | null
   arquivado: boolean
@@ -53,7 +52,6 @@ export default function LeadsPage() {
   const [statusFunil, setStatusFunil] = useState("")
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
   const [formAberto, setFormAberto] = useState(false)
-  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
   const [filtroEspecial, setFiltroEspecial] = useState<"alerta" | "followup" | undefined>(
     () => {
       const v = searchParams.get("filtro")
@@ -74,25 +72,12 @@ export default function LeadsPage() {
     session?.user?.perfil === "gestor" ||
     session?.user?.perfil === "atendente"
 
-  useEffect(() => {
-    fetch("/api/procedimentos?ativo=true")
-      .then((res) => res.json())
-      .then((json) => setProcedimentos(json.dados || []))
-      .catch(() => {})
-  }, [])
-
   const colunas: ColunaConfig<Lead>[] = [
     { chave: "nome", titulo: "Nome", ordenavel: true },
     {
       chave: "whatsapp",
       titulo: "WhatsApp",
       classesCelula: "hidden sm:table-cell",
-    },
-    {
-      chave: "procedimentoInteresse",
-      titulo: "Procedimento",
-      classesCelula: "hidden md:table-cell",
-      renderizar: (l) => l.procedimentoInteresse || "—",
     },
     {
       chave: "statusFunil",
@@ -134,7 +119,7 @@ export default function LeadsPage() {
 
   return (
     <div>
-      <PageHeader titulo="Leads" descricao="Gerencie os leads e pacientes da clínica">
+      <PageHeader titulo="Leads" descricao="Gerencie os leads do funil comercial">
         <Button
           variant="outline"
           size="sm"
@@ -221,14 +206,11 @@ export default function LeadsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todas as etapas</SelectItem>
-                    <SelectItem value="acolhimento">Acolhimento</SelectItem>
                     <SelectItem value="qualificacao">Qualificação</SelectItem>
-                    <SelectItem value="agendamento">Agendamento</SelectItem>
-                    <SelectItem value="consulta_agendada">Consulta Agendada</SelectItem>
-                    <SelectItem value="consulta_realizada">Consulta Realizada</SelectItem>
-                    <SelectItem value="sinal_pago">Sinal Pago</SelectItem>
-                    <SelectItem value="procedimento_agendado">Procedimento Agendado</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
+                    <SelectItem value="encaminhado">Encaminhado</SelectItem>
+                    <SelectItem value="tarefa_criada">Tarefa Criada</SelectItem>
+                    <SelectItem value="em_negociacao">Em Negociação</SelectItem>
+                    <SelectItem value="venda_realizada">Venda Realizada</SelectItem>
                     <SelectItem value="perdido">Perdido</SelectItem>
                   </SelectContent>
                 </Select>
@@ -258,7 +240,6 @@ export default function LeadsPage() {
           setFormAberto(false)
           recarregar()
         }}
-        procedimentos={procedimentos}
       />
     </div>
   )

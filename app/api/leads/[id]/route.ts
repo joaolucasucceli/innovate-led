@@ -18,14 +18,6 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       responsavel: {
         select: { id: true, nome: true },
       },
-      agendamentos: {
-        orderBy: { dataHora: "desc" },
-        include: {
-          procedimento: {
-            select: { id: true, nome: true },
-          },
-        },
-      },
       conversas: {
         orderBy: [{ ciclo: "desc" }, { atualizadoEm: "desc" }],
         include: {
@@ -36,9 +28,6 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
       },
       fotos: {
         orderBy: { criadoEm: "desc" },
-      },
-      paciente: {
-        select: { id: true, nome: true },
       },
     },
   })
@@ -75,12 +64,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   const dados = { ...parsed.data }
 
-  // sobreOPaciente: APPEND, nunca overwrite
-  if (dados.sobreOPaciente) {
-    const textoAtual = leadAtual.sobreOPaciente || ""
-    dados.sobreOPaciente = textoAtual
-      ? `${textoAtual}\n---\n${dados.sobreOPaciente}`
-      : dados.sobreOPaciente
+  // sobreOLead: APPEND, nunca overwrite
+  if (dados.sobreOLead) {
+    const textoAtual = leadAtual.sobreOLead || ""
+    dados.sobreOLead = textoAtual
+      ? `${textoAtual}\n---\n${dados.sobreOLead}`
+      : dados.sobreOLead
   }
 
   // Se whatsapp mudou, verificar unicidade
@@ -101,10 +90,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       nome: true,
       whatsapp: true,
       email: true,
-      procedimentoInteresse: true,
       statusFunil: true,
       origem: true,
-      sobreOPaciente: true,
+      sobreOLead: true,
       responsavelId: true,
       arquivado: true,
       criadoEm: true,

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { ArrowLeft, Trash2, Archive, ArchiveRestore, Plus, Users, ExternalLink } from "lucide-react"
+import { ArrowLeft, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -35,8 +35,6 @@ import { ConfirmDialog } from "@/components/features/shared/ConfirmDialog"
 import { StatusBadge } from "@/components/features/shared/StatusBadge"
 import { useAutosave, IndicadorSalvamento } from "@/hooks/use-autosave"
 import { useLead } from "@/hooks/use-lead"
-import { useAgendamentos } from "@/hooks/use-agendamentos"
-import { AgendamentoForm } from "@/components/features/agendamentos/AgendamentoForm"
 import { GaleriaFotos } from "@/components/features/leads/GaleriaFotos"
 
 export default function LeadDetalhePage() {
@@ -49,21 +47,11 @@ export default function LeadDetalhePage() {
 
   const [confirmExcluir, setConfirmExcluir] = useState(false)
   const [confirmAnonimizar, setConfirmAnonimizar] = useState(false)
-  const [confirmConverter, setConfirmConverter] = useState(false)
-  const [convertendo, setConvertendo] = useState(false)
-  const [formAgendamento, setFormAgendamento] = useState(false)
-  const [confirmCancelarAgendamento, setConfirmCancelarAgendamento] = useState<string | null>(null)
-
-  const { dados: agendamentos, recarregar: recarregarAgendamentos } = useAgendamentos({ leadId: id })
-
   const [nome, setNome] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
   const [email, setEmail] = useState("")
-  const [procedimentoInteresse, setProcedimentoInteresse] = useState("")
   const [origem, setOrigem] = useState("")
   const [statusFunil, setStatusFunil] = useState("")
-
-  const [procedimentos, setProcedimentos] = useState<Array<{ id: string; nome: string }>>([])
 
   const isGestor =
     session?.user?.perfil === "gestor"
@@ -75,19 +63,11 @@ export default function LeadDetalhePage() {
       setNome(lead.nome)
       setWhatsapp(lead.whatsapp)
       setEmail(lead.email || "")
-      setProcedimentoInteresse(lead.procedimentoInteresse || "")
       setOrigem(lead.origem || "")
       setStatusFunil(lead.statusFunil)
       initialized.current = true
     }
   }, [lead])
-
-  useEffect(() => {
-    fetch("/api/procedimentos?ativo=true")
-      .then((res) => res.json())
-      .then((json) => setProcedimentos(json.dados || []))
-      .catch(() => {})
-  }, [])
 
   const salvarDados = useCallback(
     async (v: { nome: string; whatsapp: string; email: string }) => {
@@ -128,22 +108,6 @@ export default function LeadDetalhePage() {
     }
   }
 
-  async function handleProcedimentoChange(valor: string) {
-    const proc = valor === "nenhum" ? "" : valor
-    setProcedimentoInteresse(proc)
-    try {
-      const res = await fetch(`/api/leads/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ procedimentoInteresse: proc || null }),
-      })
-      if (!res.ok) throw new Error()
-      toast.success("Procedimento atualizado")
-    } catch {
-      toast.error("Erro ao salvar")
-    }
-  }
-
   async function handleOrigemChange(valor: string) {
     setOrigem(valor)
     try {
@@ -178,30 +142,6 @@ export default function LeadDetalhePage() {
     }
   }
 
-  async function handleConverter() {
-    setConvertendo(true)
-    try {
-      const res = await fetch("/api/pacientes/converter-lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId: id }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || "Erro ao converter")
-      }
-      const data = await res.json()
-      toast.success(data.jaCriado ? "Paciente já existente" : "Lead convertido em paciente!")
-      recarregar()
-      router.push(`/pacientes/${data.paciente.id}`)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao converter lead")
-    } finally {
-      setConvertendo(false)
-      setConfirmConverter(false)
-    }
-  }
-
   function handleExportarDados() {
     const a = document.createElement("a")
     a.href = `/api/lgpd/exportar/${id}`
@@ -219,20 +159,6 @@ export default function LeadDetalhePage() {
       router.push("/leads")
     } catch {
       toast.error("Erro ao anonimizar dados")
-    }
-  }
-
-  async function handleCancelarAgendamento() {
-    if (!confirmCancelarAgendamento) return
-    try {
-      const res = await fetch(`/api/agendamentos/${confirmCancelarAgendamento}`, { method: "DELETE" })
-      if (!res.ok) throw new Error()
-      toast.success("Agendamento cancelado")
-      recarregarAgendamentos()
-    } catch {
-      toast.error("Erro ao cancelar agendamento")
-    } finally {
-      setConfirmCancelarAgendamento(null)
     }
   }
 
@@ -288,18 +214,6 @@ export default function LeadDetalhePage() {
               </>
             )}
           </Button>
-          {/* Botão Converter/Ver Paciente */}
-          {lead.paciente ? (
-            <Button variant="outline" onClick={() => router.push(`/pacientes/${lead.paciente!.id}`)}>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Ver Paciente
-            </Button>
-          ) : isGestor ? (
-            <Button variant="outline" onClick={() => setConfirmConverter(true)} disabled={convertendo}>
-              <Users className="mr-2 h-4 w-4" />
-              Converter em Paciente
-            </Button>
-          ) : null}
           {isGestor && (
             <Button variant="destructive" onClick={() => setConfirmExcluir(true)}>
               <Trash2 className="mr-2 h-4 w-4" />
@@ -314,7 +228,6 @@ export default function LeadDetalhePage() {
           <TabsTrigger value="dados">Dados</TabsTrigger>
           <TabsTrigger value="historico">Histórico</TabsTrigger>
           <TabsTrigger value="fotos">Fotos</TabsTrigger>
-          <TabsTrigger value="agendamentos">Agendamentos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4 grid gap-6">
@@ -376,37 +289,15 @@ export default function LeadDetalhePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="acolhimento">Acolhimento</SelectItem>
                       <SelectItem value="qualificacao">Qualificação</SelectItem>
-                      <SelectItem value="agendamento">Agendamento</SelectItem>
-                      <SelectItem value="consulta_agendada">Consulta Agendada</SelectItem>
-                      <SelectItem value="consulta_realizada">Consulta Realizada</SelectItem>
-                      <SelectItem value="sinal_pago">Sinal Pago</SelectItem>
-                      <SelectItem value="procedimento_agendado">Procedimento Agendado</SelectItem>
-                      <SelectItem value="concluido">Concluído</SelectItem>
+                      <SelectItem value="encaminhado">Encaminhado</SelectItem>
+                      <SelectItem value="tarefa_criada">Tarefa Criada</SelectItem>
+                      <SelectItem value="em_negociacao">Em Negociação</SelectItem>
+                      <SelectItem value="venda_realizada">Venda Realizada</SelectItem>
                       <SelectItem value="perdido">Perdido</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Procedimento de Interesse</Label>
-                <Select
-                  value={procedimentoInteresse || "nenhum"}
-                  onValueChange={handleProcedimentoChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="nenhum">Nenhum</SelectItem>
-                    {procedimentos.map((p) => (
-                      <SelectItem key={p.id} value={p.nome}>
-                        {p.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="grid gap-2">
                 <Label>Origem</Label>
@@ -419,16 +310,16 @@ export default function LeadDetalhePage() {
             </CardContent>
           </Card>
 
-          {lead.sobreOPaciente && (
+          {lead.sobreOLead && (
             <Card>
               <CardHeader>
-                <CardTitle>Sobre a Paciente</CardTitle>
+                <CardTitle>Sobre o Lead</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground mb-2">
                   Gerenciado pelo agente IA
                 </p>
-                <Textarea value={lead.sobreOPaciente} readOnly rows={6} />
+                <Textarea value={lead.sobreOLead} readOnly rows={6} />
               </CardContent>
             </Card>
           )}
@@ -504,7 +395,7 @@ export default function LeadDetalhePage() {
                                     }`}
                                   >
                                     <p className={`text-xs mb-1 font-medium ${ehAgente ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                                      {ehAgente ? "Ana Júlia" : lead.nome.split(" ")[0]}
+                                      {ehAgente ? "Andressa" : lead.nome.split(" ")[0]}
                                     </p>
                                     <p>{msg.conteudo}</p>
                                     <p className={`text-xs mt-1 text-right ${ehAgente ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
@@ -533,100 +424,7 @@ export default function LeadDetalhePage() {
           />
         </TabsContent>
 
-        <TabsContent value="agendamentos" className="mt-4">
-          <div className="mb-4">
-            <Button onClick={() => setFormAgendamento(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Button>
-          </div>
-
-          {agendamentos.length === 0 ? (
-            <EmptyState
-              titulo="Sem agendamentos"
-              descricao="Clique em Novo Agendamento para criar o primeiro."
-            />
-          ) : (() => {
-            // Agrupar agendamentos por ciclo
-            const ciclosMap = new Map<number, typeof agendamentos>()
-            for (const ag of agendamentos) {
-              const ciclo = ag.ciclo ?? 1
-              if (!ciclosMap.has(ciclo)) ciclosMap.set(ciclo, [])
-              ciclosMap.get(ciclo)!.push(ag)
-            }
-            const ciclosOrdenados = Array.from(ciclosMap.entries()).sort((a, b) => b[0] - a[0])
-
-            return (
-              <div className="space-y-6">
-                {ciclosOrdenados.map(([ciclo, ags]) => (
-                  <div key={ciclo}>
-                    {ciclosMap.size > 1 && (
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                        {ciclo === 1 ? "1º Atendimento" : `${ciclo}º Atendimento (Retorno)`}
-                      </p>
-                    )}
-                    <div className="space-y-3">
-                      {ags.map((a) => (
-                        <Card key={a.id}>
-                          <CardContent className="pt-4 flex items-start justify-between gap-4">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <StatusBadge status={a.status} variante="agendamento" />
-                                <span className="text-sm font-medium">
-                                  {new Date(a.dataHora).toLocaleString("pt-BR", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              </div>
-                              {a.procedimento && (
-                                <p className="text-sm text-muted-foreground">{a.procedimento.nome}</p>
-                              )}
-                              {a.observacao && (
-                                <p className="text-sm">{a.observacao}</p>
-                              )}
-                            </div>
-                            {a.status !== "cancelado" && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="shrink-0 text-destructive"
-                                onClick={() => setConfirmCancelarAgendamento(a.id)}
-                              >
-                                Cancelar
-                              </Button>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
-        </TabsContent>
       </Tabs>
-
-      <AgendamentoForm
-        aberto={formAgendamento}
-        onFechar={() => setFormAgendamento(false)}
-        onSalvo={recarregarAgendamentos}
-        leadIdInicial={id}
-      />
-
-      <ConfirmDialog
-        titulo="Cancelar agendamento"
-        descricao="Tem certeza que deseja cancelar este agendamento?"
-        aberto={!!confirmCancelarAgendamento}
-        onFechar={() => setConfirmCancelarAgendamento(null)}
-        onConfirmar={handleCancelarAgendamento}
-        variante="destrutivo"
-        textoBotao="Cancelar agendamento"
-      />
 
       <ConfirmDialog
         titulo="Excluir lead"
@@ -639,7 +437,7 @@ export default function LeadDetalhePage() {
       />
 
       <ConfirmDialog
-        titulo="Anonimizar dados do paciente"
+        titulo="Anonimizar dados do lead"
         descricao="⚠️ Esta ação é irreversível. Todos os dados pessoais (nome, WhatsApp, e-mail, histórico) serão anonimizados permanentemente. Deseja continuar?"
         aberto={confirmAnonimizar}
         onFechar={() => setConfirmAnonimizar(false)}
@@ -648,14 +446,6 @@ export default function LeadDetalhePage() {
         textoBotao="Anonimizar permanentemente"
       />
 
-      <ConfirmDialog
-        titulo="Converter em Paciente"
-        descricao={`Converter "${lead.nome}" em paciente? O lead será arquivado automaticamente e um prontuário será criado.`}
-        aberto={confirmConverter}
-        onFechar={() => setConfirmConverter(false)}
-        onConfirmar={handleConverter}
-        textoBotao={convertendo ? "Convertendo..." : "Converter"}
-      />
     </div>
   )
 }

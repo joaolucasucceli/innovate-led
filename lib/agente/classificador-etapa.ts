@@ -4,23 +4,19 @@ import { sincronizarFunil, avancarEtapa } from "@/lib/agente/kanban-sync"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 const ETAPAS_CLASSIFICAVEIS: StatusFunil[] = [
-  "acolhimento",
   "qualificacao",
-  "agendamento",
+  "encaminhado",
 ]
 
-const LIMITE_CLASSIFICAVEL: StatusFunil = "consulta_agendada"
+const LIMITE_CLASSIFICAVEL: StatusFunil = "tarefa_criada"
 
 function etapaIndex(etapa: StatusFunil): number {
   const ordem: StatusFunil[] = [
-    "acolhimento",
     "qualificacao",
-    "agendamento",
-    "consulta_agendada",
-    "consulta_realizada",
-    "sinal_pago",
-    "procedimento_agendado",
-    "concluido",
+    "encaminhado",
+    "tarefa_criada",
+    "em_negociacao",
+    "venda_realizada",
     "perdido",
   ]
   return ordem.indexOf(etapa)
@@ -28,7 +24,7 @@ function etapaIndex(etapa: StatusFunil): number {
 
 /**
  * Analisa o histórico de conversa e avança automaticamente a etapa do funil.
- * Só opera nas etapas 1-4 (acolhimento até consulta_agendada).
+ * Só opera nas etapas automatizadas (qualificacao e encaminhado).
  * Nunca regride — só avança.
  */
 export async function classificarEtapaConversa(
@@ -49,18 +45,6 @@ export async function classificarEtapaConversa(
   // Território manual — não interferir
   if (etapaIndex(etapaAtual) >= etapaIndex(LIMITE_CLASSIFICAVEL)) return
 
-  // Verificação determinística: agendamento ativo no banco
-  const agendamentoAtivo = await prisma.agendamento.findFirst({
-    where: { leadId, status: "agendado" },
-    select: { id: true },
-  })
-
-  if (agendamentoAtivo) {
-    await sincronizarFunil(leadId, "consulta_agendada")
-    await avancarEtapa(conversaId, "consulta_agendada" as EtapaConversa)
-    return
-  }
-
   // Buscar últimas 15 mensagens (ordem cronológica)
   const mensagens = await prisma.mensagemWhatsapp.findMany({
     where: { conversaId },
@@ -73,7 +57,7 @@ export async function classificarEtapaConversa(
 
   const historico = mensagens
     .reverse()
-    .map((m) => `${m.remetente === "agente" ? "Ana Júlia" : "Paciente"}: ${m.conteudo}`)
+    .map((m) => `${m.remetente === "agente" ? "Andressa" : "Cliente"}: ${m.conteudo}`)
     .join("\n")
 
   let novaEtapa: StatusFunil | null = null
@@ -84,14 +68,13 @@ export async function classificarEtapaConversa(
       messages: [
         {
           role: "system",
-          content: `Analise o histórico de conversa de atendimento de uma clínica médica estética e classifique em qual etapa a conversa está.
+          content: `Analise o histórico de conversa de pré-atendimento de uma empresa de painéis LED e classifique em qual etapa a conversa está.
 
 Etapas possíveis:
-- "acolhimento": Apenas saudações iniciais, o paciente ainda não compartilhou informações substantivas sobre si ou seu interesse.
-- "qualificacao": Paciente está compartilhando informações sobre si (nome, interesse, procedimento, histórico, expectativas), mas datas ou horários ainda não foram discutidos.
-- "agendamento": A conversa está ativamente discutindo disponibilidade, datas ou horários específicos para marcar uma consulta.
+- "qualificacao": A assistente está coletando informações sobre o projeto do cliente (objetivo, ambiente, tamanho, prazo, investimento, etc.).
+- "encaminhado": A qualificação foi concluída e o cliente foi informado que será encaminhado para um consultor comercial.
 
-Responda APENAS com JSON válido: { "etapa": "acolhimento" | "qualificacao" | "agendamento", "motivo": "explicação curta" }`,
+Responda APENAS com JSON válido: { "etapa": "qualificacao" | "encaminhado", "motivo": "explicação curta" }`,
         },
         {
           role: "user",

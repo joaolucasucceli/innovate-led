@@ -47,7 +47,7 @@ const sugestoes: Sugestao[] = [
     categoria: "Marketing",
     titulo: "Site Institucional Integrado",
     descricao:
-      "Landing page profissional da clínica conectada ao sistema. O formulário de contato captura leads diretamente no kanban, sem precisar copiar dados manualmente.",
+      "Landing page profissional da empresa conectada ao sistema. O formulário de contato captura leads diretamente no kanban, sem precisar copiar dados manualmente.",
     valorDeNegocio:
       "Aumenta captação orgânica e elimina perda de leads que chegam pelo site.",
   },
@@ -56,7 +56,7 @@ const sugestoes: Sugestao[] = [
     categoria: "IA",
     titulo: "Agente IA para Instagram",
     descricao:
-      "Uma Ana Júlia dedicada ao Instagram: responde mensagens diretas com a mesma inteligência do WhatsApp, qualifica leads e move pacientes pelo kanban — tudo integrado ao sistema.",
+      "Uma Andressa dedicada ao Instagram: responde mensagens diretas com a mesma inteligência do WhatsApp, qualifica leads e move-os pelo kanban — tudo integrado ao sistema.",
     valorDeNegocio:
       "Atinge pacientes onde eles estão e dobra o alcance do atendimento automatizado sem aumentar a equipe.",
   },
@@ -67,14 +67,14 @@ const sugestoes: Sugestao[] = [
     descricao:
       "Envio de mensagens segmentadas para grupos de pacientes: aniversariantes do mês, inativos, pós-procedimento ou por procedimento de interesse.",
     valorDeNegocio:
-      "Reativa pacientes inativos e gera agendamentos espontâneos sem esforço manual.",
+      "Reativa clientes inativos e gera oportunidades de venda sem esforço manual.",
   },
   {
     icone: <UserCircle className="h-6 w-6" />,
     categoria: "Expansão",
     titulo: "Portal do Paciente",
     descricao:
-      "Área exclusiva onde o paciente acessa histórico de atendimentos, documentos, agendamentos futuros e recebe orientações pós-procedimento.",
+      "Área exclusiva onde o cliente acessa histórico de atendimentos, documentos e recebe atualizações sobre pedidos.",
     valorDeNegocio:
       "Profissionaliza a experiência e reduz chamadas repetitivas para informações básicas.",
   },
@@ -101,7 +101,7 @@ const sugestoes: Sugestao[] = [
     categoria: "Expansão",
     titulo: "App Mobile para Pacientes",
     descricao:
-      "Aplicativo nativo para iOS e Android onde o paciente acompanha agendamentos, recebe lembretes, vê histórico de procedimentos e troca documentos com a clínica.",
+      "Aplicativo nativo para iOS e Android onde o cliente acompanha pedidos, recebe lembretes e troca documentos com a empresa.",
     valorDeNegocio:
       "Eleva a experiência do paciente e cria um canal direto de comunicação fora do WhatsApp.",
   },
@@ -119,7 +119,7 @@ const sugestoes: Sugestao[] = [
     categoria: "Marketing",
     titulo: "Automação de Carrossel Instagram",
     descricao:
-      "IA que gera automaticamente carrosséis prontos para postar: sobre os procedimentos da clínica, tendências de mercado estético e conteúdo educativo para o público-alvo.",
+      "IA que gera automaticamente carrosséis prontos para postar: sobre os serviços da empresa, tendências de mercado e conteúdo educativo para o público-alvo.",
     valorDeNegocio:
       "Produz conteúdo profissional sem precisar de agência ou designer — mantém o perfil ativo e com consistência.",
   },
@@ -128,9 +128,9 @@ const sugestoes: Sugestao[] = [
     categoria: "Marketing",
     titulo: "Automação de Artigo de Blog",
     descricao:
-      "IA que gera artigos otimizados para SEO e os publica automaticamente no site da clínica: sobre procedimentos, saúde, novidades da área e perguntas frequentes.",
+      "IA que gera artigos otimizados para SEO e os publica automaticamente no site da empresa: sobre serviços, novidades da área e perguntas frequentes.",
     valorDeNegocio:
-      "Aumenta o tráfego orgânico do Google e posiciona o Dr. Lucas como referência na especialidade.",
+      "Aumenta o tráfego orgânico do Google e posiciona a Innovate Brazil como referência no mercado.",
   },
   {
     icone: <BadgeDollarSign className="h-6 w-6" />,
@@ -149,7 +149,7 @@ export function ModuloSugestoes() {
       <HeroBanner
         icone={<Sparkles />}
         titulo="Sugestões de Features"
-        subtitulo="Funcionalidades disponíveis para implementação — expanda o sistema conforme a clínica cresce"
+        subtitulo="Funcionalidades disponíveis para implementação — expanda o sistema conforme a empresa cresce"
         gradientClasses="from-violet-600 to-purple-500"
       />
 
@@ -158,7 +158,7 @@ export function ModuloSugestoes() {
           Abaixo estão funcionalidades que podem ser adicionadas ao sistema em
           sprints futuras. Cada item representa um módulo independente — é
           possível contratar qualquer combinação de acordo com a prioridade da
-          clínica.
+          empresa.
         </p>
       </div>
 

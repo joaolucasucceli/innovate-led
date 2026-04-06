@@ -6,9 +6,6 @@ import {
   LayoutDashboard,
   Kanban,
   UserSearch,
-  Users,
-  CalendarDays,
-  Stethoscope,
   Settings,
   BookOpen,
 } from "lucide-react"
@@ -55,28 +52,6 @@ const navGroups: NavGroup[] = [
         titulo: "Leads",
         href: "/leads",
         icone: <UserSearch className="h-4 w-4" />,
-      },
-      {
-        titulo: "Pacientes",
-        href: "/pacientes",
-        icone: <Users className="h-4 w-4" />,
-        perfis: ["gestor"],
-      },
-      {
-        titulo: "Agendamentos",
-        href: "/agendamentos",
-        icone: <CalendarDays className="h-4 w-4" />,
-      },
-    ],
-  },
-  {
-    label: "Clínica",
-    itens: [
-      {
-        titulo: "Procedimentos",
-        href: "/procedimentos",
-        icone: <Stethoscope className="h-4 w-4" />,
-        perfis: ["gestor"],
       },
     ],
   },
@@ -157,7 +132,7 @@ export function AppSidebar({ perfil }: AppSidebarProps) {
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 border-r bg-muted/40 md:block">
         <div className="flex h-14 items-center border-b px-4 font-semibold">
-          Central Dr. Lucas
+          Central Innovate
         </div>
         <ScrollArea className="h-[calc(100svh-3.5rem)]">
           <NavContent perfil={perfil} />
@@ -180,7 +155,7 @@ export function MobileSidebarTrigger({ perfil }: AppSidebarProps) {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="flex h-14 items-center border-b px-4 font-semibold">
-          Central Dr. Lucas
+          Central Innovate
         </SheetTitle>
         <ScrollArea className="h-[calc(100svh-3.5rem)]">
           <NavContent perfil={perfil} />

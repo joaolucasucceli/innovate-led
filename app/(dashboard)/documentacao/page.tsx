@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   UserSearch,
   Kanban,
-  CalendarDays,
   Stethoscope,
   Bot,
   BarChart3,
@@ -16,9 +15,7 @@ import { BotaoDownloadDoc } from "@/components/features/documentacao/BotaoDownlo
 import { ModuloDashboard } from "@/components/features/documentacao/modulos/ModuloDashboard"
 import { ModuloLeads } from "@/components/features/documentacao/modulos/ModuloLeads"
 import { ModuloAtendimentos } from "@/components/features/documentacao/modulos/ModuloAtendimentos"
-import { ModuloAgendamentos } from "@/components/features/documentacao/modulos/ModuloAgendamentos"
-import { ModuloProcedimentos } from "@/components/features/documentacao/modulos/ModuloProcedimentos"
-import { ModuloAnaJulia } from "@/components/features/documentacao/modulos/ModuloAnaJulia"
+import { ModuloAndressa } from "@/components/features/documentacao/modulos/ModuloAndressa"
 import { ModuloRelatorios } from "@/components/features/documentacao/modulos/ModuloRelatorios"
 import { ModuloConfiguracoes } from "@/components/features/documentacao/modulos/ModuloConfiguracoes"
 import { ModuloUsuarios } from "@/components/features/documentacao/modulos/ModuloUsuarios"
@@ -45,22 +42,10 @@ export default function DocumentacaoPage() {
       conteudo: <ModuloAtendimentos />,
     },
     {
-      valor: "agendamentos",
-      titulo: "Agendamentos",
-      icone: <CalendarDays className="h-3.5 w-3.5" />,
-      conteudo: <ModuloAgendamentos />,
-    },
-    {
-      valor: "procedimentos",
-      titulo: "Procedimentos",
-      icone: <Stethoscope className="h-3.5 w-3.5" />,
-      conteudo: <ModuloProcedimentos />,
-    },
-    {
-      valor: "ana-julia",
-      titulo: "Ana Júlia",
+      valor: "andressa",
+      titulo: "Andressa",
       icone: <Bot className="h-3.5 w-3.5" />,
-      conteudo: <ModuloAnaJulia />,
+      conteudo: <ModuloAndressa />,
     },
     {
       valor: "relatorios",
@@ -92,7 +77,7 @@ export default function DocumentacaoPage() {
     <>
       <PageHeader
         titulo="Documentação"
-        descricao="Guia completo de uso da Central Dr. Lucas — selecione um módulo para começar"
+        descricao="Guia completo de uso da Central Innovate — selecione um módulo para começar"
       >
         <BotaoDownloadDoc />
       </PageHeader>

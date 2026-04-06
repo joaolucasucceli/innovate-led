@@ -9,7 +9,6 @@ export const captarLeadSiteSchema = z.object({
         /^[1-9]{2}9\d{8}$/.test(val) || /^55[1-9]{2}9\d{8}$/.test(val),
       "Número de WhatsApp inválido. Use o formato (XX) 9XXXX-XXXX"
     ),
-  procedimentoInteresse: z.string().min(1, "Selecione um procedimento"),
   consentimentoLgpd: z.literal(true, {
     error: "Consentimento obrigatório",
   }),

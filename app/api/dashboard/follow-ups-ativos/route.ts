@@ -24,7 +24,6 @@ export async function GET() {
         id: true,
         nome: true,
         statusFunil: true,
-        procedimentoInteresse: true,
         conversas: {
           where: { encerradaEm: null, followUpEnviados: { isEmpty: false } },
           select: { followUpEnviados: true, ultimaMensagemEm: true },
@@ -42,7 +41,6 @@ export async function GET() {
       id: lead.id,
       nome: lead.nome,
       statusFunil: lead.statusFunil,
-      procedimentoInteresse: lead.procedimentoInteresse,
       followUpEnviados: lead.conversas[0]?.followUpEnviados ?? [],
       ultimaMensagemEm: lead.conversas[0]?.ultimaMensagemEm?.toISOString() ?? null,
     }))

@@ -20,12 +20,12 @@ export function ModuloConfiguracoes() {
           {
             icone: <CalendarDays />,
             titulo: "Google Agenda",
-            descricao: "Integração OAuth com o Google Calendar para criação automática de eventos ao agendar consultas.",
+            descricao: "Integração OAuth com o Google Calendar para criação automática de eventos.",
           },
           {
             icone: <MessageCircle />,
             titulo: "WhatsApp via Uazapi",
-            descricao: "Conexão com o gateway WhatsApp para recebimento e envio de mensagens pela Ana Júlia.",
+            descricao: "Conexão com o gateway WhatsApp para recebimento e envio de mensagens pela Andressa.",
           },
           {
             icone: <Users />,
@@ -35,7 +35,7 @@ export function ModuloConfiguracoes() {
           {
             icone: <Zap />,
             titulo: "Automações CRON",
-            descricao: "Follow-ups e confirmações de consulta são executados automaticamente a cada hora. Possível forçar execução manual para testes.",
+            descricao: "Follow-ups são executados automaticamente a cada hora. Possível forçar execução manual para testes.",
           },
         ]}
       />
@@ -50,12 +50,12 @@ export function ModuloConfiguracoes() {
           {
             numero: 2,
             titulo: "Conecte o WhatsApp",
-            descricao: "Clique em 'WhatsApp', insira a URL e o token da Uazapi, salve e escaneie o QR Code com o celular do Dr. Lucas.",
+            descricao: "Clique em 'WhatsApp', insira a URL e o token da Uazapi, salve e escaneie o QR Code com o celular da empresa.",
           },
           {
             numero: 3,
             titulo: "Monitore as automações",
-            descricao: "O card 'Automações' exibe o status do CRON. Use 'Forçar execução' para testar follow-ups e confirmações manualmente.",
+            descricao: "O card 'Automações' exibe o status do CRON. Use 'Forçar execução' para testar follow-ups manualmente.",
           },
         ]}
       />
@@ -76,7 +76,7 @@ export function ModuloConfiguracoes() {
           ]}
         />
         <DicaImportante
-          texto="Sem o Google Agenda configurado, agendamentos não geram eventos no calendário. Sem o WhatsApp conectado, a Ana Júlia fica silenciosa e não recebe nem envia mensagens."
+          texto="Sem o WhatsApp conectado, a Andressa fica silenciosa e não recebe nem envia mensagens."
           variante="aviso"
         />
       </div>

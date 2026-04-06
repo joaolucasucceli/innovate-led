@@ -26,7 +26,6 @@ export default function AtendimentosPage() {
   const [novoLeadAberto, setNovoLeadAberto] = useState(false)
   const [novoAtendimentoAberto, setNovoAtendimentoAberto] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
   const [tab, setTab] = useState("kanban")
 
   // Chat state
@@ -46,13 +45,6 @@ export default function AtendimentosPage() {
   const [mostrarUpload, setMostrarUpload] = useState(false)
   const [mostrarGravador, setMostrarGravador] = useState(false)
   const [alterandoModo, setAlterandoModo] = useState(false)
-
-  useEffect(() => {
-    fetch("/api/procedimentos")
-      .then((r) => r.json())
-      .then((data) => setProcedimentos(data.dados || []))
-      .catch(() => {})
-  }, [])
 
   async function handleAssumirDevolver() {
     if (!conversaSelecionada) return
@@ -279,7 +271,6 @@ export default function AtendimentosPage() {
           setNovoLeadAberto(false)
           setRefreshKey((k) => k + 1)
         }}
-        procedimentos={procedimentos}
       />
 
       <NovoAtendimentoModal

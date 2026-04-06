@@ -18,7 +18,6 @@ interface RateLimitConfig {
 
 const CONFIGS: Record<string, RateLimitConfig> = {
   login: { prefixo: "rate_login:", maxTentativas: 5, janelaSegundos: 900 },
-  paciente: { prefixo: "rate_paciente:", maxTentativas: 100, janelaSegundos: 900 },
   captarSite: { prefixo: "rate_captar:", maxTentativas: 3, janelaSegundos: 3600 },
 }
 
@@ -72,20 +71,6 @@ export async function registrarTentativa(ip: string): Promise<void> {
 
 export async function resetarTentativas(ip: string): Promise<void> {
   return resetar(CONFIGS.login, ip)
-}
-
-// ==========================================
-// Paciente — rotas de dados médicos
-// ==========================================
-
-export async function checkRateLimitPaciente(
-  usuarioId: string
-): Promise<{ bloqueado: boolean; tentativas: number }> {
-  return verificarLimite(CONFIGS.paciente, usuarioId)
-}
-
-export async function registrarTentativaPaciente(usuarioId: string): Promise<void> {
-  return registrar(CONFIGS.paciente, usuarioId)
 }
 
 // ==========================================

@@ -78,7 +78,7 @@ export default function LoginPage() {
     <div className="flex min-h-svh items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Central Dr. Lucas</CardTitle>
+          <CardTitle className="text-2xl">Central Innovate</CardTitle>
           <CardDescription>
             Entre com suas credenciais para acessar o sistema
           </CardDescription>

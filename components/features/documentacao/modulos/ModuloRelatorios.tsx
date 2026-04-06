@@ -1,4 +1,4 @@
-import { BarChart3, Users, CalendarDays, MessageSquare } from "lucide-react"
+import { BarChart3, Users, MessageSquare } from "lucide-react"
 import { HeroBanner } from "../HeroBanner"
 import { FeaturesGrid } from "../FeaturesGrid"
 import { ComoUsarSection } from "../ComoUsarSection"
@@ -22,12 +22,7 @@ export function ModuloRelatorios() {
             titulo: "Relatório de funil",
             descricao: "Taxa de conversão geral, tempo médio entre etapas e distribuição dos leads por etapa no período selecionado.",
           },
-          {
-            icone: <CalendarDays />,
-            titulo: "Relatório de agendamentos",
-            descricao: "Total de agendamentos, taxa de realização e conversão por procedimento e canal de origem.",
-          },
-          {
+{
             icone: <MessageSquare />,
             titulo: "Relatório do agente IA",
             descricao: "Volume de mensagens, conversas ativas, efetividade dos follow-ups e taxa de resposta dos pacientes.",
@@ -40,7 +35,7 @@ export function ModuloRelatorios() {
           {
             numero: 1,
             titulo: "Selecione a aba",
-            descricao: "Escolha entre Funil, Agendamentos ou Atendimento IA conforme o tipo de análise desejada.",
+            descricao: "Escolha entre Funil ou Atendimento IA conforme o tipo de análise desejada.",
           },
           {
             numero: 2,

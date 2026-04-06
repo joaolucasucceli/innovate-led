@@ -27,29 +27,21 @@ const formSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   whatsapp: z.string().regex(/^\d{10,13}$/, "WhatsApp: apenas dígitos (10-13)"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
-  procedimentoInteresse: z.string().optional(),
   origem: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
 
-interface Procedimento {
-  id: string
-  nome: string
-}
-
 interface LeadFormProps {
   aberto: boolean
   onFechar: () => void
   onSucesso: () => void
-  procedimentos: Procedimento[]
 }
 
 export function LeadForm({
   aberto,
   onFechar,
   onSucesso,
-  procedimentos,
 }: LeadFormProps) {
   const {
     register,
@@ -63,7 +55,6 @@ export function LeadForm({
       nome: "",
       whatsapp: "",
       email: "",
-      procedimentoInteresse: "",
       origem: "",
     },
   })
@@ -88,7 +79,6 @@ export function LeadForm({
     }
 
     if (data.email) body.email = data.email
-    if (data.procedimentoInteresse) body.procedimentoInteresse = data.procedimentoInteresse
     if (data.origem) body.origem = data.origem
 
     try {
@@ -145,25 +135,6 @@ export function LeadForm({
             {errors.email && (
               <p className="text-xs text-destructive">{errors.email.message}</p>
             )}
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Procedimento de Interesse <span className="text-muted-foreground font-normal text-xs">(opcional)</span></Label>
-            <Select
-              onValueChange={(v) => setValue("procedimentoInteresse", v === "nenhum" ? "" : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="nenhum">Nenhum</SelectItem>
-                {procedimentos.map((p) => (
-                  <SelectItem key={p.id} value={p.nome}>
-                    {p.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="grid gap-2">

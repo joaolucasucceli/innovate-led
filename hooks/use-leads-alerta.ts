@@ -9,7 +9,6 @@ export interface LeadAlerta {
   statusFunil: string
   ultimaMovimentacaoEm: string | null
   atualizadoEm: string
-  procedimentoInteresse: string | null
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())

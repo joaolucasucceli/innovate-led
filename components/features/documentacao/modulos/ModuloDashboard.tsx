@@ -20,17 +20,17 @@ export function ModuloDashboard() {
           {
             icone: <TrendingUp />,
             titulo: "Métricas principais",
-            descricao: "Total de leads, agendamentos no período, taxa de conversão e atividade do dia reunidos em cards de fácil leitura.",
+            descricao: "Total de leads, novos no período, taxa de conversão e atividade do dia reunidos em cards de fácil leitura.",
           },
           {
             icone: <GitBranch />,
             titulo: "Funil por etapa",
-            descricao: "Gráfico de barras mostrando a distribuição dos leads em cada uma das 9 etapas do kanban.",
+            descricao: "Gráfico de barras mostrando a distribuição dos leads em cada uma das 6 etapas do kanban.",
           },
           {
             icone: <PieChart />,
             titulo: "Leads por origem",
-            descricao: "Visualização das fontes de aquisição de pacientes (Instagram, indicação, Google, etc.).",
+            descricao: "Visualização das fontes de aquisição de leads (Instagram, indicação, Google, etc.).",
           },
           {
             icone: <Bell />,
@@ -50,7 +50,7 @@ export function ModuloDashboard() {
           {
             numero: 2,
             titulo: "Analise as métricas",
-            descricao: "Observe os KPIs nos cards do topo: total de leads, novos no período, agendamentos e taxa de conversão.",
+            descricao: "Observe os KPIs nos cards do topo: total de leads, novos no período e taxa de conversão.",
           },
           {
             numero: 3,
@@ -66,12 +66,12 @@ export function ModuloDashboard() {
             {
               perfil: "Gestor",
               acesso: "total",
-              acoes: ["Vê todos os KPIs incluindo taxa de conversão", "Acessa gráfico de leads por origem", "Visualiza atividade da Ana Júlia"],
+              acoes: ["Vê todos os KPIs incluindo taxa de conversão", "Acessa gráfico de leads por origem", "Visualiza atividade da Andressa"],
             },
             {
               perfil: "Atendente",
               acesso: "parcial",
-              acoes: ["Vê leads do dia e agendamentos da semana", "Não vê taxa de conversão nem gráficos avançados"],
+              acoes: ["Vê leads do dia", "Não vê taxa de conversão nem gráficos avançados"],
             },
           ]}
         />

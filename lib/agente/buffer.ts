@@ -7,8 +7,8 @@ export interface BufferMensagem {
   messageId: string
 }
 
-const BUFFER_SUFFIX = "_buf_dr-lucas"
-const DEBOUNCE_SUFFIX = "_deb_dr-lucas"
+const BUFFER_SUFFIX = "_buf_innovate"
+const DEBOUNCE_SUFFIX = "_deb_innovate"
 const BUFFER_TTL = 60 // segundos
 const DEBOUNCE_TTL = 20 // segundos
 

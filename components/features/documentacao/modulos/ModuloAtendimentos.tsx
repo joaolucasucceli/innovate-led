@@ -11,7 +11,7 @@ export function ModuloAtendimentos() {
       <HeroBanner
         icone={<Kanban />}
         titulo="Atendimentos"
-        subtitulo="Visualização em kanban do funil de atendimento com 9 etapas"
+        subtitulo="Visualização em kanban do funil de atendimento com 6 etapas"
         gradientClasses="from-orange-500 to-amber-400"
       />
 
@@ -19,23 +19,23 @@ export function ModuloAtendimentos() {
         features={[
           {
             icone: <Columns2 />,
-            titulo: "9 etapas do funil",
-            descricao: "Acolhimento → Qualificação → Agendamento → Consulta Agendada → Consulta Realizada → Sinal Pago → Procedimento Agendado → Concluído → Perdido.",
+            titulo: "6 etapas do funil",
+            descricao: "Qualificação → Encaminhado → Tarefa Criada → Em Negociação → Venda Realizada → Perdido.",
           },
           {
             icone: <Bot />,
             titulo: "Movimentação automática",
-            descricao: "As etapas 1 a 4 são movidas automaticamente pela Ana Júlia conforme o atendimento via WhatsApp avança.",
+            descricao: "As primeiras etapas são movidas automaticamente pela Andressa conforme o atendimento via WhatsApp avança.",
           },
           {
             icone: <Hand />,
-            titulo: "Ação manual (etapas 5–8)",
-            descricao: "Consulta Realizada, Sinal Pago, Procedimento Agendado e Concluído exigem ação manual do atendente ou gestor.",
+            titulo: "Ação manual (etapas finais)",
+            descricao: "Em Negociação e Venda Realizada exigem ação manual do atendente ou gestor.",
           },
           {
             icone: <Filter />,
             titulo: "Filtros avançados",
-            descricao: "Filtre cards por responsável, etapa, procedimento de interesse ou busca por nome do paciente.",
+            descricao: "Filtre cards por responsável, etapa ou busca por nome do lead.",
           },
         ]}
       />
@@ -50,7 +50,7 @@ export function ModuloAtendimentos() {
           {
             numero: 2,
             titulo: "Avance leads manualmente",
-            descricao: "Use o menu do card (três pontos) ou arraste para mudar a etapa de um lead nas colunas 5 a 8.",
+            descricao: "Use o menu do card (três pontos) ou arraste para mudar a etapa de um lead nas colunas manuais.",
           },
           {
             numero: 3,
@@ -76,7 +76,7 @@ export function ModuloAtendimentos() {
           ]}
         />
         <DicaImportante
-          texto="A Ana Júlia move leads automaticamente até 'Consulta Agendada' (etapa 4). A partir daí, o time clínico assume o controle manual do funil."
+          texto="A Andressa move leads automaticamente pelas primeiras etapas. A partir de 'Em Negociação', o time assume o controle manual do funil."
           variante="info"
         />
       </div>

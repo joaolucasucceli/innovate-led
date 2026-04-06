@@ -8,26 +8,20 @@ import { ModalMotivoPerdido } from "./ModalMotivoPerdido"
 import type { KanbanLead } from "@/hooks/use-kanban"
 
 const ETAPA_LABELS: Record<string, string> = {
-  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
-  agendamento: "Agendamento",
-  consulta_agendada: "Consulta Agendada",
-  consulta_realizada: "Consulta Realizada",
-  sinal_pago: "Sinal Pago",
-  procedimento_agendado: "Procedimento Agendado",
-  concluido: "Concluído",
+  encaminhado: "Encaminhado",
+  tarefa_criada: "Tarefa Criada",
+  em_negociacao: "Em Negociação",
+  venda_realizada: "Venda Realizada",
   perdido: "Perdido",
 }
 
 const ETAPAS_FUNIL = [
-  "acolhimento",
   "qualificacao",
-  "agendamento",
-  "consulta_agendada",
-  "consulta_realizada",
-  "sinal_pago",
-  "procedimento_agendado",
-  "concluido",
+  "encaminhado",
+  "tarefa_criada",
+  "em_negociacao",
+  "venda_realizada",
   "perdido",
 ]
 

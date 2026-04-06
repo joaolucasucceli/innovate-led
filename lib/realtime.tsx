@@ -13,13 +13,12 @@ import type { RealtimeChannel } from "@supabase/supabase-js"
 import { toast } from "sonner"
 
 // Tópicos que os hooks podem escutar
-export type Topico = "leads" | "mensagens" | "agendamentos" | "conversas" | "pacientes"
+export type Topico = "leads" | "mensagens" | "conversas" | "pacientes"
 
 // Mapeamento: nome da tabela Postgres → tópico
 const TABELA_PARA_TOPICO: Record<string, Topico> = {
   leads: "leads",
   mensagens_whatsapp: "mensagens",
-  agendamentos: "agendamentos",
   conversas: "conversas",
   pacientes: "pacientes",
 }

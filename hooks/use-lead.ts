@@ -8,10 +8,9 @@ interface Lead {
   nome: string
   whatsapp: string
   email: string | null
-  procedimentoInteresse: string | null
   statusFunil: string
   origem: string | null
-  sobreOPaciente: string | null
+  sobreOLead: string | null
   responsavelId: string | null
   arquivado: boolean
   arquivadoEm: string | null
@@ -21,14 +20,6 @@ interface Lead {
   ciclosCompletos: number
   ehRetorno: boolean
   responsavel: { id: string; nome: string } | null
-  agendamentos: Array<{
-    id: string
-    dataHora: string
-    status: string
-    observacao: string | null
-    ciclo: number
-    procedimento: { id: string; nome: string } | null
-  }>
   conversas: Array<{
     id: string
     etapa: string
@@ -49,7 +40,6 @@ interface Lead {
     ciclo: number
     criadoEm: string
   }>
-  paciente: { id: string; nome: string } | null
 }
 
 interface UseLeadReturn {

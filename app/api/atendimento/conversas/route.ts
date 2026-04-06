@@ -50,7 +50,6 @@ export async function GET(req: Request) {
           nome: true,
           whatsapp: true,
           statusFunil: true,
-          procedimentoInteresse: true,
         },
       },
       atendente: {

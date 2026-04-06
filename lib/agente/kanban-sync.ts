@@ -33,21 +33,10 @@ interface ResultadoNovoCiclo {
 }
 
 /**
- * Abre um novo ciclo de atendimento para um lead que retornou (concluido ou perdido).
+ * Abre um novo ciclo de atendimento para um lead que retornou (venda_realizada ou perdido).
  * Incrementa cicloAtual, reseta statusFunil e cria nova conversa vinculada ao ciclo.
  */
 export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo> {
-  // Bloquear se lead já foi convertido em paciente
-  const pacienteVinculado = await prisma.paciente.findUnique({
-    where: { leadOrigemId: leadId },
-    select: { id: true },
-  })
-  if (pacienteVinculado) {
-    throw new Error(
-      `Lead ${leadId} já foi convertido em paciente (${pacienteVinculado.id}). Novo ciclo bloqueado.`
-    )
-  }
-
   const lead = await prisma.lead.findUniqueOrThrow({ where: { id: leadId } })
 
   const statusAnterior = lead.statusFunil
@@ -59,7 +48,7 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
     timeZone: "America/Sao_Paulo",
   })
 
-  const notaRetorno = `\n\n[Ciclo ${novoCiclo} iniciado em ${dataFormatada}]: Paciente retornou via WhatsApp. Status anterior: ${statusAnterior}.`
+  const notaRetorno = `\n\n[Ciclo ${novoCiclo} iniciado em ${dataFormatada}]: Contato retornou via WhatsApp. Status anterior: ${statusAnterior}.`
 
   const [novaConversa] = await prisma.$transaction([
     prisma.conversa.create({
@@ -79,8 +68,8 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
         ultimaMovimentacaoEm: new Date(),
         arquivado: false,
         arquivadoEm: null,
-        sobreOPaciente: lead.sobreOPaciente
-          ? `${lead.sobreOPaciente}${notaRetorno}`
+        sobreOLead: lead.sobreOLead
+          ? `${lead.sobreOLead}${notaRetorno}`
           : notaRetorno.trim(),
       },
     }),

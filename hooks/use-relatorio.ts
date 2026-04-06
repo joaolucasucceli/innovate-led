@@ -55,7 +55,7 @@ export function useRelatorio({
 }
 
 export function exportarRelatorio(
-  tipo: "leads" | "agendamentos" | "conversas",
+  tipo: "leads" | "conversas",
   dataInicio?: string,
   dataFim?: string
 ) {

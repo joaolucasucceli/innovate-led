@@ -24,7 +24,7 @@ export async function buscarConversasParaFollowUp(): Promise<FollowUpPendente[]>
         lt: ha1h,
       },
       etapa: {
-        in: ["acolhimento", "qualificacao", "agendamento"],
+        in: ["qualificacao", "encaminhado"],
       },
       lead: {
         arquivado: false,
@@ -43,7 +43,6 @@ export async function buscarConversasParaFollowUp(): Promise<FollowUpPendente[]>
   for (const conversa of conversas) {
     const ultimaMsg = conversa.ultimaMensagemEm!
 
-    // Priorizar o mais urgente (24h > 6h > 1h)
     if (ultimaMsg < ha24h && !conversa.followUpEnviados.includes("24h")) {
       pendentes.push({ conversa, tipo: "24h" })
     } else if (ultimaMsg < ha6h && !conversa.followUpEnviados.includes("6h")) {
@@ -61,21 +60,20 @@ async function gerarMensagemFollowUp(
   lead: Lead,
   tipo: "1h" | "6h" | "24h"
 ): Promise<string> {
-  const nome = lead.nome.replace(/^WhatsApp\s+/, "") || "paciente"
-  const procedimento = lead.procedimentoInteresse || "procedimentos estéticos"
+  const nome = lead.nome.replace(/^WhatsApp\s+/, "") || "cliente"
 
   // Templates de fallback
   const templates: Record<string, string> = {
-    "1h": `Oi ${nome}, tudo bem? 😊 Ainda tenho algumas informações sobre ${procedimento} pra compartilhar com você. Posso te ajudar?`,
-    "6h": `Oi ${nome}! Só passando pra lembrar que o Dr. Lucas é referência em ${procedimento}. A pré-consulta é gratuita e sem compromisso — quer agendar? 😊`,
-    "24h": `Oi ${nome}! Vou deixar o espaço aberto por aqui, mas se quiser conversar sobre ${procedimento} ou agendar uma consulta, é só chamar! Estarei por aqui 😊`,
+    "1h": `Oi ${nome}, tudo bem? 😊 Ainda tenho algumas informações sobre painéis LED pra compartilhar com você. Posso te ajudar?`,
+    "6h": `Oi ${nome}! Só passando pra lembrar que a Innovate Brazil é referência em painéis LED. Nosso consultor pode fazer uma análise personalizada do seu projeto — quer que eu encaminhe? 😊`,
+    "24h": `Oi ${nome}! Vou deixar o espaço aberto por aqui, mas se quiser conversar sobre seu projeto de painéis LED ou falar com nosso consultor, é só chamar! Estarei por aqui 😊`,
   }
 
   try {
     const prompts: Record<string, string> = {
-      "1h": `Escreva uma mensagem curta de follow-up leve e amigável no WhatsApp para ${nome}, que demonstrou interesse em ${procedimento} mas parou de responder há 1 hora. Tom acolhedor, informal, máximo 2 linhas. Não mencione preços. Você é Ana Júlia, assistente da clínica do Dr. Lucas Felipe.`,
-      "6h": `Escreva uma mensagem de follow-up com valor no WhatsApp para ${nome}, que demonstrou interesse em ${procedimento} mas parou de responder há 6 horas. Mencione brevemente um benefício do procedimento e reforce que a pré-consulta é gratuita. Tom acolhedor, máximo 3 linhas. Você é Ana Júlia, assistente da clínica do Dr. Lucas Felipe.`,
-      "24h": `Escreva uma mensagem de encerramento gentil no WhatsApp para ${nome}, que demonstrou interesse em ${procedimento} mas não responde há 24 horas. Deixe a porta aberta para retorno. Tom empático, máximo 2 linhas. Você é Ana Júlia, assistente da clínica do Dr. Lucas Felipe.`,
+      "1h": `Escreva uma mensagem curta de follow-up leve e amigável no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 1 hora. Tom acolhedor, informal, máximo 2 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
+      "6h": `Escreva uma mensagem de follow-up com valor no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 6 horas. Mencione brevemente um benefício dos painéis LED e reforce que um consultor pode fazer análise gratuita. Tom acolhedor, máximo 3 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
+      "24h": `Escreva uma mensagem de encerramento gentil no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas não responde há 24 horas. Deixe a porta aberta para retorno. Tom empático, máximo 2 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
     }
 
     const resposta = await openai.chat.completions.create({

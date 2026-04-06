@@ -32,7 +32,7 @@ export default function ConfiguracoesPage() {
       }
       const data = await res.json()
       toast.success(
-        `Automações executadas: ${data.followups} follow-ups, ${data.confirmacoes} confirmações, ${data.autoClose} encerradas`
+        `Automações executadas: ${data.followups} follow-ups, ${data.autoClose} encerradas`
       )
     } catch {
       toast.error("Erro ao executar automações")
@@ -80,7 +80,7 @@ export default function ConfiguracoesPage() {
             <div className="flex-1">
               <CardTitle className="text-base">Google Agenda</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Sincronize agendamentos com o Google Calendar
+                Sincronize compromissos com o Google Calendar
               </p>
             </div>
           </CardHeader>
@@ -191,7 +191,7 @@ export default function ConfiguracoesPage() {
             <div className="flex-1">
               <CardTitle className="text-base">Automações</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Follow-ups e confirmações de consulta
+                Follow-ups e encerramento automático
               </p>
               <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />

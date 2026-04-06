@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const resultado = await criarInstancia(
       config.uazapiUrl,
       config.adminToken,
-      "dr-lucas"
+      "innovate"
     )
 
     if (!resultado.ok) {

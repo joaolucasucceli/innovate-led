@@ -7,7 +7,6 @@ export interface LeadFollowUpAtivo {
   id: string
   nome: string
   statusFunil: string
-  procedimentoInteresse: string | null
   followUpEnviados: string[]
   ultimaMensagemEm: string | null
 }

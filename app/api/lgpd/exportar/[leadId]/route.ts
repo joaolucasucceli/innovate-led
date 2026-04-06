@@ -27,15 +27,6 @@ export async function GET(
           },
         },
       },
-      agendamentos: {
-        select: {
-          id: true,
-          dataHora: true,
-          status: true,
-          observacao: true,
-          criadoEm: true,
-        },
-      },
       fotos: {
         select: {
           id: true,
@@ -59,9 +50,8 @@ export async function GET(
       nome: lead.nome,
       whatsapp: lead.whatsapp,
       email: lead.email,
-      procedimentoInteresse: lead.procedimentoInteresse,
       origem: lead.origem,
-      sobreOPaciente: lead.sobreOPaciente,
+      sobreOLead: lead.sobreOLead,
       consentimentoLgpd: lead.consentimentoLgpd,
       consentimentoLgpdEm: lead.consentimentoLgpdEm,
       criadoEm: lead.criadoEm,
@@ -72,7 +62,6 @@ export async function GET(
       criadoEm: c.criadoEm,
       mensagens: c.mensagens,
     })),
-    agendamentos: lead.agendamentos,
     fotos: lead.fotos.map((f) => ({
       id: f.id,
       url: f.url,

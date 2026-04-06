@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  if (lead.statusFunil !== "concluido" && lead.statusFunil !== "perdido") {
+  if (lead.statusFunil !== "venda_realizada" && lead.statusFunil !== "perdido") {
     return NextResponse.json(
       { error: "Lead já possui atendimento em andamento" },
       { status: 409 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         cicloAtual: novoCiclo,
         ciclosCompletos: { increment: 1 },
         ehRetorno: true,
-        statusFunil: "acolhimento",
+        statusFunil: "qualificacao",
         motivoPerda: null,
         ultimaMovimentacaoEm: new Date(),
       },
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       data: {
         leadId,
         ciclo: novoCiclo,
-        etapa: "acolhimento",
+        etapa: "qualificacao",
       },
     }),
   ])

@@ -102,12 +102,6 @@ export function KanbanCard({ lead, index }: KanbanCardProps) {
             </div>
           </div>
 
-          {lead.procedimentoInteresse && (
-            <p className="mt-1 text-xs text-muted-foreground truncate">
-              {lead.procedimentoInteresse}
-            </p>
-          )}
-
           <div className="mt-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               {lead.responsavel ? (

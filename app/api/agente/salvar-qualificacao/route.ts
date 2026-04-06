@@ -2,14 +2,6 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
-import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
-
-// Transições permitidas a partir de cada etapa
-const TRANSICOES_PERMITIDAS: Record<string, string[]> = {
-  acolhimento: ["qualificacao"],
-  qualificacao: ["agendamento"],
-  agendamento: ["consulta_agendada"],
-}
 
 export async function POST(request: NextRequest) {
   const erro = validarApiSecret(request)
@@ -18,10 +10,8 @@ export async function POST(request: NextRequest) {
   let body: {
     leadId?: string
     conversaId?: string
-    sobreOPaciente?: string
-    procedimentoInteresse?: string
-    nomePaciente?: string
-    avancarPara?: string
+    sobreOLead?: string
+    nomeLead?: string
   }
   try {
     body = await request.json()
@@ -29,39 +19,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Payload inválido" }, { status: 400 })
   }
 
-  const { leadId, conversaId, sobreOPaciente, procedimentoInteresse, nomePaciente, avancarPara } = body
+  const { leadId, conversaId, sobreOLead, nomeLead } = body
 
-  if (!leadId || !conversaId || !sobreOPaciente) {
+  if (!leadId || !conversaId || !sobreOLead) {
     return NextResponse.json(
-      { error: "leadId, conversaId e sobreOPaciente são obrigatórios" },
+      { error: "leadId, conversaId e sobreOLead são obrigatórios" },
       { status: 400 }
     )
   }
 
-  // APPEND em sobreOPaciente — NUNCA sobrescrever
+  // APPEND em sobreOLead — NUNCA sobrescrever
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    select: { sobreOPaciente: true, nome: true, statusFunil: true },
+    select: { sobreOLead: true, nome: true, whatsapp: true },
   })
 
-  const textoExistente = lead?.sobreOPaciente || ""
+  const textoExistente = lead?.sobreOLead || ""
   const novoTexto = textoExistente
-    ? `${textoExistente}\n---\n${sobreOPaciente}`
-    : sobreOPaciente
+    ? `${textoExistente}\n---\n${sobreOLead}`
+    : sobreOLead
 
   const dadosAtualizar: Record<string, unknown> = {
-    sobreOPaciente: novoTexto,
-  }
-
-  if (procedimentoInteresse) {
-    dadosAtualizar.procedimentoInteresse = procedimentoInteresse
+    sobreOLead: novoTexto,
   }
 
   // Atualizar nome do lead se informado e o atual é genérico (WhatsApp XXXXX)
-  if (nomePaciente) {
+  if (nomeLead) {
     const nomeAtual = lead?.nome || ""
     if (nomeAtual.startsWith("WhatsApp ") || !nomeAtual) {
-      dadosAtualizar.nome = nomePaciente
+      dadosAtualizar.nome = nomeLead
     }
   }
 
@@ -70,33 +56,19 @@ export async function POST(request: NextRequest) {
     data: dadosAtualizar,
   })
 
-  // Avançar etapa se solicitado ou se estiver em acolhimento (auto-avança para qualificacao)
-  const etapaAtual = lead?.statusFunil || "acolhimento"
-  let novaEtapa: string | null = null
-
-  if (avancarPara) {
-    // IA solicitou avanço explícito — validar se é permitido
-    const permitidas = TRANSICOES_PERMITIDAS[etapaAtual] || []
-    if (permitidas.includes(avancarPara)) {
-      novaEtapa = avancarPara
-    }
-  } else if (etapaAtual === "acolhimento") {
-    // Auto-avança acolhimento → qualificacao na primeira salvar_qualificacao
-    novaEtapa = "qualificacao"
+  // Disparar webhook n8n (fire-and-forget)
+  const webhookUrl = process.env.N8N_WEBHOOK_SALVAR_QUALIFICACAO_URL
+  if (webhookUrl) {
+    fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: nomeLead || lead?.nome,
+        telefone: lead?.whatsapp,
+        qualificacao: sobreOLead,
+      }),
+    }).catch((err) => console.error("[n8n] Erro webhook salvar-qualificacao:", err))
   }
 
-  if (novaEtapa) {
-    await prisma.$transaction([
-      prisma.lead.update({
-        where: { id: leadId },
-        data: { statusFunil: novaEtapa as StatusFunil, ultimaMovimentacaoEm: new Date() },
-      }),
-      prisma.conversa.update({
-        where: { id: conversaId },
-        data: { etapa: novaEtapa as EtapaConversa },
-      }),
-    ])
-  }
-
-  return NextResponse.json({ sucesso: true, etapaAvancada: novaEtapa })
+  return NextResponse.json({ sucesso: true })
 }

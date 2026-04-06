@@ -1,174 +1,86 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions"
 
-/** Definição das 6 ferramentas do agente no formato OpenAI function calling */
+/** Definição das 3 ferramentas do agente no formato OpenAI function calling */
 export const ferramentasAgente: ChatCompletionTool[] = [
-  {
-    type: "function",
-    function: {
-      name: "consultar_paciente",
-      description:
-        "Busca dados do paciente pelo número de WhatsApp. Se não existir, cria um novo lead. Use sempre no início da conversa para obter contexto.",
-      parameters: {
-        type: "object",
-        properties: {
-          whatsapp: {
-            type: "string",
-            description: "Número de WhatsApp do paciente (apenas números, ex: 5511999998888)",
-          },
-        },
-        required: ["whatsapp"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "registrar_mensagem",
-      description:
-        "Registra uma mensagem na conversa do paciente no banco de dados.",
-      parameters: {
-        type: "object",
-        properties: {
-          conversaId: {
-            type: "string",
-            description: "ID da conversa (opcional — se não fornecido, cria nova conversa)",
-          },
-          leadId: {
-            type: "string",
-            description: "ID do lead/paciente",
-          },
-          conteudo: {
-            type: "string",
-            description: "Conteúdo da mensagem",
-          },
-          direcao: {
-            type: "string",
-            enum: ["paciente", "agente"],
-            description: "Direção da mensagem: 'paciente' se recebida, 'agente' se enviada",
-          },
-          messageIdWhatsapp: {
-            type: "string",
-            description: "ID da mensagem no WhatsApp (opcional)",
-          },
-        },
-        required: ["leadId", "conteudo", "direcao"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "consultar_procedimentos",
-      description:
-        "Consulta os procedimentos disponíveis na clínica. NUNCA inclua valores/preços na resposta ao paciente.",
-      parameters: {
-        type: "object",
-        properties: {
-          filtro: {
-            type: "string",
-            description: "Filtro opcional por nome do procedimento",
-          },
-        },
-      },
-    },
-  },
   {
     type: "function",
     function: {
       name: "salvar_qualificacao",
       description:
-        "Salva informações de qualificação do paciente. Se o lead estiver em 'acolhimento', avança automaticamente para 'qualificacao'. Também atualiza o nome do lead se informado via nomePaciente. Use sempre que coletar informações novas.",
+        "Salva informações de qualificação do lead no CRM. Use sempre que coletar informações novas sobre o contato. O campo sobreOLead é cumulativo (nunca sobrescrito). Também atualiza o nome do lead se informado via nomeLead.",
       parameters: {
         type: "object",
         properties: {
           leadId: {
             type: "string",
-            description: "ID do lead/paciente",
+            description: "ID do lead/contato",
           },
           conversaId: {
             type: "string",
             description: "ID da conversa ativa",
           },
-          sobreOPaciente: {
+          sobreOLead: {
             type: "string",
-            description: "Informações coletadas sobre o paciente (será adicionado ao histórico, nunca sobrescrito)",
+            description: "Informações coletadas sobre o lead (será adicionado ao histórico, nunca sobrescrito). Formato: 'Objetivo: X | Ambiente: Y | Distância: Z | Tamanho: W | Tipo: fixo/móvel | Prazo: P | Investimento: I | Foto: sim/não'",
           },
-          procedimentoInteresse: {
+          nomeLead: {
             type: "string",
-            description: "Procedimento de interesse do paciente (opcional)",
-          },
-          nomePaciente: {
-            type: "string",
-            description: "Nome real do paciente, informado por ele na conversa. Atualiza o nome do lead se o atual é genérico.",
-          },
-          avancarPara: {
-            type: "string",
-            enum: ["qualificacao", "agendamento"],
-            description: "Avança a etapa do funil. Use 'agendamento' quando a qualificação estiver completa e for hora de agendar a consulta.",
+            description: "Nome real do contato, informado por ele na conversa. Atualiza o nome do lead se o atual é genérico.",
           },
         },
-        required: ["leadId", "conversaId", "sobreOPaciente"],
+        required: ["leadId", "conversaId", "sobreOLead"],
       },
     },
   },
   {
     type: "function",
     function: {
-      name: "registrar_agendamento",
+      name: "encaminhar_contato",
       description:
-        "Cria um agendamento de consulta para o paciente. Avança automaticamente o funil para 'consulta_agendada'.",
+        "Move o lead para a etapa 'encaminhado' no funil do CRM. Usar após salvar a qualificação completa e quando o cliente confirmar interesse em falar com o consultor comercial.",
       parameters: {
         type: "object",
         properties: {
           leadId: {
             type: "string",
-            description: "ID do lead/paciente",
+            description: "ID do lead/contato",
           },
           conversaId: {
             type: "string",
             description: "ID da conversa ativa",
           },
-          procedimentoId: {
+        },
+        required: ["leadId", "conversaId"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "criar_tarefa",
+      description:
+        "Cria uma tarefa de ligação para o consultor comercial entrar em contato com o cliente. Usar APÓS coletar o dia e horário de preferência do cliente e APÓS ter usado as ferramentas salvar_qualificacao e encaminhar_contato.",
+      parameters: {
+        type: "object",
+        properties: {
+          leadId: {
             type: "string",
-            description: "ID do procedimento (opcional)",
+            description: "ID do lead/contato",
+          },
+          conversaId: {
+            type: "string",
+            description: "ID da conversa ativa",
           },
           dataHora: {
             type: "string",
-            description: "Data e hora do agendamento no formato ISO 8601 (ex: 2026-03-20T14:00:00)",
+            description: "Dia e horário de preferência do cliente para receber a ligação (ex: 'Hoje às 16h', 'Segunda às 10h', 'Amanhã de manhã')",
           },
-          observacao: {
+          resumo: {
             type: "string",
-            description: "Observações adicionais (opcional)",
+            description: "Resumo completo da qualificação. Formato: 'Nome: X | Objetivo: Y | Ambiente: Z | Distância: W | Tamanho: T | Tipo: fixo/móvel | Prazo: P | Investimento: I | Foto: sim/não'",
           },
         },
-        required: ["leadId", "conversaId", "dataHora"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "atualizar_agendamento",
-      description:
-        "Remarca ou cancela um agendamento existente do paciente.",
-      parameters: {
-        type: "object",
-        properties: {
-          agendamentoId: {
-            type: "string",
-            description: "ID do agendamento",
-          },
-          acao: {
-            type: "string",
-            enum: ["remarcar", "cancelar"],
-            description: "Ação a ser realizada: remarcar ou cancelar",
-          },
-          novaDataHora: {
-            type: "string",
-            description: "Nova data e hora (obrigatório se ação for 'remarcar'), formato ISO 8601",
-          },
-        },
-        required: ["agendamentoId", "acao"],
+        required: ["leadId", "conversaId", "dataHora", "resumo"],
       },
     },
   },

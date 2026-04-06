@@ -8,7 +8,6 @@ export interface KanbanLead {
   id: string
   nome: string
   whatsapp: string
-  procedimentoInteresse: string | null
   statusFunil: string
   criadoEm: string
   atualizadoEm: string
@@ -23,7 +22,6 @@ export interface KanbanLead {
 
 interface UseKanbanParams {
   responsavelId?: string
-  procedimentoInteresse?: string
 }
 
 interface KanbanData {
@@ -36,7 +34,6 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json())
 function buildUrl(params: UseKanbanParams) {
   const searchParams = new URLSearchParams()
   if (params.responsavelId) searchParams.set("responsavelId", params.responsavelId)
-  if (params.procedimentoInteresse) searchParams.set("procedimentoInteresse", params.procedimentoInteresse)
   const qs = searchParams.toString()
   return `/api/leads/kanban${qs ? `?${qs}` : ""}`
 }

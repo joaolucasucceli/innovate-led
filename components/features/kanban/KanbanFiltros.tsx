@@ -17,40 +17,25 @@ interface Usuario {
   nome: string
 }
 
-interface Procedimento {
-  id: string
-  nome: string
-}
-
 interface KanbanFiltrosProps {
   responsavelId: string
-  procedimentoInteresse: string
   onResponsavelChange: (valor: string) => void
-  onProcedimentoChange: (valor: string) => void
 }
 
 export function KanbanFiltros({
   responsavelId,
-  procedimentoInteresse,
   onResponsavelChange,
-  onProcedimentoChange,
 }: KanbanFiltrosProps) {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [procedimentos, setProcedimentos] = useState<Procedimento[]>([])
 
   useEffect(() => {
     fetch("/api/usuarios")
       .then((r) => r.json())
       .then((data) => setUsuarios(data.dados || []))
       .catch(() => {})
-
-    fetch("/api/procedimentos")
-      .then((r) => r.json())
-      .then((data) => setProcedimentos(data.dados || []))
-      .catch(() => {})
   }, [])
 
-  const temFiltro = responsavelId || procedimentoInteresse
+  const temFiltro = !!responsavelId
 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -71,23 +56,6 @@ export function KanbanFiltros({
         </SelectContent>
       </Select>
 
-      <Select
-        value={procedimentoInteresse || "todos"}
-        onValueChange={(v) => onProcedimentoChange(v === "todos" ? "" : v)}
-      >
-        <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Procedimento" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="todos">Todos os procedimentos</SelectItem>
-          {procedimentos.map((p) => (
-            <SelectItem key={p.id} value={p.nome}>
-              {p.nome}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
       {temFiltro && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -96,7 +64,6 @@ export function KanbanFiltros({
               size="sm"
               onClick={() => {
                 onResponsavelChange("")
-                onProcedimentoChange("")
               }}
             >
               <X className="mr-1 h-4 w-4" />

@@ -13,7 +13,7 @@ export default function LgpdPage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">1. Sobre este documento</h2>
             <p>
-              Esta Política de Privacidade descreve como a clínica do Dr. Lucas Felipe
+              Esta Política de Privacidade descreve como a Innovate Brazil
               coleta, utiliza e protege seus dados pessoais em conformidade com a
               Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
             </p>
@@ -22,16 +22,16 @@ export default function LgpdPage() {
           <section>
             <h2 className="text-xl font-semibold mb-3">2. Dados coletados</h2>
             <p className="mb-2">
-              Para prestação dos serviços de atendimento e agendamento, coletamos:
+              Para prestação dos serviços de atendimento e comercialização de painéis LED, coletamos:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Nome completo</li>
               <li>Número de WhatsApp</li>
               <li>Endereço de e-mail (quando fornecido)</li>
               <li>Histórico de conversas via WhatsApp com o atendente virtual</li>
-              <li>Informações sobre procedimentos de interesse</li>
+              <li>Informações sobre produtos de interesse</li>
               <li>Fotos e imagens enviadas durante o atendimento</li>
-              <li>Dados de agendamentos e consultas realizadas</li>
+              <li>Dados de negociações e pedidos realizados</li>
             </ul>
           </section>
 
@@ -39,8 +39,8 @@ export default function LgpdPage() {
             <h2 className="text-xl font-semibold mb-3">3. Finalidade do tratamento</h2>
             <p className="mb-2">Seus dados são utilizados exclusivamente para:</p>
             <ul className="list-disc pl-6 space-y-1">
-              <li>Realizar e gerenciar agendamentos de consultas e procedimentos</li>
-              <li>Enviar confirmações e lembretes de compromissos</li>
+              <li>Realizar e gerenciar negociações comerciais</li>
+              <li>Enviar atualizações e informações sobre pedidos</li>
               <li>Personalizar o atendimento prestado</li>
               <li>Cumprir obrigações legais e regulatórias</li>
             </ul>
@@ -107,14 +107,14 @@ export default function LgpdPage() {
               Para exercer qualquer um dos direitos acima, entre em contato:
             </p>
             <div className="rounded-lg border bg-muted/40 p-4">
-              <p className="font-medium">Dr. Lucas Felipe — Clínica de Estética</p>
+              <p className="font-medium">Innovate Brazil — Painéis LED</p>
               <p className="mt-1 text-muted-foreground">
                 E-mail:{" "}
                 <a
-                  href="mailto:contato@drlucasfelipe.com.br"
+                  href="mailto:contato@innovatebrazil.com.br"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  contato@drlucasfelipe.com.br
+                  contato@innovatebrazil.com.br
                 </a>
               </p>
               <p className="mt-1 text-sm text-muted-foreground">

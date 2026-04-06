@@ -5,14 +5,11 @@ import { requireAuth } from "@/lib/auth-helpers"
 import type { StatusFunil } from "@/generated/prisma/client"
 
 const ETAPAS_FUNIL: StatusFunil[] = [
-  "acolhimento",
   "qualificacao",
-  "agendamento",
-  "consulta_agendada",
-  "consulta_realizada",
-  "sinal_pago",
-  "procedimento_agendado",
-  "concluido",
+  "encaminhado",
+  "tarefa_criada",
+  "em_negociacao",
+  "venda_realizada",
   "perdido",
 ]
 
@@ -22,8 +19,6 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const responsavelId = searchParams.get("responsavelId")
-  const procedimentoInteresse = searchParams.get("procedimentoInteresse")
-
   const where: Record<string, unknown> = {
     deletadoEm: null,
     arquivado: false,
@@ -33,17 +28,12 @@ export async function GET(request: NextRequest) {
     where.responsavelId = responsavelId
   }
 
-  if (procedimentoInteresse) {
-    where.procedimentoInteresse = { contains: procedimentoInteresse, mode: "insensitive" }
-  }
-
   const leads = await prisma.lead.findMany({
     where,
     select: {
       id: true,
       nome: true,
       whatsapp: true,
-      procedimentoInteresse: true,
       statusFunil: true,
       criadoEm: true,
       atualizadoEm: true,

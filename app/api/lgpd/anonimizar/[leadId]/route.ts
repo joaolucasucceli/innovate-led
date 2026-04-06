@@ -29,7 +29,7 @@ export async function POST(
         nome: "Usuário Anonimizado",
         whatsapp: whatsappHash,
         email: null,
-        sobreOPaciente: null,
+        sobreOLead: null,
         deletadoEm: new Date(),
       },
     }),

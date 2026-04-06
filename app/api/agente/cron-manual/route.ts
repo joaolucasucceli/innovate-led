@@ -3,10 +3,6 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/auth-helpers"
 import { ehHorarioComercial } from "@/lib/agente/horario-comercial"
 import { buscarConversasParaFollowUp, enviarFollowUp } from "@/lib/agente/followup"
-import {
-  buscarAgendamentosParaConfirmacao,
-  enviarConfirmacao,
-} from "@/lib/agente/confirmacao"
 
 export async function POST() {
   const { error } = await requireRole("gestor")
@@ -18,7 +14,6 @@ export async function POST() {
 
   const resultado = {
     followups: 0,
-    confirmacoes: 0,
     autoClose: 0,
     horarioComercial: ehHorarioComercial(),
     timestamp: new Date().toISOString(),
@@ -44,20 +39,6 @@ export async function POST() {
       // Ignorar erro geral
     }
 
-    // Confirmações
-    try {
-      const pendentesConfirmacao = await buscarAgendamentosParaConfirmacao()
-      for (const { agendamento, tipo } of pendentesConfirmacao) {
-        try {
-          await enviarConfirmacao(agendamento, tipo, configWa)
-          resultado.confirmacoes++
-        } catch {
-          // Continuar com próximo
-        }
-      }
-    } catch {
-      // Ignorar erro geral
-    }
   }
 
   // Auto-close (sempre, independente de horário)

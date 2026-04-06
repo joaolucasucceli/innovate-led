@@ -18,7 +18,6 @@ export interface ConversaResumo {
     nome: string
     whatsapp: string
     statusFunil: string
-    procedimentoInteresse: string | null
   }
   ultimaMensagem: {
     id: string

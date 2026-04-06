@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (auth.error) return auth.error
 
   const { searchParams } = request.nextUrl
-  const tipo = searchParams.get("tipo") as "leads" | "agendamentos" | "conversas" | null
+  const tipo = searchParams.get("tipo") as "leads" | "conversas" | null
   const formato = searchParams.get("formato") || "csv"
   const agora = new Date()
   const dataInicio = searchParams.get("dataInicio")
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     ? new Date(searchParams.get("dataFim")!)
     : agora
 
-  if (!tipo || !["leads", "agendamentos", "conversas"].includes(tipo)) {
+  if (!tipo || !["leads", "conversas"].includes(tipo)) {
     return NextResponse.json({ error: "tipo inválido" }, { status: 400 })
   }
 
@@ -55,7 +55,6 @@ export async function GET(request: NextRequest) {
         email: true,
         origem: true,
         statusFunil: true,
-        procedimentoInteresse: true,
         criadoEm: true,
         atualizadoEm: true,
       },
@@ -67,43 +66,8 @@ export async function GET(request: NextRequest) {
       contentType = "application/json"
     } else {
       conteudo = linhasCsv(
-        ["id", "nome", "whatsapp", "email", "origem", "statusFunil", "procedimentoInteresse", "criadoEm", "atualizadoEm"],
-        leads.map((l) => [l.id, l.nome, l.whatsapp, l.email, l.origem, l.statusFunil, l.procedimentoInteresse, l.criadoEm.toISOString(), l.atualizadoEm.toISOString()])
-      )
-      contentType = "text/csv"
-    }
-  } else if (tipo === "agendamentos") {
-    const where = dataInicio ? { criadoEm: { gte: dataInicio, lte: dataFim } } : {}
-    const agendamentos = await prisma.agendamento.findMany({
-      where,
-      select: {
-        id: true,
-        lead: { select: { nome: true, whatsapp: true } },
-        procedimento: { select: { nome: true } },
-        dataHora: true,
-        duracao: true,
-        status: true,
-        criadoEm: true,
-      },
-      orderBy: { dataHora: "desc" },
-    })
-
-    if (formato === "json") {
-      conteudo = JSON.stringify(agendamentos, null, 2)
-      contentType = "application/json"
-    } else {
-      conteudo = linhasCsv(
-        ["id", "leadNome", "leadWhatsapp", "procedimento", "dataHora", "duracao", "status", "criadoEm"],
-        agendamentos.map((a) => [
-          a.id,
-          a.lead.nome,
-          a.lead.whatsapp,
-          a.procedimento?.nome ?? "",
-          a.dataHora.toISOString(),
-          a.duracao,
-          a.status,
-          a.criadoEm.toISOString(),
-        ])
+        ["id", "nome", "whatsapp", "email", "origem", "statusFunil", "criadoEm", "atualizadoEm"],
+        leads.map((l) => [l.id, l.nome, l.whatsapp, l.email, l.origem, l.statusFunil, l.criadoEm.toISOString(), l.atualizadoEm.toISOString()])
       )
       contentType = "text/csv"
     }

@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
   const pagina = Number(searchParams.get("pagina") || "1")
   const porPagina = Number(searchParams.get("porPagina") || "10")
   const statusFunil = searchParams.get("statusFunil")
-  const procedimentoInteresse = searchParams.get("procedimentoInteresse")
   const responsavelId = searchParams.get("responsavelId")
   const origem = searchParams.get("origem")
   const arquivado = searchParams.get("arquivado")
@@ -26,7 +25,6 @@ export async function GET(request: NextRequest) {
   }
 
   if (statusFunil) where.statusFunil = statusFunil
-  if (procedimentoInteresse) where.procedimentoInteresse = procedimentoInteresse
   if (responsavelId) where.responsavelId = responsavelId
   if (origem) where.origem = origem
   if (busca) {
@@ -37,7 +35,7 @@ export async function GET(request: NextRequest) {
   }
   if (alerta) {
     const ha3dias = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-    where.statusFunil = { notIn: ["concluido", "perdido"] }
+    where.statusFunil = { notIn: ["venda_realizada", "perdido"] }
     where.OR = [
       { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
       { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },
@@ -60,7 +58,6 @@ export async function GET(request: NextRequest) {
         nome: true,
         whatsapp: true,
         email: true,
-        procedimentoInteresse: true,
         statusFunil: true,
         origem: true,
         arquivado: true,
@@ -110,7 +107,6 @@ export async function POST(request: NextRequest) {
       nome: true,
       whatsapp: true,
       email: true,
-      procedimentoInteresse: true,
       statusFunil: true,
       origem: true,
       criadoEm: true,

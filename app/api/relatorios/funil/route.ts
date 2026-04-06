@@ -4,38 +4,29 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/auth-helpers"
 
 const labelsFunil: Record<string, string> = {
-  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
-  agendamento: "Agendamento",
-  consulta_agendada: "Consulta Agendada",
-  consulta_realizada: "Consulta Realizada",
-  sinal_pago: "Sinal Pago",
-  procedimento_agendado: "Procedimento Agendado",
-  concluido: "Concluído",
+  encaminhado: "Encaminhado",
+  tarefa_criada: "Tarefa Criada",
+  em_negociacao: "Em Negociação",
+  venda_realizada: "Venda Realizada",
   perdido: "Perdido",
 }
 
 const coresFunil: Record<string, string> = {
-  acolhimento: "#a1a1aa",
   qualificacao: "#93c5fd",
-  agendamento: "#a5b4fc",
-  consulta_agendada: "#c4b5fd",
-  consulta_realizada: "#86efac",
-  sinal_pago: "#6ee7b7",
-  procedimento_agendado: "#fcd34d",
-  concluido: "#bbf7d0",
+  encaminhado: "#a5b4fc",
+  tarefa_criada: "#c4b5fd",
+  em_negociacao: "#fcd34d",
+  venda_realizada: "#86efac",
   perdido: "#fca5a5",
 }
 
 const ordemFunil = [
-  "acolhimento",
   "qualificacao",
-  "agendamento",
-  "consulta_agendada",
-  "consulta_realizada",
-  "sinal_pago",
-  "procedimento_agendado",
-  "concluido",
+  "encaminhado",
+  "tarefa_criada",
+  "em_negociacao",
+  "venda_realizada",
   "perdido",
 ]
 
@@ -72,7 +63,7 @@ export async function GET(request: NextRequest) {
         where: {
           ...filtroBase,
           statusFunil: {
-            in: ["consulta_agendada", "consulta_realizada", "sinal_pago", "procedimento_agendado", "concluido"] as never[],
+            in: ["venda_realizada"] as never[],
           },
         },
       }),
@@ -80,7 +71,7 @@ export async function GET(request: NextRequest) {
         where: {
           ...filtroBase,
           statusFunil: {
-            in: ["consulta_agendada", "consulta_realizada", "sinal_pago", "procedimento_agendado", "concluido"] as never[],
+            in: ["venda_realizada"] as never[],
           },
           ultimaMovimentacaoEm: { not: null },
         },

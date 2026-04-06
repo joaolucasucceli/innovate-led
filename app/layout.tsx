@@ -13,8 +13,8 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Central Dr. Lucas",
-  description: "Sistema de gestão de atendimento — Dr. Lucas Felipe",
+  title: "Central Innovate",
+  description: "Sistema de gestão de atendimento — Innovate Brazil",
 }
 
 export default function RootLayout({

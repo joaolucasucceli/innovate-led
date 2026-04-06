@@ -71,7 +71,7 @@ export function ModuloUsuarios() {
           ]}
         />
         <DicaImportante
-          texto="O usuário 'Ana Júlia' é do tipo IA com perfil Atendente. Ele nunca deve ser desativado — caso contrário, a IA para de registrar mensagens no banco de dados."
+          texto="O usuário 'Andressa' é do tipo IA com perfil Atendente. Ele nunca deve ser desativado — caso contrário, a IA para de registrar mensagens no banco de dados."
           variante="aviso"
         />
       </div>

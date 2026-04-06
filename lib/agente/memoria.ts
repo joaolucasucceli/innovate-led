@@ -5,7 +5,7 @@ export interface MensagemMemoria {
   content: string
 }
 
-const MEMORIA_SUFFIX = "_mem_dr-lucas"
+const MEMORIA_SUFFIX = "_mem_innovate"
 const MEMORIA_TTL = 172800 // 48 horas em segundos
 const MAX_MENSAGENS = 20
 

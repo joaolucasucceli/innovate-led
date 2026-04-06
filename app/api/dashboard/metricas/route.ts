@@ -2,48 +2,36 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers"
+
 const labelsFunil: Record<string, string> = {
-  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
-  agendamento: "Agendamento",
-  consulta_agendada: "Consulta Agendada",
-  consulta_realizada: "Consulta Realizada",
-  sinal_pago: "Sinal Pago",
-  procedimento_agendado: "Procedimento Agendado",
-  concluido: "Concluído",
+  encaminhado: "Encaminhado",
+  tarefa_criada: "Tarefa Criada",
+  em_negociacao: "Em Negociação",
+  venda_realizada: "Venda Realizada",
   perdido: "Perdido",
 }
 
 const coresFunil: Record<string, string> = {
-  acolhimento: "#a1a1aa",
   qualificacao: "#93c5fd",
-  agendamento: "#a5b4fc",
-  consulta_agendada: "#c4b5fd",
-  consulta_realizada: "#86efac",
-  sinal_pago: "#6ee7b7",
-  procedimento_agendado: "#fcd34d",
-  concluido: "#bbf7d0",
+  encaminhado: "#a5b4fc",
+  tarefa_criada: "#c4b5fd",
+  em_negociacao: "#fcd34d",
+  venda_realizada: "#bbf7d0",
   perdido: "#fca5a5",
 }
 
 const ordemFunil = [
-  "acolhimento",
   "qualificacao",
-  "agendamento",
-  "consulta_agendada",
-  "consulta_realizada",
-  "sinal_pago",
-  "procedimento_agendado",
-  "concluido",
+  "encaminhado",
+  "tarefa_criada",
+  "em_negociacao",
+  "venda_realizada",
   "perdido",
 ]
 
 const etapasConvertidas = [
-  "consulta_agendada",
-  "consulta_realizada",
-  "sinal_pago",
-  "procedimento_agendado",
-  "concluido",
+  "venda_realizada",
 ]
 
 function calcularDataInicio(periodo: string): Date | null {
@@ -93,21 +81,18 @@ export async function GET(request: NextRequest) {
   }).format(new Date())
   const [diaH, mesH, anoH] = spHoje.split("/")
   const inicioHoje = new Date(`${anoH}-${mesH}-${diaH}T00:00:00-03:00`)
+
   const [
     totalLeads,
     leadsNovosNoPeriodo,
     leadsConvertidos,
-    agendamentosNoPeriodo,
-    agendamentosRealizados,
     leadsPorEtapaRaw,
     leadsPorOrigemRaw,
     mensagensEnviadasPelaIA,
     followUpsEnviados,
-    confirmacaoEnviadas,
     leadsEmAlerta,
-    pacientesRetorno,
+    leadsRetorno,
     leadsHoje,
-    agendamentosSemana,
   ] = await Promise.all([
     prisma.lead.count({ where: filtroBase }),
     prisma.lead.count({ where: { ...filtroBase, ...filtroPeriodo } }),
@@ -115,15 +100,6 @@ export async function GET(request: NextRequest) {
       where: {
         ...filtroBase,
         statusFunil: { in: etapasConvertidas as never[] },
-      },
-    }),
-    prisma.agendamento.count({
-      where: dataInicio ? { criadoEm: { gte: dataInicio } } : {},
-    }),
-    prisma.agendamento.count({
-      where: {
-        status: "realizado",
-        ...(dataInicio ? { criadoEm: { gte: dataInicio } } : {}),
       },
     }),
     prisma.lead.groupBy({
@@ -148,16 +124,10 @@ export async function GET(request: NextRequest) {
         ...(dataInicio ? { atualizadoEm: { gte: dataInicio } } : {}),
       },
     }),
-    prisma.agendamento.count({
-      where: {
-        confirmacoesEnviadas: { isEmpty: false },
-        ...(dataInicio ? { criadoEm: { gte: dataInicio } } : {}),
-      },
-    }),
     prisma.lead.count({
       where: {
         ...filtroBase,
-        statusFunil: { notIn: ["concluido", "perdido"] as never[] },
+        statusFunil: { notIn: ["venda_realizada", "perdido"] as never[] },
         OR: [
           { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
           { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },
@@ -169,12 +139,6 @@ export async function GET(request: NextRequest) {
     }),
     prisma.lead.count({
       where: { ...filtroBase, criadoEm: { gte: inicioHoje } },
-    }),
-    prisma.agendamento.count({
-      where: {
-        status: { not: "cancelado" },
-        dataHora: { gte: new Date(), lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
-      },
     }),
   ])
 
@@ -202,7 +166,7 @@ export async function GET(request: NextRequest) {
 
   const taxaRetorno =
     totalLeads > 0
-      ? Math.round((pacientesRetorno / totalLeads) * 1000) / 10
+      ? Math.round((leadsRetorno / totalLeads) * 1000) / 10
       : 0
 
   const isAtendente = session!.user.perfil === "atendente"
@@ -211,18 +175,14 @@ export async function GET(request: NextRequest) {
     totalLeads,
     leadsNovosNoPeriodo,
     taxaConversao,
-    agendamentosNoPeriodo,
-    agendamentosRealizados,
     leadsPorEtapa,
     leadsPorOrigem,
     mensagensEnviadasPelaIA: isAtendente ? 0 : mensagensEnviadasPelaIA,
     followUpsEnviados: isAtendente ? 0 : followUpsEnviados,
-    confirmacaoEnviadas: isAtendente ? 0 : confirmacaoEnviadas,
     leadsEmAlerta,
-    pacientesRetorno,
+    leadsRetorno,
     taxaRetorno,
     leadsHoje,
-    agendamentosSemana,
     periodo,
     dataInicio: dataInicio?.toISOString() ?? null,
     dataFim: dataFim.toISOString(),

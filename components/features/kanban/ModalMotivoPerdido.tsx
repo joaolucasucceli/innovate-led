@@ -54,7 +54,7 @@ export function ModalMotivoPerdido({
           <Label htmlFor="motivoPerda" className="flex items-center gap-1.5"><MessageSquare className="h-4 w-4 text-muted-foreground" />Motivo da perda</Label>
           <Textarea
             id="motivoPerda"
-            placeholder="Ex: Paciente optou por outra clínica..."
+            placeholder="Ex: Cliente optou por outro fornecedor..."
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             className="mt-1"

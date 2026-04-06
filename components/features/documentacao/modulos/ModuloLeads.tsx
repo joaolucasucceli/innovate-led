@@ -11,7 +11,7 @@ export function ModuloLeads() {
       <HeroBanner
         icone={<UserSearch />}
         titulo="Leads"
-        subtitulo="Gestão completa da base de pacientes e potenciais clientes"
+        subtitulo="Gestão completa da base de leads e potenciais clientes"
         gradientClasses="from-violet-600 to-purple-400"
       />
 
@@ -25,7 +25,7 @@ export function ModuloLeads() {
           {
             icone: <Users />,
             titulo: "Cadastro de leads",
-            descricao: "Crie leads manualmente com nome, WhatsApp, procedimento de interesse e canal de origem.",
+            descricao: "Crie leads manualmente com nome, WhatsApp e canal de origem.",
           },
           {
             icone: <Download />,
@@ -35,7 +35,7 @@ export function ModuloLeads() {
           {
             icone: <Eye />,
             titulo: "Perfil completo",
-            descricao: "Clique em qualquer lead para acessar histórico de conversas, fotos antes/depois e todos os agendamentos.",
+            descricao: "Clique em qualquer lead para acessar histórico de conversas e todas as informações do perfil.",
           },
         ]}
       />
@@ -55,7 +55,7 @@ export function ModuloLeads() {
           {
             numero: 3,
             titulo: "Acesse o perfil",
-            descricao: "Clique em qualquer linha da tabela para abrir o perfil completo com histórico, fotos e agendamentos.",
+            descricao: "Clique em qualquer linha da tabela para abrir o perfil completo com histórico e detalhes.",
           },
           {
             numero: 4,
@@ -81,7 +81,7 @@ export function ModuloLeads() {
           ]}
         />
         <DicaImportante
-          texto="O número de WhatsApp é único no sistema — a Ana Júlia usa esse campo para identificar o paciente durante o atendimento. Nunca cadastre o mesmo número para dois leads diferentes."
+          texto="O número de WhatsApp é único no sistema — a Andressa usa esse campo para identificar o lead durante o atendimento. Nunca cadastre o mesmo número para dois leads diferentes."
           variante="aviso"
         />
       </div>
