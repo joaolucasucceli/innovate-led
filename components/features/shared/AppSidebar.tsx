@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Kanban,
   UserSearch,
+  Bot,
   Settings,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
@@ -51,6 +52,11 @@ const navGroups: NavGroup[] = [
         titulo: "Leads",
         href: "/leads",
         icone: <UserSearch className="h-4 w-4" />,
+      },
+      {
+        titulo: "Agente IA",
+        href: "/agente-ia",
+        icone: <Bot className="h-4 w-4" />,
       },
     ],
   },
