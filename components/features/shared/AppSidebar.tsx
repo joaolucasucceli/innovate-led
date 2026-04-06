@@ -7,7 +7,6 @@ import {
   Kanban,
   UserSearch,
   Settings,
-  BookOpen,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -63,11 +62,6 @@ const navGroups: NavGroup[] = [
         href: "/configuracoes",
         icone: <Settings className="h-4 w-4" />,
         perfis: ["gestor"],
-      },
-      {
-        titulo: "Documentação",
-        href: "/documentacao",
-        icone: <BookOpen className="h-4 w-4" />,
       },
     ],
   },
