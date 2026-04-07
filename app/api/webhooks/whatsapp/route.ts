@@ -374,25 +374,28 @@ export async function POST(request: NextRequest) {
           conteudo = `[Áudio transcrito]: ${transcricao}`
         } else if (msg.tipo === "imagem" && storedMediaUrl) {
           descricaoImagem = await descreverImagem(storedMediaUrl)
-          const caption = conteudo // caption original (se houver)
+          const caption = conteudo
           conteudo = caption
             ? `${caption}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
             : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+        } else if (msg.tipo === "documento") {
+          conteudo = `[Documento recebido]: ${conteudo || "arquivo"}`
+        } else if (msg.tipo === "video") {
+          conteudo = `[Vídeo recebido]${conteudo ? `: ${conteudo}` : ""}`
         }
-        // documento e video: conteúdo já é o fileName/caption
       } catch (err) {
         console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
       }
 
-      // Fallback com emoji quando download/processamento falhou
-      if (!conteudo && !storedMediaUrl) {
+      // Fallback quando download falhou e não tem conteúdo contextual
+      if (!conteudo) {
         const fallbacks: Record<string, string> = {
-          audio: "Áudio recebido",
-          imagem: "Imagem recebida",
-          documento: "Documento recebido",
-          video: "Vídeo recebido",
+          audio: "[Áudio recebido]",
+          imagem: "[Imagem recebida]",
+          documento: "[Documento recebido]",
+          video: "[Vídeo recebido]",
         }
-        conteudo = fallbacks[msg.tipo] || `${msg.tipo} recebido`
+        conteudo = fallbacks[msg.tipo] || `[${msg.tipo} recebido]`
       }
     }
 
