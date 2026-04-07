@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { redis } from "@/lib/redis"
+import { deletarLeadKommo } from "@/lib/kommo"
 import { requireAuth, requireAnyRole, requireRole } from "@/lib/auth-helpers"
 import { atualizarLeadSchema } from "@/lib/validations/lead"
 
@@ -145,6 +146,9 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch {
     // Redis indisponível não impede a exclusão do lead
   }
+
+  // 6. Deletar lead no Kommo CRM (fire-and-forget)
+  deletarLeadKommo(lead.whatsapp).catch(() => {})
 
   return NextResponse.json({ mensagem: "Lead e dados relacionados removidos permanentemente" })
 }

@@ -93,6 +93,35 @@ export async function criarLeadKommo(nome: string, whatsapp: string): Promise<vo
   }
 }
 
+/** Deleta lead no Kommo (move para lixeira com status 143) */
+export async function deletarLeadKommo(whatsapp: string): Promise<void> {
+  try {
+    const token = getToken()
+    if (!token) return
+
+    const contato = await buscarContatoPorTelefone(whatsapp)
+    if (!contato?.leadId) {
+      console.log(`[Kommo] Lead não encontrado para ${whatsapp} — nada a deletar`)
+      return
+    }
+
+    // Mover para lixeira (status_id 143 = fechado/perdido no Kommo)
+    const res = await kommoFetch(`/api/v4/leads/${contato.leadId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status_id: 143 }),
+    })
+
+    if (!res.ok) {
+      const erro = await res.text()
+      console.error("[Kommo] Erro ao deletar lead:", res.status, erro)
+    } else {
+      console.log(`[Kommo] Lead deletado: ${whatsapp} (leadId: ${contato.leadId})`)
+    }
+  } catch (err) {
+    console.error("[Kommo] Erro ao deletar lead:", err)
+  }
+}
+
 /** Salva notas de qualificação no lead do Kommo */
 export async function salvarQualificacaoKommo(whatsapp: string, qualificacao: string): Promise<void> {
   try {
