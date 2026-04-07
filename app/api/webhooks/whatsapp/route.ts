@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
         messageIdWhatsapp: msg.id,
         tipo: msg.tipo,
         conteudo,
-        remetente: "paciente",
+        remetente: "cliente",
         mediaUrl: storedMediaUrl,
         mediaType: msg.tipo !== "texto" ? msg.tipo : null,
       },
@@ -326,8 +326,8 @@ export async function POST(request: NextRequest) {
       data: { ultimaMensagemEm: new Date() },
     })
 
-    // Salvar foto no registro do lead (FotoLead)
-    if (msg.tipo === "imagem" && storedMediaUrl) {
+    // Salvar foto no registro do lead (FotoLead) — só se descrição foi gerada
+    if (msg.tipo === "imagem" && storedMediaUrl && descricaoImagem) {
       try {
         await prisma.fotoLead.create({
           data: {

@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       messageIdWhatsapp: messageIdWhatsapp || `agente_${createId()}`,
       tipo: (tipo || "texto") as TipoMensagem,
       conteudo,
-      remetente: direcao === "agente" ? "agente" : "paciente",
+      remetente: direcao === "agente" ? "agente" : "cliente",
     },
   })
 

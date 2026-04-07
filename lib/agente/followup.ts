@@ -24,7 +24,7 @@ export async function buscarConversasParaFollowUp(): Promise<FollowUpPendente[]>
         lt: ha1h,
       },
       etapa: {
-        in: ["acolhimento", "qualificacao", "encaminhado"],
+        in: ["acolhimento", "qualificacao"],
       },
       lead: {
         arquivado: false,
