@@ -35,9 +35,15 @@ export const authOptions: NextAuthOptions = {
           // Se o Redis falhar, não bloquear o login
         }
 
-        const usuario = await prisma.usuario.findUnique({
-          where: { email: credentials.email },
-        })
+        let usuario
+        try {
+          usuario = await prisma.usuario.findUnique({
+            where: { email: credentials.email },
+          })
+        } catch (err) {
+          console.error("[Auth] Erro ao consultar banco:", err)
+          return null
+        }
 
         if (!usuario || !usuario.ativo || usuario.deletadoEm) {
           try { await registrarTentativa(ip) } catch {}

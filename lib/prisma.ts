@@ -4,9 +4,14 @@ import { Pool } from "pg"
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 
+function stripQuotes(value: string) {
+  return value.replace(/^["']|["']$/g, "")
+}
+
 function createPrismaClient() {
+  const connectionString = stripQuotes(process.env.DATABASE_URL || "")
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString,
     ssl: { rejectUnauthorized: false },
   })
   const adapter = new PrismaPg(pool)
