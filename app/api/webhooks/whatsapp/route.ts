@@ -101,7 +101,7 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
   const chatId = msg.chatid || ""
   const isFromMe = msg.fromMe ?? false
   const isGroup = msg.isGroup ?? chatId.includes("@g.us")
-  const messageId = msg.id || ""
+  const messageId = msg.messageid || msg.id || ""
   const timestamp = msg.messageTimestamp
     ? Math.floor(typeof msg.messageTimestamp === "number" && msg.messageTimestamp > 1e12
         ? msg.messageTimestamp / 1000
@@ -116,21 +116,37 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
 
   if (msgType === "audio" || msgType === "ptt" || mediaType.includes("audio") || mediaType === "ptt") {
     tipoMsg = "audio"
-    mediaUrl = msg.content || null // áudio: URL está no content
+    mediaUrl = msg.content || null
   } else if ((msgType === "media" && mediaType.includes("image")) || mediaType.includes("image")) {
     tipoMsg = "imagem"
-    // Uazapi v2: construir URL de download
-    const baseUrlUazapi = payload.BaseUrl || payload.baseUrl
-    const tokenUazapi = payload.token
-    if (baseUrlUazapi && tokenUazapi && messageId) {
-      mediaUrl = `${baseUrlUazapi}/chat/downloadMediaMessage/${messageId}?token=${tokenUazapi}`
-    }
   } else if (msgType === "document" || mediaType.includes("document")) {
     tipoMsg = "documento"
     mediaUrl = msg.content || null
   } else if (msgType === "video" || mediaType.includes("video")) {
     tipoMsg = "video"
     mediaUrl = msg.content || null
+  }
+
+  // Para imagem: construir URL de download (múltiplas fontes)
+  if (tipoMsg === "imagem") {
+    const baseUrl = payload.BaseUrl || payload.baseUrl || payload.baseurl
+    const token = payload.token || payload.Token
+    const msgIdForDownload = msg.messageid || msg.id || ""
+
+    if (baseUrl && token && msgIdForDownload) {
+      mediaUrl = `${baseUrl}/chat/downloadMediaMessage/${msgIdForDownload}?token=${token}`
+    }
+
+    // Log detalhado para debug de imagem
+    console.log("[Webhook] Imagem detectada — debug:", {
+      msgId: msg.id,
+      msgMessageId: msg.messageid,
+      payloadBaseUrl: baseUrl || "AUSENTE",
+      payloadToken: token ? "presente" : "AUSENTE",
+      mediaUrlConstruida: mediaUrl || "FALHOU",
+      payloadKeys: Object.keys(payload).join(","),
+      msgKeys: Object.keys(msg).join(","),
+    })
   }
 
   // Fallback: tentar mediaUrl direto (outros gateways)
@@ -276,12 +292,13 @@ export async function POST(request: NextRequest) {
     let descricaoImagem: string | null = null
 
     // Construir URL de download da mídia
-    // Prioridade: msg.mediaUrl (do payload) → construir via ConfigWhatsapp (Uazapi v2)
+    // Prioridade: msg.mediaUrl (do payload/normalização) → fallback ConfigWhatsapp
     let mediaDownloadUrl = msg.mediaUrl
     if (!mediaDownloadUrl && msg.tipo !== "texto") {
       const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
       if (configWa?.uazapiUrl && configWa?.instanceToken) {
         mediaDownloadUrl = `${configWa.uazapiUrl}/chat/downloadMediaMessage/${msg.id}?token=${configWa.instanceToken}`
+        console.log("[Webhook] URL mídia construída via ConfigWhatsapp:", mediaDownloadUrl.slice(0, 100))
       }
     }
 

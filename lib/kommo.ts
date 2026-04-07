@@ -93,6 +93,39 @@ export async function criarLeadKommo(nome: string, whatsapp: string): Promise<vo
   }
 }
 
+/** Salva notas de qualificação no lead do Kommo */
+export async function salvarQualificacaoKommo(whatsapp: string, qualificacao: string): Promise<void> {
+  try {
+    const token = getToken()
+    if (!token) return
+
+    const contato = await buscarContatoPorTelefone(whatsapp)
+    if (!contato?.leadId) {
+      console.warn(`[Kommo] Lead não encontrado para ${whatsapp} — não pode salvar qualificação`)
+      return
+    }
+
+    const res = await kommoFetch(`/api/v4/leads/${contato.leadId}/notes`, {
+      method: "POST",
+      body: JSON.stringify([
+        {
+          note_type: "common",
+          params: { text: `[Qualificação IA] ${qualificacao}` },
+        },
+      ]),
+    })
+
+    if (!res.ok) {
+      const erro = await res.text()
+      console.error("[Kommo] Erro ao salvar qualificação:", res.status, erro)
+    } else {
+      console.log(`[Kommo] Qualificação salva para ${whatsapp}`)
+    }
+  } catch (err) {
+    console.error("[Kommo] Erro ao salvar qualificação:", err)
+  }
+}
+
 /** Move lead para "Encaminhado pela IA" no Kommo */
 export async function encaminharLeadKommo(whatsapp: string): Promise<void> {
   try {

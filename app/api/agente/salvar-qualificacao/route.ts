@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
-import { criarLeadKommo } from "@/lib/kommo"
+import { criarLeadKommo, salvarQualificacaoKommo } from "@/lib/kommo"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 export async function POST(request: NextRequest) {
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
   // Sincronizar com Kommo CRM (fire-and-forget)
   if (lead?.whatsapp) {
     criarLeadKommo(nomeLead || lead.nome || "Lead WhatsApp", lead.whatsapp).catch(() => {})
+    salvarQualificacaoKommo(lead.whatsapp, sobreOLead).catch(() => {})
   }
 
   return NextResponse.json({ sucesso: true })
