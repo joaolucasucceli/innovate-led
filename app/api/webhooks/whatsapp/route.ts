@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import type { TipoMensagem } from "@/generated/prisma/enums"
 import { adicionarAoBuffer } from "@/lib/agente/buffer"
 import { transcreverAudio, descreverImagem } from "@/lib/agente/processar-midia"
+import { criarLeadKommo } from "@/lib/kommo"
 import { createClient } from "@supabase/supabase-js"
 
 // ── Tipos UazapiGO v2 ─────────────────────────────────────────────
@@ -107,23 +108,40 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
         : msg.messageTimestamp)
     : Math.floor(Date.now() / 1000)
 
-  // Detectar tipo de mídia
+  // Detectar tipo de mídia (Uazapi v2: type + mediaType)
+  const msgType = (msg.type || "").toLowerCase()
   const mediaType = (msg.mediaType || "").toLowerCase()
   let tipoMsg: TipoMensagem = "texto"
-  let mediaUrl: string | null = msg.mediaUrl || msg.media_url || null
+  let mediaUrl: string | null = null
 
-  if (mediaType.includes("audio") || mediaType === "ptt") {
+  if (msgType === "audio" || msgType === "ptt" || mediaType.includes("audio") || mediaType === "ptt") {
     tipoMsg = "audio"
-  } else if (mediaType.includes("image")) {
+    mediaUrl = msg.content || null // áudio: URL está no content
+  } else if ((msgType === "media" && mediaType.includes("image")) || mediaType.includes("image")) {
     tipoMsg = "imagem"
-  } else if (mediaType.includes("document")) {
+    // Uazapi v2: construir URL de download
+    const baseUrlUazapi = payload.BaseUrl || payload.baseUrl
+    const tokenUazapi = payload.token
+    if (baseUrlUazapi && tokenUazapi && messageId) {
+      mediaUrl = `${baseUrlUazapi}/chat/downloadMediaMessage/${messageId}?token=${tokenUazapi}`
+    }
+  } else if (msgType === "document" || mediaType.includes("document")) {
     tipoMsg = "documento"
-  } else if (mediaType.includes("video")) {
+    mediaUrl = msg.content || null
+  } else if (msgType === "video" || mediaType.includes("video")) {
     tipoMsg = "video"
+    mediaUrl = msg.content || null
   }
 
-  // Conteúdo de texto
-  const conteudo = msg.content || msg.body || ""
+  // Fallback: tentar mediaUrl direto (outros gateways)
+  if (!mediaUrl && tipoMsg !== "texto") {
+    mediaUrl = msg.mediaUrl || msg.media_url || null
+  }
+
+  // Conteúdo: para imagens, usar caption/texto (não a URL)
+  const conteudo = tipoMsg === "imagem"
+    ? (msg.text || msg.caption || "")
+    : (msg.content || msg.body || "")
 
   // Nome do contato — vem do chat do Uazapi
   const chat = payload.chat || {}
@@ -299,14 +317,17 @@ export async function POST(request: NextRequest) {
       const usuarioIa = await prisma.usuario.findFirst({
         where: { tipo: "ia", ativo: true, deletadoEm: null },
       })
+      const nomeLead = msg.nomeContato?.trim() || `WhatsApp ${msg.numero}`
       lead = await prisma.lead.create({
         data: {
-          nome: msg.nomeContato?.trim() || `WhatsApp ${msg.numero}`,
+          nome: nomeLead,
           whatsapp: msg.numero,
           origem: "whatsapp",
           responsavelId: usuarioIa?.id || null,
         },
       })
+      // Criar lead no Kommo CRM (fire-and-forget)
+      criarLeadKommo(nomeLead, msg.numero).catch(() => {})
     }
 
     // Encontrar ou criar conversa

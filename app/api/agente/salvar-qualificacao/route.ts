@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
+import { criarLeadKommo } from "@/lib/kommo"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 export async function POST(request: NextRequest) {
@@ -74,18 +75,9 @@ export async function POST(request: NextRequest) {
     ])
   }
 
-  // Disparar webhook n8n (fire-and-forget)
-  const webhookUrl = process.env.N8N_WEBHOOK_SALVAR_QUALIFICACAO_URL
-  if (webhookUrl) {
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome: nomeLead || lead?.nome,
-        telefone: lead?.whatsapp,
-        qualificacao: sobreOLead,
-      }),
-    }).catch((err) => console.error("[n8n] Erro webhook salvar-qualificacao:", err))
+  // Sincronizar com Kommo CRM (fire-and-forget)
+  if (lead?.whatsapp) {
+    criarLeadKommo(nomeLead || lead.nome || "Lead WhatsApp", lead.whatsapp).catch(() => {})
   }
 
   return NextResponse.json({ sucesso: true })

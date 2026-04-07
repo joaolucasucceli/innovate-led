@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
+import { encaminharLeadKommo } from "@/lib/kommo"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 export async function POST(request: NextRequest) {
@@ -45,17 +46,9 @@ export async function POST(request: NextRequest) {
     select: { nome: true, whatsapp: true, sobreOLead: true },
   })
 
-  // Disparar webhook n8n (fire-and-forget)
-  const webhookUrl = process.env.N8N_WEBHOOK_ENCAMINHA_CONTATO_URL
-  if (webhookUrl) {
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        telefone: lead?.whatsapp,
-        etapa: "encaminhado",
-      }),
-    }).catch((err) => console.error("[n8n] Erro webhook encaminhar-contato:", err))
+  // Sincronizar com Kommo CRM (fire-and-forget)
+  if (lead?.whatsapp) {
+    encaminharLeadKommo(lead.whatsapp).catch(() => {})
   }
 
   return NextResponse.json({ sucesso: true, etapaAvancada: "encaminhado" })

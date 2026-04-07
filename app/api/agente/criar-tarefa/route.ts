@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
+import { criarTarefaKommo } from "@/lib/kommo"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 export async function POST(request: NextRequest) {
@@ -50,18 +51,9 @@ export async function POST(request: NextRequest) {
     select: { nome: true, whatsapp: true },
   })
 
-  // Disparar webhook n8n para criar tarefa no Kommo (fire-and-forget)
-  const webhookUrl = process.env.N8N_WEBHOOK_CRIAR_TAREFA_URL
-  if (webhookUrl) {
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        telefone: lead?.whatsapp,
-        data_hora: dataHora,
-        resumo,
-      }),
-    }).catch((err) => console.error("[n8n] Erro webhook criar-tarefa:", err))
+  // Sincronizar com Kommo CRM (fire-and-forget)
+  if (lead?.whatsapp) {
+    criarTarefaKommo(lead.whatsapp, dataHora, resumo).catch(() => {})
   }
 
   return NextResponse.json({
