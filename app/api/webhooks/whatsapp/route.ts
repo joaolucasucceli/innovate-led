@@ -275,17 +275,27 @@ export async function POST(request: NextRequest) {
     let storedMediaUrl: string | null = null
     let descricaoImagem: string | null = null
 
-    // 1. Download mídia para Supabase PRIMEIRO (URL do Uazapi pode expirar)
-    if (msg.mediaUrl && msg.tipo !== "texto") {
-      storedMediaUrl = await downloadEUploadMidia(msg.mediaUrl, msg.tipo, msg.id)
+    // Construir URL de download da mídia
+    // Prioridade: msg.mediaUrl (do payload) → construir via ConfigWhatsapp (Uazapi v2)
+    let mediaDownloadUrl = msg.mediaUrl
+    if (!mediaDownloadUrl && msg.tipo !== "texto") {
+      const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+      if (configWa?.uazapiUrl && configWa?.instanceToken) {
+        mediaDownloadUrl = `${configWa.uazapiUrl}/chat/downloadMediaMessage/${msg.id}?token=${configWa.instanceToken}`
+      }
+    }
+
+    // 1. Download mídia para Supabase PRIMEIRO
+    if (mediaDownloadUrl && msg.tipo !== "texto") {
+      storedMediaUrl = await downloadEUploadMidia(mediaDownloadUrl, msg.tipo, msg.id)
     }
 
     // 2. Processar mídia (transcrição/descrição) usando URL pública estável
     try {
-      if (msg.tipo === "audio" && (storedMediaUrl || msg.mediaUrl)) {
-        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl || msg.mediaUrl!)}`
-      } else if (msg.tipo === "imagem" && (storedMediaUrl || msg.mediaUrl)) {
-        descricaoImagem = await descreverImagem(storedMediaUrl || msg.mediaUrl!)
+      if (msg.tipo === "audio" && (storedMediaUrl || mediaDownloadUrl)) {
+        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl || mediaDownloadUrl!)}`
+      } else if (msg.tipo === "imagem" && (storedMediaUrl || mediaDownloadUrl)) {
+        descricaoImagem = await descreverImagem(storedMediaUrl || mediaDownloadUrl!)
         conteudo = conteudo
           ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
           : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
