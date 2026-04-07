@@ -6,21 +6,15 @@ import { KanbanCard } from "./KanbanCard"
 import type { KanbanLead } from "@/hooks/use-kanban"
 
 const coresColuna: Record<string, { bg: string; text: string; border: string }> = {
+  acolhimento: { bg: "bg-green-50", text: "text-green-800", border: "border-green-300" },
   qualificacao: { bg: "bg-blue-50", text: "text-blue-800", border: "border-blue-300" },
   encaminhado: { bg: "bg-cyan-50", text: "text-cyan-800", border: "border-cyan-300" },
-  tarefa_criada: { bg: "bg-purple-50", text: "text-purple-800", border: "border-purple-300" },
-  em_negociacao: { bg: "bg-yellow-50", text: "text-yellow-800", border: "border-yellow-300" },
-  venda_realizada: { bg: "bg-green-100", text: "text-green-900", border: "border-green-400" },
-  perdido: { bg: "bg-red-50", text: "text-red-800", border: "border-red-300" },
 }
 
 const labelsColuna: Record<string, string> = {
+  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
   encaminhado: "Encaminhado",
-  tarefa_criada: "Tarefa Criada",
-  em_negociacao: "Em Negociação",
-  venda_realizada: "Venda Realizada",
-  perdido: "Perdido",
 }
 
 interface KanbanColunaProps {

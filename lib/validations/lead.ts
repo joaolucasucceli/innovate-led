@@ -6,15 +6,8 @@ export const criarLeadSchema = z.object({
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   origem: z.string().optional(),
   statusFunil: z
-    .enum([
-      "qualificacao",
-      "encaminhado",
-      "tarefa_criada",
-      "em_negociacao",
-      "venda_realizada",
-      "perdido",
-    ])
-    .default("qualificacao"),
+    .enum(["acolhimento", "qualificacao", "encaminhado"])
+    .default("acolhimento"),
   responsavelId: z.string().cuid().optional(),
 })
 
@@ -24,38 +17,15 @@ export const atualizarLeadSchema = z.object({
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   origem: z.string().optional(),
   statusFunil: z
-    .enum([
-      "qualificacao",
-      "encaminhado",
-      "tarefa_criada",
-      "em_negociacao",
-      "venda_realizada",
-      "perdido",
-    ])
+    .enum(["acolhimento", "qualificacao", "encaminhado"])
     .optional(),
   responsavelId: z.string().cuid().optional().nullable(),
   sobreOLead: z.string().optional(),
 })
 
-export const mudarStatusSchema = z
-  .object({
-    statusFunil: z.enum([
-      "qualificacao",
-      "encaminhado",
-      "tarefa_criada",
-      "em_negociacao",
-      "venda_realizada",
-      "perdido",
-    ]),
-    motivoPerda: z
-      .string()
-      .min(3, "Motivo deve ter pelo menos 3 caracteres")
-      .optional(),
-  })
-  .refine(
-    (data) => data.statusFunil !== "perdido" || !!data.motivoPerda,
-    { message: "Motivo é obrigatório ao mover para Perdido", path: ["motivoPerda"] }
-  )
+export const mudarStatusSchema = z.object({
+  statusFunil: z.enum(["acolhimento", "qualificacao", "encaminhado"]),
+})
 
 export type CriarLeadInput = z.infer<typeof criarLeadSchema>
 export type AtualizarLeadInput = z.infer<typeof atualizarLeadSchema>

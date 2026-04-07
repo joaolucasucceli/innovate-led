@@ -22,7 +22,7 @@ export async function GET() {
         deletadoEm: null,
         arquivado: false,
         statusFunil: {
-          notIn: ["venda_realizada", "perdido"] as never[],
+          notIn: ["encaminhado"] as never[],
         },
         ultimaMovimentacaoEm: { lt: tressDiasAtras },
       },

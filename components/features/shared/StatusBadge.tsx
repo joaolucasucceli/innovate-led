@@ -4,12 +4,9 @@ import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const funilConfig: Record<string, { label: string; classes: string; descricao: string }> = {
+  acolhimento: { label: "Acolhimento", classes: "bg-green-100 text-green-800", descricao: "Primeiro contato com o lead" },
   qualificacao: { label: "Qualificação", classes: "bg-blue-100 text-blue-800", descricao: "IA qualificando o lead" },
   encaminhado: { label: "Encaminhado", classes: "bg-cyan-100 text-cyan-800", descricao: "Lead encaminhado ao comercial" },
-  tarefa_criada: { label: "Tarefa Criada", classes: "bg-purple-100 text-purple-800", descricao: "Tarefa de ligação criada" },
-  em_negociacao: { label: "Em Negociação", classes: "bg-yellow-100 text-yellow-800", descricao: "Consultor em contato" },
-  venda_realizada: { label: "Venda Realizada", classes: "bg-green-100 text-green-800", descricao: "Negócio fechado" },
-  perdido: { label: "Perdido", classes: "bg-red-100 text-red-800", descricao: "Lead perdido" },
 }
 
 interface StatusBadgeProps {

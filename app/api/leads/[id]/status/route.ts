@@ -50,13 +50,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     ultimaMovimentacaoEm: new Date(),
   }
 
-  // Salvar motivoPerda quando movendo para perdido, limpar quando saindo
-  if (novoStatus === "perdido") {
-    dataUpdate.motivoPerda = parsed.data.motivoPerda
-  } else if (statusAnterior === "perdido") {
-    dataUpdate.motivoPerda = null
-  }
-
   const leadAtualizado = await prisma.lead.update({
     where: { id },
     data: dataUpdate,

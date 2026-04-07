@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  if (lead.statusFunil !== "venda_realizada" && lead.statusFunil !== "perdido") {
+  if (lead.statusFunil !== "encaminhado") {
     return NextResponse.json(
       { error: "Lead já possui atendimento em andamento" },
       { status: 409 }

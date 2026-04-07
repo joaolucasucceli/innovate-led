@@ -160,8 +160,7 @@ export function SecaoFluxoTecnico() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">em_negociacao</Badge>
-              <Badge variant="secondary">venda_realizada</Badge>
+              <Badge variant="secondary">encaminhado</Badge>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Também fica em silêncio se a conversa estiver em modo &quot;humano&quot; (modoConversa).
@@ -176,7 +175,7 @@ export function SecaoFluxoTecnico() {
               <CardTitle className="text-base">Contato de Retorno</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              Quando um lead com status &quot;venda_realizada&quot; ou &quot;perdido&quot; envia mensagem novamente.
+              Quando um lead com status &quot;encaminhado&quot; envia mensagem novamente.
             </p>
           </CardHeader>
           <CardContent>
@@ -187,7 +186,7 @@ export function SecaoFluxoTecnico() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                Reseta status para &quot;qualificacao&quot;
+                Reseta status para &quot;acolhimento&quot;
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />

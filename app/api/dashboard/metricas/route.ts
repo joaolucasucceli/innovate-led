@@ -4,25 +4,25 @@ import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/auth-helpers"
 
 const labelsFunil: Record<string, string> = {
+  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
   encaminhado: "Encaminhado",
-  tarefa_criada: "Tarefa Criada",
 }
 
 const coresFunil: Record<string, string> = {
+  acolhimento: "#86efac",
   qualificacao: "#93c5fd",
   encaminhado: "#a5b4fc",
-  tarefa_criada: "#c4b5fd",
 }
 
 const ordemFunil = [
+  "acolhimento",
   "qualificacao",
   "encaminhado",
-  "tarefa_criada",
 ]
 
 const etapasConvertidas = [
-  "venda_realizada",
+  "encaminhado",
 ]
 
 function calcularDataInicio(periodo: string): Date | null {

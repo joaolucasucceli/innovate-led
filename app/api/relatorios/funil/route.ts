@@ -4,30 +4,21 @@ import { prisma } from "@/lib/prisma"
 import { requireRole } from "@/lib/auth-helpers"
 
 const labelsFunil: Record<string, string> = {
+  acolhimento: "Acolhimento",
   qualificacao: "Qualificação",
   encaminhado: "Encaminhado",
-  tarefa_criada: "Tarefa Criada",
-  em_negociacao: "Em Negociação",
-  venda_realizada: "Venda Realizada",
-  perdido: "Perdido",
 }
 
 const coresFunil: Record<string, string> = {
+  acolhimento: "#86efac",
   qualificacao: "#93c5fd",
   encaminhado: "#a5b4fc",
-  tarefa_criada: "#c4b5fd",
-  em_negociacao: "#fcd34d",
-  venda_realizada: "#86efac",
-  perdido: "#fca5a5",
 }
 
 const ordemFunil = [
+  "acolhimento",
   "qualificacao",
   "encaminhado",
-  "tarefa_criada",
-  "em_negociacao",
-  "venda_realizada",
-  "perdido",
 ]
 
 export async function GET(request: NextRequest) {
@@ -62,17 +53,13 @@ export async function GET(request: NextRequest) {
       prisma.lead.count({
         where: {
           ...filtroBase,
-          statusFunil: {
-            in: ["venda_realizada"] as never[],
-          },
+          statusFunil: "encaminhado",
         },
       }),
       prisma.lead.findMany({
         where: {
           ...filtroBase,
-          statusFunil: {
-            in: ["venda_realizada"] as never[],
-          },
+          statusFunil: "encaminhado",
           ultimaMovimentacaoEm: { not: null },
         },
         select: { criadoEm: true, ultimaMovimentacaoEm: true },

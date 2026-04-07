@@ -4,20 +4,16 @@ import { sincronizarFunil, avancarEtapa } from "@/lib/agente/kanban-sync"
 import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 const ETAPAS_CLASSIFICAVEIS: StatusFunil[] = [
+  "acolhimento",
   "qualificacao",
   "encaminhado",
 ]
 
-const LIMITE_CLASSIFICAVEL: StatusFunil = "tarefa_criada"
-
 function etapaIndex(etapa: StatusFunil): number {
   const ordem: StatusFunil[] = [
+    "acolhimento",
     "qualificacao",
     "encaminhado",
-    "tarefa_criada",
-    "em_negociacao",
-    "venda_realizada",
-    "perdido",
   ]
   return ordem.indexOf(etapa)
 }
@@ -42,8 +38,8 @@ export async function classificarEtapaConversa(
 
   const etapaAtual = lead.statusFunil
 
-  // Território manual — não interferir
-  if (etapaIndex(etapaAtual) >= etapaIndex(LIMITE_CLASSIFICAVEL)) return
+  // Já na última etapa — não há para onde avançar
+  if (etapaAtual === "encaminhado") return
 
   // Buscar últimas 15 mensagens (ordem cronológica)
   const mensagens = await prisma.mensagemWhatsapp.findMany({
@@ -71,10 +67,11 @@ export async function classificarEtapaConversa(
           content: `Analise o histórico de conversa de pré-atendimento de uma empresa de painéis LED e classifique em qual etapa a conversa está.
 
 Etapas possíveis:
-- "qualificacao": A assistente está coletando informações sobre o projeto do cliente (objetivo, ambiente, tamanho, prazo, investimento, etc.).
+- "acolhimento": Primeiro contato — a assistente está cumprimentando e entendendo o interesse inicial do cliente.
+- "qualificacao": A assistente está coletando informações detalhadas sobre o projeto do cliente (objetivo, ambiente, tamanho, prazo, investimento, etc.).
 - "encaminhado": A qualificação foi concluída e o cliente foi informado que será encaminhado para um consultor comercial.
 
-Responda APENAS com JSON válido: { "etapa": "qualificacao" | "encaminhado", "motivo": "explicação curta" }`,
+Responda APENAS com JSON válido: { "etapa": "acolhimento" | "qualificacao" | "encaminhado", "motivo": "explicação curta" }`,
         },
         {
           role: "user",

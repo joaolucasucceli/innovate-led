@@ -11,7 +11,7 @@ export async function GET() {
   const whereAlerta = {
     deletadoEm: null,
     arquivado: false,
-    statusFunil: { notIn: ["venda_realizada", "perdido"] as never[] },
+    statusFunil: { notIn: ["encaminhado"] as never[] },
     OR: [
       { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
       { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },

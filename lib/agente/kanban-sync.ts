@@ -33,7 +33,7 @@ interface ResultadoNovoCiclo {
 }
 
 /**
- * Abre um novo ciclo de atendimento para um lead que retornou (venda_realizada ou perdido).
+ * Abre um novo ciclo de atendimento para um lead que retornou (encaminhado).
  * Incrementa cicloAtual, reseta statusFunil e cria nova conversa vinculada ao ciclo.
  */
 export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo> {
@@ -54,7 +54,7 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
     prisma.conversa.create({
       data: {
         leadId,
-        etapa: "qualificacao",
+        etapa: "acolhimento",
         ciclo: novoCiclo,
       },
     }),
@@ -64,7 +64,7 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
         cicloAtual: novoCiclo,
         ciclosCompletos: lead.ciclosCompletos + 1,
         ehRetorno: true,
-        statusFunil: "qualificacao",
+        statusFunil: "acolhimento",
         ultimaMovimentacaoEm: new Date(),
         arquivado: false,
         arquivadoEm: null,

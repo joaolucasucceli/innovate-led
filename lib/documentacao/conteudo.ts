@@ -80,7 +80,7 @@ Dashboard unificado com todas as métricas do sistema em página única com scro
 ### Funcionalidades
 
 - **Métricas principais** — Total de leads, novos no período, vendas realizadas e taxa de conversão (gestor) / leads do dia (atendente)
-- **Funil por etapa** — Gráfico de barras com a distribuição dos leads nas 6 etapas do kanban
+- **Funil por etapa** — Gráfico de barras com a distribuição dos leads nas 3 etapas do kanban (Acolhimento, Qualificação, Encaminhado)
 - **Resumo Lívia** (gestor) — Card compacto com mensagens enviadas e follow-ups da IA
 - **Leads em alerta** — Leads sem movimentação há 3+ dias com link direto para o perfil
 - **Exportar CSV** (gestor) — Botão para exportar leads ou conversas em CSV

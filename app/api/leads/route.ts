@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   }
   if (alerta) {
     const ha3dias = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-    where.statusFunil = { notIn: ["venda_realizada", "perdido"] }
+    where.statusFunil = { notIn: ["encaminhado"] }
     where.OR = [
       { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
       { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },

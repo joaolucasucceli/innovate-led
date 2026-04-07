@@ -11,10 +11,10 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const MAX_TOOL_ITERATIONS = 10
 
 /** Statuses em que a IA fica em silêncio — humano está conduzindo */
-const STATUSES_SILENCIO = ["em_negociacao", "venda_realizada"]
+const STATUSES_SILENCIO = ["encaminhado"]
 
 /** Statuses que indicam contato retornando — IA abre novo ciclo */
-const STATUSES_RETORNO = ["venda_realizada", "perdido"]
+const STATUSES_RETORNO = ["encaminhado"]
 
 /** Segmenta resposta longa em mensagens curtas para WhatsApp */
 export function segmentarResposta(texto: string): string[] {
@@ -102,7 +102,7 @@ export async function processarMensagens(chatId: string): Promise<void> {
         return
       }
 
-      // 5b. Retorno: contato voltou após venda/perdido — abrir novo ciclo
+      // 5b. Retorno: contato voltou após encaminhado — abrir novo ciclo
       if (STATUSES_RETORNO.includes(statusAtual)) {
         try {
           const novoCiclo = await abrirNovoCiclo(resultadoLead.lead.id)

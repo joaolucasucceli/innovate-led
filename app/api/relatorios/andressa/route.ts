@@ -56,26 +56,19 @@ export async function GET(request: NextRequest) {
       select: { statusFunil: true },
     })
 
+    const etapasQualificacao = new Set([
+      "qualificacao",
+      "encaminhado",
+    ])
     const etapasEncaminhado = new Set([
       "encaminhado",
-      "tarefa_criada",
-      "em_negociacao",
-      "venda_realizada",
-    ])
-    const etapasTarefaCriada = new Set([
-      "tarefa_criada",
-      "em_negociacao",
-      "venda_realizada",
-    ])
-    const etapasVendido = new Set([
-      "venda_realizada",
     ])
 
     funil = {
       leadsRecebidos: leadsIA.length,
-      qualificados: leadsIA.filter((l) => etapasEncaminhado.has(l.statusFunil)).length,
-      encaminhados: leadsIA.filter((l) => etapasTarefaCriada.has(l.statusFunil)).length,
-      vendidos: leadsIA.filter((l) => etapasVendido.has(l.statusFunil)).length,
+      qualificados: leadsIA.filter((l) => etapasQualificacao.has(l.statusFunil)).length,
+      encaminhados: leadsIA.filter((l) => etapasEncaminhado.has(l.statusFunil)).length,
+      vendidos: 0,
     }
   }
 

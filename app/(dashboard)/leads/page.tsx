@@ -206,12 +206,9 @@ export default function LeadsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todas as etapas</SelectItem>
+                    <SelectItem value="acolhimento">Acolhimento</SelectItem>
                     <SelectItem value="qualificacao">Qualificação</SelectItem>
                     <SelectItem value="encaminhado">Encaminhado</SelectItem>
-                    <SelectItem value="tarefa_criada">Tarefa Criada</SelectItem>
-                    <SelectItem value="em_negociacao">Em Negociação</SelectItem>
-                    <SelectItem value="venda_realizada">Venda Realizada</SelectItem>
-                    <SelectItem value="perdido">Perdido</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="flex items-center gap-2">

@@ -29,18 +29,18 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Avançar lead para "tarefa_criada"
+  // Avançar lead para "encaminhado"
   await prisma.$transaction([
     prisma.lead.update({
       where: { id: leadId },
       data: {
-        statusFunil: "tarefa_criada" as StatusFunil,
+        statusFunil: "encaminhado" as StatusFunil,
         ultimaMovimentacaoEm: new Date(),
       },
     }),
     prisma.conversa.update({
       where: { id: conversaId },
-      data: { etapa: "tarefa_criada" as EtapaConversa },
+      data: { etapa: "encaminhado" as EtapaConversa },
     }),
   ])
 
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     sucesso: true,
-    etapaAvancada: "tarefa_criada",
+    etapaAvancada: "encaminhado",
     dataHora,
   })
 }
