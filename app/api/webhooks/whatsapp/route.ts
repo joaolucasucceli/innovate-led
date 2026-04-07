@@ -206,27 +206,8 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
     mediaUrl = msg.content || null
   }
 
-  // Para imagem: construir URL de download (múltiplas fontes)
-  if (tipoMsg === "imagem") {
-    const baseUrl = payload.BaseUrl || payload.baseUrl || payload.baseurl
-    const token = payload.token || payload.Token
-    const msgIdForDownload = msg.messageid || msg.id || ""
-
-    if (baseUrl && token && msgIdForDownload) {
-      mediaUrl = `${baseUrl}/chat/downloadMediaMessage/${msgIdForDownload}?token=${token}`
-    }
-
-    // Log detalhado para debug de imagem
-    console.log("[Webhook] Imagem detectada — debug:", {
-      msgId: msg.id,
-      msgMessageId: msg.messageid,
-      payloadBaseUrl: baseUrl || "AUSENTE",
-      payloadToken: token ? "presente" : "AUSENTE",
-      mediaUrlConstruida: mediaUrl || "FALHOU",
-      payloadKeys: Object.keys(payload).join(","),
-      msgKeys: Object.keys(msg).join(","),
-    })
-  }
+  // Para imagens: URL será obtida via obterBytesMidia (base64/URLs/POST download)
+  // Não precisa construir URL aqui — as 3 estratégias cobrem todos os casos
 
   // Fallback: tentar mediaUrl direto (outros gateways)
   if (!mediaUrl && tipoMsg !== "texto") {
