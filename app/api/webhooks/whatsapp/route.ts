@@ -59,11 +59,11 @@ async function obterBytesMidia(
     return { bytes, mimetype: content.mimetype || "application/octet-stream" }
   }
 
-  // ESTRATÉGIA B: URLs diretas do payload
+  // ESTRATÉGIA B: URLs diretas do payload (com validação de Content-Type)
   const urls = [
-    msgRaw.image_url,
     msgRaw.audio_url,
     msgRaw.document_url,
+    msgRaw.image_url,
     msgRaw.fileURL,
     msgRaw.file_url,
     content?.url,
@@ -75,9 +75,28 @@ async function obterBytesMidia(
     try {
       const res = await fetch(url, { headers: { token: uazapiToken } })
       const ct = res.headers.get("content-type") || ""
-      if (ct.includes("text/html")) continue // Página de erro
+
+      // Rejeitar páginas de erro HTML
+      if (ct.includes("text/html")) continue
+
+      // Se JSON: pode conter base64 dentro
+      if (ct.includes("application/json")) {
+        try {
+          const json = await res.json()
+          const b64 = json.base64 || json.data
+          if (typeof b64 === "string" && b64.length > 100) {
+            const raw = b64.includes(",") ? b64.split(",")[1] : b64
+            const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
+            console.log("[Webhook] Mídia: base64 via URL direta (JSON)")
+            return { bytes, mimetype: json.mimetype || json.Mimetype || "application/octet-stream" }
+          }
+        } catch { /* ignora JSON inválido */ }
+        continue
+      }
+
       if (!res.ok) continue
 
+      // Binário direto
       const bytes = new Uint8Array(await res.arrayBuffer())
       if (bytes.length > 100) {
         console.log("[Webhook] Mídia: baixada via URL direta:", url.slice(0, 60))
@@ -88,7 +107,7 @@ async function obterBytesMidia(
     }
   }
 
-  // ESTRATÉGIA C: POST /message/download
+  // ESTRATÉGIA C: POST /message/download (fallback mais confiável ~95%)
   const messageId = msgRaw.messageid || msgRaw.id
   if (messageId && uazapiUrl && uazapiToken) {
     try {
@@ -97,26 +116,45 @@ async function obterBytesMidia(
         headers: { token: uazapiToken, "Content-Type": "application/json" },
         body: JSON.stringify({ id: messageId, return_base64: true, return_link: false }),
       })
-      if (res.ok) {
+
+      const ct = res.headers.get("content-type") || ""
+
+      // Rejeitar HTML (página de erro)
+      if (ct.includes("text/html")) {
+        console.warn("[Webhook] /message/download retornou HTML — falhou")
+      } else if (ct.includes("application/json")) {
         const json = await res.json()
+
+        // Tentar base64 (vários campos possíveis)
         const b64 = json.base64 || json.data || json.Body
-        if (b64 && typeof b64 === "string" && b64.length > 100) {
+        if (typeof b64 === "string" && b64.length > 100) {
           const raw = b64.includes(",") ? b64.split(",")[1] : b64
           const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
-          console.log("[Webhook] Mídia: baixada via POST /message/download")
-          return { bytes, mimetype: json.mimetype || "application/octet-stream" }
+          console.log("[Webhook] Mídia: base64 via POST /message/download")
+          return { bytes, mimetype: json.mimetype || json.Mimetype || "application/octet-stream" }
         }
-        // Pode retornar URL
+
+        // Tentar URL secundária (sem header token)
         const dlUrl = json.fileURL || json.url
         if (dlUrl) {
-          const dlRes = await fetch(dlUrl, { headers: { token: uazapiToken } })
+          const dlRes = await fetch(dlUrl)
           if (dlRes.ok) {
-            const bytes = new Uint8Array(await dlRes.arrayBuffer())
-            if (bytes.length > 100) {
-              console.log("[Webhook] Mídia: baixada via URL do /message/download")
-              return { bytes, mimetype: dlRes.headers.get("content-type") || "application/octet-stream" }
+            const dlCt = dlRes.headers.get("content-type") || ""
+            if (!dlCt.includes("text/html")) {
+              const bytes = new Uint8Array(await dlRes.arrayBuffer())
+              if (bytes.length > 100) {
+                console.log("[Webhook] Mídia: baixada via URL do /message/download")
+                return { bytes, mimetype: dlCt || json.mimetype || "application/octet-stream" }
+              }
             }
           }
+        }
+      } else if (res.ok) {
+        // Binário direto (raro)
+        const buf = await res.arrayBuffer()
+        if (buf.byteLength > 100) {
+          console.log("[Webhook] Mídia: binário direto do /message/download")
+          return { bytes: new Uint8Array(buf), mimetype: ct || "application/octet-stream" }
         }
       }
     } catch (err) {
@@ -124,7 +162,7 @@ async function obterBytesMidia(
     }
   }
 
-  console.warn("[Webhook] Nenhuma estratégia de download funcionou")
+  console.warn("[Webhook] Nenhuma estratégia de download funcionou para msgId:", messageId)
   return null
 }
 
@@ -141,7 +179,8 @@ async function uploadParaStorage(
     if (!rawUrl || !rawKey) return null
 
     const supabase = createClient(stripQuotes(rawUrl), stripQuotes(rawKey))
-    const ext = tipo === "imagem" ? "jpg" : tipo === "audio" ? "ogg" : tipo === "video" ? "mp4" : "bin"
+    const extMap: Record<string, string> = { imagem: "jpg", audio: "ogg", video: "mp4", documento: "pdf" }
+    const ext = extMap[tipo] || "bin"
     const path = `webhook/${messageId}.${ext}`
 
     const { error } = await supabase.storage
