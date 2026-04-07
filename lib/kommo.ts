@@ -26,18 +26,33 @@ async function kommoFetch(path: string, options: RequestInit = {}): Promise<Resp
   })
 }
 
-/** Busca contato no Kommo por telefone */
+/** Busca contato no Kommo por telefone e retorna com lead vinculado */
 async function buscarContatoPorTelefone(whatsapp: string): Promise<{ id: number; leadId?: number } | null> {
   try {
-    const res = await kommoFetch(`/api/v4/contacts?query=${whatsapp}`)
+    // with=leads garante que leads vinculados sejam retornados
+    const res = await kommoFetch(`/api/v4/contacts?query=${whatsapp}&with=leads`)
     if (!res.ok) return null
 
     const data = await res.json()
     const contato = data?._embedded?.contacts?.[0]
     if (!contato) return null
 
-    // Buscar lead vinculado ao contato
-    const leadId = contato._embedded?.leads?.[0]?.id
+    // Lead vinculado vem em _embedded.leads
+    let leadId = contato._embedded?.leads?.[0]?.id
+
+    // Fallback: buscar leads do contato diretamente
+    if (!leadId) {
+      try {
+        const leadsRes = await kommoFetch(`/api/v4/contacts/${contato.id}/leads`)
+        if (leadsRes.ok) {
+          const leadsData = await leadsRes.json()
+          leadId = leadsData?._embedded?.leads?.[0]?.id
+        }
+      } catch {
+        // Ignora erro no fallback
+      }
+    }
+
     return { id: contato.id, leadId }
   } catch (err) {
     console.error("[Kommo] Erro ao buscar contato:", err)
