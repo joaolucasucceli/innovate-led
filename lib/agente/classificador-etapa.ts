@@ -57,7 +57,7 @@ export async function classificarEtapaConversa(
 
   const historico = mensagens
     .reverse()
-    .map((m) => `${m.remetente === "agente" ? "Andressa" : "Cliente"}: ${m.conteudo}`)
+    .map((m) => `${m.remetente === "agente" ? "Lívia" : "Cliente"}: ${m.conteudo}`)
     .join("\n")
 
   let novaEtapa: StatusFunil | null = null

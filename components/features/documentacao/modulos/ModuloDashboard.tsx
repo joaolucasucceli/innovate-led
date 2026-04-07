@@ -66,7 +66,7 @@ export function ModuloDashboard() {
             {
               perfil: "Gestor",
               acesso: "total",
-              acoes: ["Vê todos os KPIs incluindo taxa de conversão", "Acessa gráfico de leads por origem", "Visualiza atividade da Andressa"],
+              acoes: ["Vê todos os KPIs incluindo taxa de conversão", "Acessa gráfico de leads por origem", "Visualiza atividade da Lívia"],
             },
             {
               perfil: "Atendente",

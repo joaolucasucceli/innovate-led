@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Central Innovate** — sistema web para gestão de pré-atendimento da Innovate Brazil, empresa especializada em painéis LED. Dois módulos integrados em uma única aplicação Next.js:
 
 1. **Painel de Gestão** — kanban, leads, métricas, roadmap
-2. **Agente IA WhatsApp ("Andressa")** — pré-qualificação autônoma de leads via API Routes, alimentando o painel em tempo real + integração com Kommo CRM via n8n webhooks
+2. **Agente IA WhatsApp ("Lívia")** — pré-qualificação autônoma de leads via API Routes, alimentando o painel em tempo real + integração com Kommo CRM via n8n webhooks
 
 ## Stack Tecnológica
 
@@ -52,7 +52,7 @@ Dois perfis: **Gestor** (acesso total), **Atendente** (operacional). O agente IA
 
 | Coluna | Quem move | Descrição |
 |--------|-----------|-----------|
-| qualificacao | IA | Andressa coletando informações do lead |
+| qualificacao | IA | Lívia coletando informações do lead |
 | encaminhado | IA | Lead qualificado, encaminhado ao comercial |
 | tarefa_criada | IA | Tarefa de ligação criada para consultor |
 | em_negociacao | Humano | Consultor em contato com o lead |
@@ -103,7 +103,7 @@ Variáveis de ambiente: `N8N_WEBHOOK_SALVAR_QUALIFICACAO_URL`, `N8N_WEBHOOK_ENCA
 - `app/(dashboard)/` — páginas do painel com sidebar + verificação de perfil
 - `app/api/agente/` — ferramentas do agente IA (5 endpoints)
 - `lib/agente/` — internos do agente: buffer, memória, processamento de mídia, prompt, ferramentas, sincronização do kanban
-- `prisma/seed.ts` — seed com usuário IA Andressa + admin
+- `prisma/seed.ts` — seed com usuário IA Lívia + admin
 
 ## Notas do Modelo de Dados
 

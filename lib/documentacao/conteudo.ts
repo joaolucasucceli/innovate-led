@@ -16,7 +16,7 @@ export const DOCUMENTACAO_MD = `# Documentação — Central Innovate Brazil
 Sistema web para gestão comercial da Innovate Brazil — empresa especializada em painéis de LED.
 Dois módulos integrados em uma única aplicação Next.js:
 - **Painel de Gestão** — kanban, leads, métricas, gestão comercial
-- **Agente IA WhatsApp (Andressa)** — pré-qualificação autônoma de leads via WhatsApp
+- **Agente IA WhatsApp (Lívia)** — pré-qualificação autônoma de leads via WhatsApp
 
 ---
 
@@ -69,7 +69,7 @@ O sistema utiliza **Supabase Realtime** para manter os dados atualizados automat
 | **Gestor** | Total — todas as telas e funcionalidades |
 | **Atendente** | Operacional — Dashboard, Atendimentos, Leads |
 
-> O usuário "Andressa" é do tipo IA com perfil Atendente. Nunca deve ser desativado.
+> O usuário "Lívia" é do tipo IA com perfil Atendente. Nunca deve ser desativado.
 
 ---
 
@@ -81,7 +81,7 @@ Dashboard unificado com todas as métricas do sistema em página única com scro
 
 - **Métricas principais** — Total de leads, novos no período, vendas realizadas e taxa de conversão (gestor) / leads do dia (atendente)
 - **Funil por etapa** — Gráfico de barras com a distribuição dos leads nas 6 etapas do kanban
-- **Resumo Andressa** (gestor) — Card compacto com mensagens enviadas e follow-ups da IA
+- **Resumo Lívia** (gestor) — Card compacto com mensagens enviadas e follow-ups da IA
 - **Leads em alerta** — Leads sem movimentação há 3+ dias com link direto para o perfil
 - **Exportar CSV** (gestor) — Botão para exportar leads ou conversas em CSV
 
@@ -89,7 +89,7 @@ Dashboard unificado com todas as métricas do sistema em página única com scro
 
 1. Selecione o período (Hoje / Última semana / Último mês / Total) no seletor superior
 2. Analise os KPIs nos cards do topo
-3. Verifique o card de resumo da Andressa e os leads em alerta
+3. Verifique o card de resumo da Lívia e os leads em alerta
 4. Use o botão de download para exportar dados em CSV
 
 ### Permissões
@@ -128,7 +128,7 @@ Gestão completa da base de leads e potenciais clientes interessados em painéis
 | Gestor | Total — cria, edita, arquiva, reatribui e exporta |
 | Atendente | Total — cria, edita e visualiza |
 
-> **Atenção:** O WhatsApp é único no sistema. A Andressa usa esse campo para identificar o lead. Nunca cadastre o mesmo número para dois leads.
+> **Atenção:** O WhatsApp é único no sistema. A Lívia usa esse campo para identificar o lead. Nunca cadastre o mesmo número para dois leads.
 
 ---
 
@@ -140,9 +140,9 @@ Visualização em kanban do funil comercial com 6 etapas.
 
 | # | Etapa | Movimentação |
 |---|-------|-------------|
-| 1 | Qualificação | Automática (Andressa) |
-| 2 | Encaminhado | Automática (Andressa) |
-| 3 | Tarefa Criada | Automática (Andressa) |
+| 1 | Qualificação | Automática (Lívia) |
+| 2 | Encaminhado | Automática (Lívia) |
+| 3 | Tarefa Criada | Automática (Lívia) |
 | 4 | Em Negociação | Manual |
 | 5 | Venda Realizada | Manual |
 | 6 | Perdido | Manual |
@@ -150,7 +150,7 @@ Visualização em kanban do funil comercial com 6 etapas.
 ### Funcionalidades
 
 - **6 etapas do funil** — Visualização completa da jornada comercial do lead
-- **Movimentação automática** — Etapas 1 a 3 movidas pela Andressa via WhatsApp
+- **Movimentação automática** — Etapas 1 a 3 movidas pela Lívia via WhatsApp
 - **Ação manual (etapas 4–5)** — Controle manual do time comercial
 - **Filtros avançados** — Por responsável, etapa ou nome
 - **Chat WhatsApp integrado** — Alternância entre modo IA e modo humano
@@ -169,7 +169,7 @@ Visualização em kanban do funil comercial com 6 etapas.
 | Gestor | Total — move, arquiva e reatribui leads |
 | Atendente | Total — move e atualiza cards |
 
-> A Andressa move leads automaticamente até "Tarefa Criada" (etapa 3). A partir daí, o time comercial assume a negociação.
+> A Lívia move leads automaticamente até "Tarefa Criada" (etapa 3). A partir daí, o time comercial assume a negociação.
 
 ---
 
@@ -181,14 +181,14 @@ Interface de chat para atendimento via WhatsApp com alternância entre modo IA e
 
 - **Lista de conversas** — Todas as conversas ativas com preview da última mensagem
 - **Chat em tempo real** — Envio e recebimento de mensagens WhatsApp
-- **Modo IA / Humano** — Toggle para ativar ou desativar a Andressa em cada conversa
+- **Modo IA / Humano** — Toggle para ativar ou desativar a Lívia em cada conversa
 - **Histórico completo** — Todas as mensagens trocadas com o lead
 
 ### Como usar
 
 1. Selecione uma conversa na lista lateral
 2. Visualize o histórico de mensagens
-3. Use o toggle para alternar entre modo IA (Andressa responde) e modo humano (consultor responde)
+3. Use o toggle para alternar entre modo IA (Lívia responde) e modo humano (consultor responde)
 4. No modo humano, digite e envie mensagens diretamente
 
 ### Permissões
@@ -200,7 +200,7 @@ Interface de chat para atendimento via WhatsApp com alternância entre modo IA e
 
 ---
 
-## Módulo 5 — Andressa (Agente IA)
+## Módulo 5 — Lívia (Agente IA)
 
 Agente de pré-qualificação IA para leads interessados em painéis de LED.
 
@@ -233,7 +233,7 @@ POST /api/webhooks/whatsapp
 
 ### Integração n8n + Kommo
 
-- A Andressa dispara webhooks para o n8n ao encaminhar contatos e criar tarefas
+- A Lívia dispara webhooks para o n8n ao encaminhar contatos e criar tarefas
 - O n8n processa e cria/atualiza registros no Kommo CRM
 - Leads qualificados são atribuídos automaticamente a consultores comerciais
 
@@ -246,9 +246,9 @@ POST /api/webhooks/whatsapp
 
 ### Métricas
 
-As métricas da Andressa (mensagens, follow-ups) estão no **Dashboard** — card "Andressa".
+As métricas da Lívia (mensagens, follow-ups) estão no **Dashboard** — card "Lívia".
 
-> A Andressa opera 24/7. Configure o WhatsApp em Configurações para ela funcionar.
+> A Lívia opera 24/7. Configure o WhatsApp em Configurações para ela funcionar.
 
 ---
 
@@ -285,7 +285,7 @@ Integrações e configurações gerais do sistema.
 ### Seções
 
 #### WhatsApp (Uazapi)
-- Gateway para recebimento e envio de mensagens pela Andressa
+- Gateway para recebimento e envio de mensagens pela Lívia
 - Configuração: inserir URL + token da Uazapi → escanear QR Code
 - Gestão de instâncias WhatsApp
 
@@ -301,7 +301,7 @@ Integrações e configurações gerais do sistema.
 | Gestor | Total — configura integrações e gerencia usuários |
 | Atendente | Sem acesso |
 
-> Sem WhatsApp conectado, a Andressa fica silenciosa.
+> Sem WhatsApp conectado, a Lívia fica silenciosa.
 
 ---
 

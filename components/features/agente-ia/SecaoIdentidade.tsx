@@ -41,7 +41,7 @@ export function SecaoIdentidade() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-semibold">Andressa</h2>
+              <h2 className="text-xl font-semibold">Lívia</h2>
               <Badge variant="secondary">GPT-4o</Badge>
             </div>
             <p className="text-sm text-muted-foreground">

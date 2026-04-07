@@ -71,9 +71,9 @@ async function gerarMensagemFollowUp(
 
   try {
     const prompts: Record<string, string> = {
-      "1h": `Escreva uma mensagem curta de follow-up leve e amigável no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 1 hora. Tom acolhedor, informal, máximo 2 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
-      "6h": `Escreva uma mensagem de follow-up com valor no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 6 horas. Mencione brevemente um benefício dos painéis LED e reforce que um consultor pode fazer análise gratuita. Tom acolhedor, máximo 3 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
-      "24h": `Escreva uma mensagem de encerramento gentil no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas não responde há 24 horas. Deixe a porta aberta para retorno. Tom empático, máximo 2 linhas. Você é Andressa, do time de pré-atendimento da Innovate Brazil.`,
+      "1h": `Escreva uma mensagem curta de follow-up leve e amigável no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 1 hora. Tom acolhedor, informal, máximo 2 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
+      "6h": `Escreva uma mensagem de follow-up com valor no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 6 horas. Mencione brevemente um benefício dos painéis LED e reforce que um consultor pode fazer análise gratuita. Tom acolhedor, máximo 3 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
+      "24h": `Escreva uma mensagem de encerramento gentil no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas não responde há 24 horas. Deixe a porta aberta para retorno. Tom empático, máximo 2 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
     }
 
     const resposta = await openai.chat.completions.create({

@@ -113,7 +113,7 @@ export function SecaoFluxoTecnico() {
         <CardHeader>
           <CardTitle className="text-base">Fluxo da Conversa</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Pipeline completo desde a mensagem do cliente até a resposta da Andressa.
+            Pipeline completo desde a mensagem do cliente até a resposta da Lívia.
           </p>
         </CardHeader>
         <CardContent>

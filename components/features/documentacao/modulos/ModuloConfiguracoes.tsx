@@ -25,7 +25,7 @@ export function ModuloConfiguracoes() {
           {
             icone: <MessageCircle />,
             titulo: "WhatsApp via Uazapi",
-            descricao: "Conexão com o gateway WhatsApp para recebimento e envio de mensagens pela Andressa.",
+            descricao: "Conexão com o gateway WhatsApp para recebimento e envio de mensagens pela Lívia.",
           },
           {
             icone: <Users />,
@@ -76,7 +76,7 @@ export function ModuloConfiguracoes() {
           ]}
         />
         <DicaImportante
-          texto="Sem o WhatsApp conectado, a Andressa fica silenciosa e não recebe nem envia mensagens."
+          texto="Sem o WhatsApp conectado, a Lívia fica silenciosa e não recebe nem envia mensagens."
           variante="aviso"
         />
       </div>

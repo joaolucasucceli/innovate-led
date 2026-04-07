@@ -84,7 +84,7 @@ export function SecaoBaseConhecimento() {
     <Card>
       <CardContent className="pt-6">
         <p className="mb-4 text-sm text-muted-foreground">
-          Informações que a Andressa utiliza para responder dúvidas dos clientes durante a conversa.
+          Informações que a Lívia utiliza para responder dúvidas dos clientes durante a conversa.
         </p>
         <Accordion type="multiple" className="w-full">
           {secoes.map((secao) => (

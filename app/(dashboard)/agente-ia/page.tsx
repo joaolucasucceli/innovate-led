@@ -15,7 +15,7 @@ export default function AgenteIAPage() {
     <div>
       <PageHeader
         titulo="Agente IA"
-        descricao="Conheça a Andressa — assistente de pré-atendimento da Innovate Brazil"
+        descricao="Conheça a Lívia — assistente de pré-atendimento da Innovate Brazil"
       />
 
       <Tabs defaultValue="identidade" className="mt-6">

@@ -395,7 +395,7 @@ export default function LeadDetalhePage() {
                                     }`}
                                   >
                                     <p className={`text-xs mb-1 font-medium ${ehAgente ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                                      {ehAgente ? "Andressa" : lead.nome.split(" ")[0]}
+                                      {ehAgente ? "Lívia" : lead.nome.split(" ")[0]}
                                     </p>
                                     <p>{msg.conteudo}</p>
                                     <p className={`text-xs mt-1 text-right ${ehAgente ? "text-primary-foreground/60" : "text-muted-foreground"}`}>

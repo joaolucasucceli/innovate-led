@@ -3,20 +3,20 @@
 import { Bot, MessageSquare, Send } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface CardResumoAndressaProps {
+interface CardResumoLiviaProps {
   mensagensEnviadas: number
   followUpsEnviados: number
 }
 
-export function CardResumoAndressa({
+export function CardResumoLivia({
   mensagensEnviadas,
   followUpsEnviados,
-}: CardResumoAndressaProps) {
+}: CardResumoLiviaProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-2">
         <Bot className="h-5 w-5 text-muted-foreground" />
-        <CardTitle className="text-base">Andressa</CardTitle>
+        <CardTitle className="text-base">Lívia</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">

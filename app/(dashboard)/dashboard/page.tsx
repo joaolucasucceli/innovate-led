@@ -24,7 +24,7 @@ import { SkeletonCard } from "@/components/features/shared/SkeletonCard"
 import { ErrorState } from "@/components/features/shared/ErrorState"
 import { GraficoFunil } from "@/components/features/dashboard/GraficoFunil"
 import { LeadsAlerta } from "@/components/features/dashboard/LeadsAlerta"
-import { CardResumoAndressa } from "@/components/features/dashboard/CardResumoAndressa"
+import { CardResumoLivia } from "@/components/features/dashboard/CardResumoLivia"
 import { useDashboard } from "@/hooks/use-dashboard"
 import { exportarRelatorio } from "@/hooks/use-relatorio"
 
@@ -137,7 +137,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Funil + Andressa / Leads em Alerta */}
+      {/* Funil + Lívia / Leads em Alerta */}
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center gap-2">
@@ -151,7 +151,7 @@ export default function DashboardPage() {
 
         <div className="grid gap-4">
           {isGestor && (
-            <CardResumoAndressa
+            <CardResumoLivia
               mensagensEnviadas={metricas.mensagensEnviadasPelaIA}
               followUpsEnviados={metricas.followUpsEnviados}
             />

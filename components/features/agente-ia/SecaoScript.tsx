@@ -48,7 +48,7 @@ export function SecaoScript() {
     <Card>
       <CardContent className="pt-6">
         <p className="mb-4 text-sm text-muted-foreground">
-          O script de atendimento guia a Andressa em 3 etapas. Ela faz uma pergunta por vez
+          O script de atendimento guia a Lívia em 3 etapas. Ela faz uma pergunta por vez
           e aguarda a resposta antes de avançar.
         </p>
 
@@ -66,7 +66,7 @@ export function SecaoScript() {
                 <MensagemModelo>
                   &quot;Olá! 👋&quot;
                   <br /><br />
-                  &quot;Sou a Andressa, do time de pré-atendimento da Innovate Brazil,
+                  &quot;Sou a Lívia, do time de pré-atendimento da Innovate Brazil,
                   especializada em painéis LED para comunicação visual.&quot;
                   <br /><br />
                   &quot;Que bom que você entrou em contato! Posso te ajudar a encontrar

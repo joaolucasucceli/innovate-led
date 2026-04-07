@@ -81,7 +81,7 @@ export function ModuloLeads() {
           ]}
         />
         <DicaImportante
-          texto="O número de WhatsApp é único no sistema — a Andressa usa esse campo para identificar o lead durante o atendimento. Nunca cadastre o mesmo número para dois leads diferentes."
+          texto="O número de WhatsApp é único no sistema — a Lívia usa esse campo para identificar o lead durante o atendimento. Nunca cadastre o mesmo número para dois leads diferentes."
           variante="aviso"
         />
       </div>

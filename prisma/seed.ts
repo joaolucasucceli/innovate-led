@@ -24,21 +24,21 @@ async function main() {
   })
   console.log(`✅ Admin: ${admin.email}`)
 
-  // ── Usuário IA (Andressa) ──────────────────────────────────────────────────
-  const senhaIa = await hash("ia-andressa-innovate-2026", 10)
+  // ── Usuário IA (Lívia) ──────────────────────────────────────────────────
+  const senhaIa = await hash("ia-livia-innovate-2026", 10)
 
-  const andressa = await prisma.usuario.upsert({
-    where: { email: "andressa@innovatebrazil.com" },
+  const livia = await prisma.usuario.upsert({
+    where: { email: "livia@innovatebrazil.com" },
     update: {},
     create: {
-      nome: "Andressa",
-      email: "andressa@innovatebrazil.com",
+      nome: "Lívia",
+      email: "livia@innovatebrazil.com",
       senha: senhaIa,
       perfil: "atendente",
       tipo: "ia",
     },
   })
-  console.log(`✅ Agente IA: ${andressa.nome} (${andressa.email})`)
+  console.log(`✅ Agente IA: ${livia.nome} (${livia.email})`)
 
   // ── Config Site ──────────────────────────────────────────────────────────────
   await prisma.configSite.upsert({

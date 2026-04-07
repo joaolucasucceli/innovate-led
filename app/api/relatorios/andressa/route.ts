@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
 
   const filtroPeriodo = { criadoEm: { gte: dataInicio, lte: dataFimDia } }
 
-  // Buscar usuário IA (Andressa)
-  const andressa = await prisma.usuario.findFirst({
+  // Buscar usuário IA (Lívia)
+  const livia = await prisma.usuario.findFirst({
     where: { tipo: "ia", deletadoEm: null },
     select: { id: true },
   })
@@ -44,12 +44,12 @@ export async function GET(request: NextRequest) {
     prisma.conversa.count({ where: { ...filtroPeriodo, encerradaEm: { not: null } } }),
   ])
 
-  // Funil — leads gerenciados pela Andressa no período
+  // Funil — leads gerenciados pela Lívia no período
   let funil = { leadsRecebidos: 0, qualificados: 0, encaminhados: 0, vendidos: 0 }
-  if (andressa) {
+  if (livia) {
     const leadsIA = await prisma.lead.findMany({
       where: {
-        responsavelId: andressa.id,
+        responsavelId: livia.id,
         criadoEm: { gte: dataInicio, lte: dataFimDia },
         deletadoEm: null,
       },

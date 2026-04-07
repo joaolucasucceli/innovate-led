@@ -36,7 +36,7 @@ const CORES_REMETENTE = {
 
 const LABEL_REMETENTE: Record<string, string> = {
   paciente: "Lead",
-  agente: "Andressa",
+  agente: "Lívia",
   atendente: "Atendente",
 }
 

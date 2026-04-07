@@ -25,7 +25,7 @@ export function ModuloAtendimentos() {
           {
             icone: <Bot />,
             titulo: "Movimentação automática",
-            descricao: "As primeiras etapas são movidas automaticamente pela Andressa conforme o atendimento via WhatsApp avança.",
+            descricao: "As primeiras etapas são movidas automaticamente pela Lívia conforme o atendimento via WhatsApp avança.",
           },
           {
             icone: <Hand />,
@@ -76,7 +76,7 @@ export function ModuloAtendimentos() {
           ]}
         />
         <DicaImportante
-          texto="A Andressa move leads automaticamente pelas primeiras etapas. A partir de 'Em Negociação', o time assume o controle manual do funil."
+          texto="A Lívia move leads automaticamente pelas primeiras etapas. A partir de 'Em Negociação', o time assume o controle manual do funil."
           variante="info"
         />
       </div>
