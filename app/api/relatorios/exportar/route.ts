@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
         id: true,
         nome: true,
         whatsapp: true,
-        email: true,
         origem: true,
         statusFunil: true,
         criadoEm: true,
@@ -66,8 +65,8 @@ export async function GET(request: NextRequest) {
       contentType = "application/json"
     } else {
       conteudo = linhasCsv(
-        ["id", "nome", "whatsapp", "email", "origem", "statusFunil", "criadoEm", "atualizadoEm"],
-        leads.map((l) => [l.id, l.nome, l.whatsapp, l.email, l.origem, l.statusFunil, l.criadoEm.toISOString(), l.atualizadoEm.toISOString()])
+        ["id", "nome", "whatsapp", "origem", "statusFunil", "criadoEm", "atualizadoEm"],
+        leads.map((l) => [l.id, l.nome, l.whatsapp, l.origem, l.statusFunil, l.criadoEm.toISOString(), l.atualizadoEm.toISOString()])
       )
       contentType = "text/csv"
     }

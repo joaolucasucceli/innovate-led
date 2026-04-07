@@ -120,10 +120,6 @@ export default function LeadDetalhePage() {
                 <Input value={lead.whatsapp} readOnly className="bg-muted cursor-default" />
               </div>
               <div className="grid gap-2">
-                <Label>Email</Label>
-                <Input value={lead.email || "—"} readOnly className="bg-muted cursor-default" />
-              </div>
-              <div className="grid gap-2">
                 <Label>Responsável</Label>
                 <Input
                   value={lead?.responsavel?.nome || "Sem responsável"}

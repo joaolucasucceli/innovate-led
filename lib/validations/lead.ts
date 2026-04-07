@@ -3,7 +3,6 @@ import { z } from "zod"
 export const criarLeadSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   whatsapp: z.string().regex(/^\d{10,13}$/, "WhatsApp deve conter apenas dígitos (10 a 13)"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
   origem: z.string().optional(),
   statusFunil: z
     .enum(["acolhimento", "qualificacao", "encaminhado"])
@@ -14,7 +13,6 @@ export const criarLeadSchema = z.object({
 export const atualizarLeadSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").optional(),
   whatsapp: z.string().regex(/^\d{10,13}$/, "WhatsApp deve conter apenas dígitos (10 a 13)").optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
   origem: z.string().optional(),
   statusFunil: z
     .enum(["acolhimento", "qualificacao", "encaminhado"])

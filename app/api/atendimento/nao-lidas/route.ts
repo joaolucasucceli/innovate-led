@@ -8,7 +8,7 @@ export async function GET() {
 
   const total = await prisma.mensagemWhatsapp.count({
     where: {
-      remetente: "paciente",
+      remetente: { in: ["paciente", "cliente"] },
       lidaEm: null,
     },
   })

@@ -90,7 +90,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       id: true,
       nome: true,
       whatsapp: true,
-      email: true,
       statusFunil: true,
       origem: true,
       sobreOLead: true,

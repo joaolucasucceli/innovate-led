@@ -36,19 +36,29 @@ const MIME_MAP: Record<string, string> = {
   video: "video/mp4",
 }
 
+function stripQuotes(value: string) {
+  return value.replace(/^["']|["']$/g, "")
+}
+
 async function downloadEUploadMidia(
   mediaUrl: string,
   tipo: TipoMensagem,
   messageId: string
 ): Promise<string | null> {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!supabaseUrl || !serviceKey) return null
+    const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!rawUrl || !rawKey) {
+      console.warn("[Webhook] Supabase URL ou Service Key não configurados — mídia não será salva")
+      return null
+    }
 
-    const supabase = createClient(supabaseUrl, serviceKey)
+    const supabase = createClient(stripQuotes(rawUrl), stripQuotes(rawKey))
     const res = await fetch(mediaUrl)
-    if (!res.ok) return null
+    if (!res.ok) {
+      console.warn("[Webhook] Erro ao baixar mídia:", res.status, mediaUrl.slice(0, 100))
+      return null
+    }
 
     const buffer = Buffer.from(await res.arrayBuffer())
     const ext = tipo === "imagem" ? "jpg" : tipo === "audio" ? "ogg" : tipo === "video" ? "mp4" : "bin"
@@ -61,11 +71,15 @@ async function downloadEUploadMidia(
         upsert: true,
       })
 
-    if (error) return null
+    if (error) {
+      console.error("[Webhook] Erro ao upload mídia:", error.message)
+      return null
+    }
 
     const { data } = supabase.storage.from("atendimento-midias").getPublicUrl(path)
     return data.publicUrl
-  } catch {
+  } catch (err) {
+    console.error("[Webhook] Erro inesperado no upload mídia:", err)
     return null
   }
 }
@@ -243,25 +257,26 @@ export async function POST(request: NextRequest) {
     let storedMediaUrl: string | null = null
     let descricaoImagem: string | null = null
 
-    // Processar mídia
+    // 1. Download mídia para Supabase PRIMEIRO (URL do Uazapi pode expirar)
+    if (msg.mediaUrl && msg.tipo !== "texto") {
+      storedMediaUrl = await downloadEUploadMidia(msg.mediaUrl, msg.tipo, msg.id)
+    }
+
+    // 2. Processar mídia (transcrição/descrição) usando URL pública estável
     try {
-      if (msg.tipo === "audio" && msg.mediaUrl) {
-        conteudo = `[Áudio transcrito]: ${await transcreverAudio(msg.mediaUrl)}`
-      } else if (msg.tipo === "imagem" && msg.mediaUrl) {
-        descricaoImagem = await descreverImagem(msg.mediaUrl)
+      if (msg.tipo === "audio" && (storedMediaUrl || msg.mediaUrl)) {
+        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl || msg.mediaUrl!)}`
+      } else if (msg.tipo === "imagem" && (storedMediaUrl || msg.mediaUrl)) {
+        descricaoImagem = await descreverImagem(storedMediaUrl || msg.mediaUrl!)
         conteudo = conteudo
           ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
           : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
       }
-    } catch {
+    } catch (err) {
+      console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
       if (!conteudo) {
         conteudo = `[${msg.tipo} não processado]`
       }
-    }
-
-    // Download mídia e upload para Storage
-    if (msg.mediaUrl && msg.tipo !== "texto") {
-      storedMediaUrl = await downloadEUploadMidia(msg.mediaUrl, msg.tipo, msg.id)
     }
 
     // Encontrar ou criar lead pelo whatsapp

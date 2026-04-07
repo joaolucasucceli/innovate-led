@@ -28,7 +28,6 @@ interface Lead {
   id: string
   nome: string
   whatsapp: string
-  email: string | null
   statusFunil: string
   origem: string | null
   arquivado: boolean
