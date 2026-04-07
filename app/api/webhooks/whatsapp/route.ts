@@ -292,19 +292,34 @@ export async function POST(request: NextRequest) {
     let descricaoImagem: string | null = null
 
     // Construir URL de download da mídia
-    // Prioridade: msg.mediaUrl (do payload/normalização) → fallback ConfigWhatsapp
+    // Fonte 1: normalização (payload.BaseUrl + messageid)
+    // Fonte 2: ConfigWhatsapp do banco
     let mediaDownloadUrl = msg.mediaUrl
-    if (!mediaDownloadUrl && msg.tipo !== "texto") {
-      const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
-      if (configWa?.uazapiUrl && configWa?.instanceToken) {
-        mediaDownloadUrl = `${configWa.uazapiUrl}/chat/downloadMediaMessage/${msg.id}?token=${configWa.instanceToken}`
-        console.log("[Webhook] URL mídia construída via ConfigWhatsapp:", mediaDownloadUrl.slice(0, 100))
+    const debugInfo: string[] = []
+
+    if (msg.tipo !== "texto") {
+      debugInfo.push(`tipo=${msg.tipo}`)
+      debugInfo.push(`mediaUrlNorm=${msg.mediaUrl ? "sim" : "nao"}`)
+      debugInfo.push(`msgId=${msg.id}`)
+
+      if (!mediaDownloadUrl) {
+        const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+        if (configWa?.uazapiUrl && configWa?.instanceToken) {
+          mediaDownloadUrl = `${configWa.uazapiUrl}/chat/downloadMediaMessage/${msg.id}?token=${configWa.instanceToken}`
+          debugInfo.push("fonte=ConfigWhatsapp")
+        } else {
+          debugInfo.push("fonte=NENHUMA(configWa vazio)")
+        }
+      } else {
+        debugInfo.push("fonte=payload")
       }
+      debugInfo.push(`urlFinal=${mediaDownloadUrl ? mediaDownloadUrl.slice(0, 80) : "NENHUMA"}`)
     }
 
     // 1. Download mídia para Supabase PRIMEIRO
     if (mediaDownloadUrl && msg.tipo !== "texto") {
       storedMediaUrl = await downloadEUploadMidia(mediaDownloadUrl, msg.tipo, msg.id)
+      debugInfo.push(`upload=${storedMediaUrl ? "OK" : "FALHOU"}`)
     }
 
     // 2. Processar mídia (transcrição/descrição) usando URL pública estável
@@ -316,11 +331,13 @@ export async function POST(request: NextRequest) {
         conteudo = conteudo
           ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
           : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+        debugInfo.push("descricao=OK")
       }
     } catch (err) {
+      debugInfo.push(`erro=${err instanceof Error ? err.message.slice(0, 50) : "desconhecido"}`)
       console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
       if (!conteudo) {
-        conteudo = `[${msg.tipo} não processado]`
+        conteudo = `[${msg.tipo} não processado] DEBUG: ${debugInfo.join(" | ")}`
       }
     }
 
