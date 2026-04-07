@@ -144,7 +144,7 @@ export async function criarTarefaKommo(
       method: "POST",
       body: JSON.stringify([
         {
-          text: `Ligação: ${resumo}\nHorário preferido: ${dataHora}`,
+          text: `Ligacao: ${resumo} | Horario preferido: ${dataHora}`,
           complete_till: completeTill,
           entity_id: contato.leadId,
           entity_type: "leads",
