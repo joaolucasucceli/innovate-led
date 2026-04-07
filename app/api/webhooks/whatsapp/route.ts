@@ -187,37 +187,39 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
         : msg.messageTimestamp)
     : Math.floor(Date.now() / 1000)
 
-  // Detectar tipo de mídia (Uazapi v2: type + mediaType)
+  // Detectar tipo de mídia (Uazapi v2: type + mediaType + messageType)
   const msgType = (msg.type || "").toLowerCase()
   const mediaType = (msg.mediaType || "").toLowerCase()
   let tipoMsg: TipoMensagem = "texto"
-  let mediaUrl: string | null = null
 
-  if (msgType === "audio" || msgType === "ptt" || mediaType.includes("audio") || mediaType === "ptt") {
+  if (msgType === "audio" || msgType === "ptt" || mediaType === "ptt" || mediaType.includes("audio")) {
     tipoMsg = "audio"
-    mediaUrl = msg.content || null
-  } else if ((msgType === "media" && mediaType.includes("image")) || mediaType.includes("image")) {
+  } else if (msgType === "media" && mediaType.includes("image") || mediaType.includes("image")) {
     tipoMsg = "imagem"
+  } else if (msgType === "sticker" || mediaType === "sticker") {
+    tipoMsg = "imagem" // sticker renderiza como imagem
   } else if (msgType === "document" || mediaType.includes("document")) {
     tipoMsg = "documento"
-    mediaUrl = msg.content || null
   } else if (msgType === "video" || mediaType.includes("video")) {
     tipoMsg = "video"
-    mediaUrl = msg.content || null
   }
 
-  // Para imagens: URL será obtida via obterBytesMidia (base64/URLs/POST download)
-  // Não precisa construir URL aqui — as 3 estratégias cobrem todos os casos
+  // mediaUrl: sempre null aqui — download feito via obterBytesMidia (3 estratégias)
+  const mediaUrl: string | null = null
 
-  // Fallback: tentar mediaUrl direto (outros gateways)
-  if (!mediaUrl && tipoMsg !== "texto") {
-    mediaUrl = msg.mediaUrl || msg.media_url || null
+  // Conteúdo texto:
+  // - Mídia: msg.text contém caption/legenda. msg.content é OBJETO (mimetype, base64, etc)
+  // - Texto: msg.content ou msg.body contém o texto real
+  // - Documento: msg.content.fileName pode conter o nome do arquivo
+  let conteudo = ""
+  if (tipoMsg === "texto") {
+    conteudo = (typeof msg.content === "string" ? msg.content : "") || msg.body || msg.text || ""
+  } else if (tipoMsg === "documento") {
+    const fileName = typeof msg.content === "object" ? msg.content?.fileName : null
+    conteudo = msg.text || fileName || ""
+  } else {
+    conteudo = msg.text || msg.caption || ""
   }
-
-  // Conteúdo: para imagens, usar caption/texto (não a URL)
-  const conteudo = tipoMsg === "imagem"
-    ? (msg.text || msg.caption || "")
-    : (msg.content || msg.body || "")
 
   // Nome do contato — vem do chat do Uazapi
   const chat = payload.chat || {}
@@ -365,19 +367,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Processar mídia (transcrição/descrição) usando URL pública do Supabase
-    try {
-      if (msg.tipo === "audio" && storedMediaUrl) {
-        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl)}`
-      } else if (msg.tipo === "imagem" && storedMediaUrl) {
-        descricaoImagem = await descreverImagem(storedMediaUrl)
-        conteudo = conteudo
-          ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
-          : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+    if (msg.tipo !== "texto") {
+      try {
+        if (msg.tipo === "audio" && storedMediaUrl) {
+          const transcricao = await transcreverAudio(storedMediaUrl)
+          conteudo = `[Áudio transcrito]: ${transcricao}`
+        } else if (msg.tipo === "imagem" && storedMediaUrl) {
+          descricaoImagem = await descreverImagem(storedMediaUrl)
+          const caption = conteudo // caption original (se houver)
+          conteudo = caption
+            ? `${caption}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+            : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+        }
+        // documento e video: conteúdo já é o fileName/caption
+      } catch (err) {
+        console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
       }
-    } catch (err) {
-      console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
-      if (!conteudo) {
-        conteudo = `[${msg.tipo} não processado]`
+
+      // Fallback com emoji quando download/processamento falhou
+      if (!conteudo && !storedMediaUrl) {
+        const fallbacks: Record<string, string> = {
+          audio: "Áudio recebido",
+          imagem: "Imagem recebida",
+          documento: "Documento recebido",
+          video: "Vídeo recebido",
+        }
+        conteudo = fallbacks[msg.tipo] || `${msg.tipo} recebido`
       }
     }
 
