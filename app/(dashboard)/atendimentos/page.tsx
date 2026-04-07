@@ -1,22 +1,18 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { Plus, Bot, User, ExternalLink, Loader2, MessageSquare, Pause, Play } from "lucide-react"
+import { Bot, ExternalLink, Loader2, MessageSquare, Pause, Play } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/features/shared/PageHeader"
 import { KanbanView } from "@/components/features/kanban/KanbanView"
-import { LeadForm } from "@/components/features/leads/LeadForm"
-import { NovoAtendimentoModal } from "@/components/features/kanban/NovoAtendimentoModal"
 import { ListaConversas } from "@/components/features/atendimentos/ListaConversas"
 import { HistoricoChat } from "@/components/features/chat/HistoricoChat"
 import { type ConversaResumo } from "@/hooks/use-conversas"
 import { toast } from "sonner"
 
 export default function AtendimentosPage() {
-  const [novoLeadAberto, setNovoLeadAberto] = useState(false)
-  const [novoAtendimentoAberto, setNovoAtendimentoAberto] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Conversa selecionada para ver historico
@@ -69,19 +65,7 @@ export default function AtendimentosPage() {
       <PageHeader
         titulo="Atendimentos"
         descricao="Visualize o funil e o histórico de conversas"
-      >
-        <Button
-          variant="outline"
-          onClick={() => setNovoAtendimentoAberto(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Atendimento
-        </Button>
-        <Button onClick={() => setNovoLeadAberto(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Lead
-        </Button>
-      </PageHeader>
+      />
 
       {/* Kanban */}
       <div className="mt-4">
@@ -171,23 +155,6 @@ export default function AtendimentosPage() {
         </div>
       </div>
 
-      <LeadForm
-        aberto={novoLeadAberto}
-        onFechar={() => setNovoLeadAberto(false)}
-        onSucesso={() => {
-          setNovoLeadAberto(false)
-          setRefreshKey((k) => k + 1)
-        }}
-      />
-
-      <NovoAtendimentoModal
-        aberto={novoAtendimentoAberto}
-        onFechar={() => setNovoAtendimentoAberto(false)}
-        onSucesso={() => {
-          setNovoAtendimentoAberto(false)
-          setRefreshKey((k) => k + 1)
-        }}
-      />
     </div>
   )
 }

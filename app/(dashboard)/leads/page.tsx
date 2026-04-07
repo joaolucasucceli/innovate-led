@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Plus, Download, X } from "lucide-react"
+import { Download, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,7 +22,6 @@ import { SkeletonTabela } from "@/components/features/shared/SkeletonTabela"
 import { ErrorState } from "@/components/features/shared/ErrorState"
 import { StatusBadge } from "@/components/features/shared/StatusBadge"
 import { UserAvatar } from "@/components/features/shared/UserAvatar"
-import { LeadForm } from "@/components/features/leads/LeadForm"
 import { useLeads } from "@/hooks/use-leads"
 
 interface Lead {
@@ -46,12 +44,10 @@ interface Procedimento {
 export default function LeadsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session } = useSession()
   const [pagina, setPagina] = useState(1)
   const [busca, setBusca] = useState("")
   const [statusFunil, setStatusFunil] = useState("")
   const [mostrarArquivados, setMostrarArquivados] = useState(false)
-  const [formAberto, setFormAberto] = useState(false)
   const [filtroEspecial, setFiltroEspecial] = useState<"alerta" | "followup" | undefined>(
     () => {
       const v = searchParams.get("filtro")
@@ -67,10 +63,6 @@ export default function LeadsPage() {
     arquivado: mostrarArquivados ? "true" : undefined,
     filtroEspecial,
   })
-
-  const podecriar =
-    session?.user?.perfil === "gestor" ||
-    session?.user?.perfil === "atendente"
 
   const colunas: ColunaConfig<Lead>[] = [
     { chave: "nome", titulo: "Nome", ordenavel: true },
@@ -133,12 +125,6 @@ export default function LeadsPage() {
           <Download className="mr-2 h-4 w-4" />
           Exportar CSV
         </Button>
-        {podecriar && (
-          <Button onClick={() => setFormAberto(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Lead
-          </Button>
-        )}
       </PageHeader>
 
       {filtroEspecial && (
@@ -169,9 +155,7 @@ export default function LeadsPage() {
         ) : !carregando && dados.length === 0 && !busca && !statusFunil ? (
           <EmptyState
             titulo="Nenhum lead"
-            descricao="Crie o primeiro lead ou aguarde o agente IA."
-            textoBotao={podecriar ? "Novo Lead" : undefined}
-            onAcao={podecriar ? () => setFormAberto(true) : undefined}
+            descricao="Os leads serão criados automaticamente quando o agente IA iniciar atendimentos via WhatsApp."
           />
         ) : (
           <DataTable
@@ -230,14 +214,6 @@ export default function LeadsPage() {
         )}
       </div>
 
-      <LeadForm
-        aberto={formAberto}
-        onFechar={() => setFormAberto(false)}
-        onSucesso={() => {
-          setFormAberto(false)
-          recarregar()
-        }}
-      />
     </div>
   )
 }
