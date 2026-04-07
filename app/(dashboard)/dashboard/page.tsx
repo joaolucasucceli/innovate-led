@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSession } from "next-auth/react"
-import { Users, UserPlus, TrendingUp, GitBranch, Bell, Download } from "lucide-react"
+import { Users, UserPlus, TrendingUp, GitBranch, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,8 +23,6 @@ import { MetricCard } from "@/components/features/shared/MetricCard"
 import { SkeletonCard } from "@/components/features/shared/SkeletonCard"
 import { ErrorState } from "@/components/features/shared/ErrorState"
 import { GraficoFunil } from "@/components/features/dashboard/GraficoFunil"
-import { LeadsAlerta } from "@/components/features/dashboard/LeadsAlerta"
-import { CardResumoLivia } from "@/components/features/dashboard/CardResumoLivia"
 import { useDashboard } from "@/hooks/use-dashboard"
 import { exportarRelatorio } from "@/hooks/use-relatorio"
 
@@ -43,7 +41,7 @@ export default function DashboardPage() {
           descricao="Visão geral do funil e atividade"
         />
         <div className="mt-6">
-          <SkeletonCard quantidade={4} />
+          <SkeletonCard quantidade={3} />
         </div>
       </div>
     )
@@ -99,7 +97,7 @@ export default function DashboardPage() {
               <DropdownMenuItem onClick={() => exportarRelatorio("leads")}>
                 Exportar Leads
               </DropdownMenuItem>
-<DropdownMenuItem onClick={() => exportarRelatorio("conversas")}>
+              <DropdownMenuItem onClick={() => exportarRelatorio("conversas")}>
                 Exportar Conversas
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -137,39 +135,16 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Funil + Lívia / Leads em Alerta */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-2">
-            <GitBranch className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Funil por Etapa</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <GraficoFunil dados={metricas.leadsPorEtapa} />
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-4">
-          {isGestor && (
-            <CardResumoLivia
-              mensagensEnviadas={metricas.mensagensEnviadasPelaIA}
-              followUpsEnviados={metricas.followUpsEnviados}
-            />
-          )}
-
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Bell className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">
-                Leads em Alerta ({metricas.leadsEmAlerta})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LeadsAlerta />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Funil por Etapa */}
+      <Card className="mt-4">
+        <CardHeader className="flex flex-row items-center gap-2">
+          <GitBranch className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-base">Funil por Etapa</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <GraficoFunil dados={metricas.leadsPorEtapa} />
+        </CardContent>
+      </Card>
     </div>
   )
 }

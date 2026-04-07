@@ -21,10 +21,6 @@ export interface DashboardMetricas {
   taxaConversao: number
   leadsPorEtapa: EtapaFunil[]
   leadsPorOrigem: OrigemLead[]
-  mensagensEnviadasPelaIA: number
-  followUpsEnviados: number
-  confirmacaoEnviadas: number
-  leadsEmAlerta: number
   leadsHoje: number
   periodo: string
   dataInicio: string | null

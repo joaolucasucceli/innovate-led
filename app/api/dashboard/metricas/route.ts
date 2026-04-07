@@ -7,27 +7,18 @@ const labelsFunil: Record<string, string> = {
   qualificacao: "Qualificação",
   encaminhado: "Encaminhado",
   tarefa_criada: "Tarefa Criada",
-  em_negociacao: "Em Negociação",
-  venda_realizada: "Venda Realizada",
-  perdido: "Perdido",
 }
 
 const coresFunil: Record<string, string> = {
   qualificacao: "#93c5fd",
   encaminhado: "#a5b4fc",
   tarefa_criada: "#c4b5fd",
-  em_negociacao: "#fcd34d",
-  venda_realizada: "#bbf7d0",
-  perdido: "#fca5a5",
 }
 
 const ordemFunil = [
   "qualificacao",
   "encaminhado",
   "tarefa_criada",
-  "em_negociacao",
-  "venda_realizada",
-  "perdido",
 ]
 
 const etapasConvertidas = [
@@ -66,7 +57,6 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("periodo") || "mes"
   const dataInicio = calcularDataInicio(periodo)
   const dataFim = new Date()
-  const ha3dias = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
 
   const filtroBase = { deletadoEm: null, arquivado: false }
   const filtroPeriodo = dataInicio
@@ -88,10 +78,6 @@ export async function GET(request: NextRequest) {
     leadsConvertidos,
     leadsPorEtapaRaw,
     leadsPorOrigemRaw,
-    mensagensEnviadasPelaIA,
-    followUpsEnviados,
-    leadsEmAlerta,
-    leadsRetorno,
     leadsHoje,
   ] = await Promise.all([
     prisma.lead.count({ where: filtroBase }),
@@ -111,31 +97,6 @@ export async function GET(request: NextRequest) {
       by: ["origem"],
       _count: { id: true },
       where: filtroBase,
-    }),
-    prisma.mensagemWhatsapp.count({
-      where: {
-        remetente: "agente",
-        ...(dataInicio ? { criadoEm: { gte: dataInicio } } : {}),
-      },
-    }),
-    prisma.conversa.count({
-      where: {
-        followUpEnviados: { isEmpty: false },
-        ...(dataInicio ? { atualizadoEm: { gte: dataInicio } } : {}),
-      },
-    }),
-    prisma.lead.count({
-      where: {
-        ...filtroBase,
-        statusFunil: { notIn: ["venda_realizada", "perdido"] as never[] },
-        OR: [
-          { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
-          { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },
-        ],
-      },
-    }),
-    prisma.lead.count({
-      where: { ...filtroBase, ehRetorno: true },
     }),
     prisma.lead.count({
       where: { ...filtroBase, criadoEm: { gte: inicioHoje } },
@@ -164,24 +125,12 @@ export async function GET(request: NextRequest) {
     total: g._count?.id ?? 0,
   }))
 
-  const taxaRetorno =
-    totalLeads > 0
-      ? Math.round((leadsRetorno / totalLeads) * 1000) / 10
-      : 0
-
-  const isAtendente = session!.user.perfil === "atendente"
-
   return NextResponse.json({
     totalLeads,
     leadsNovosNoPeriodo,
     taxaConversao,
     leadsPorEtapa,
     leadsPorOrigem,
-    mensagensEnviadasPelaIA: isAtendente ? 0 : mensagensEnviadasPelaIA,
-    followUpsEnviados: isAtendente ? 0 : followUpsEnviados,
-    leadsEmAlerta,
-    leadsRetorno,
-    taxaRetorno,
     leadsHoje,
     periodo,
     dataInicio: dataInicio?.toISOString() ?? null,
