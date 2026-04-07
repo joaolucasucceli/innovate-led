@@ -310,6 +310,11 @@ export async function POST(request: NextRequest) {
       debugInfo.push(`tipo=${msg.tipo}`)
       debugInfo.push(`mediaUrlNorm=${msg.mediaUrl ? "sim" : "nao"}`)
       debugInfo.push(`msgId=${msg.id}`)
+      // Capturar message.content raw para debug (pode conter URL ou base64 para imagens)
+      const rawContent = payload.message?.content
+      const contentType = typeof rawContent
+      const contentPreview = contentType === "string" ? rawContent.slice(0, 80) : contentType === "object" ? JSON.stringify(rawContent).slice(0, 80) : contentType
+      debugInfo.push(`contentRaw[${contentType}]=${contentPreview}`)
 
       if (!mediaDownloadUrl) {
         const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
