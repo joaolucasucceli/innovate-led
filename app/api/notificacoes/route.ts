@@ -12,7 +12,7 @@ export async function GET() {
 
 
   const usuarioIA = await prisma.usuario.findFirst({
-    where: { email: "ia@drlucas.com.br" },
+    where: { email: "livia@innovatebrazil.com" },
     select: { id: true },
   })
 

@@ -38,6 +38,7 @@ export async function uploadArquivo(
   onProgresso?: (pct: number) => void
 ): Promise<{ url: string; tipo: string }> {
   const supabase = getSupabaseBrowser()
+  if (!supabase) throw new Error("Supabase não configurado")
   const ext = file.name.split(".").pop() || "bin"
   const path = `${conversaId}/${Date.now()}.${ext}`
 

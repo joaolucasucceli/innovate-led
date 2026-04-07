@@ -47,11 +47,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!url || !key) return
-
     const supabase = getSupabaseBrowser()
+    if (!supabase) return
 
     function notificar(tabela: string, eventType: string, payload: Record<string, unknown>) {
       const topico = TABELA_PARA_TOPICO[tabela]
