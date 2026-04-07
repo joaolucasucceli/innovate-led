@@ -1,7 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Mic } from "lucide-react"
+import { useSession } from "next-auth/react"
+import { ArrowLeft, Mic, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,15 +24,31 @@ import { LoadingState } from "@/components/features/shared/LoadingState"
 import { ErrorState } from "@/components/features/shared/ErrorState"
 import { EmptyState } from "@/components/features/shared/EmptyState"
 import { StatusBadge } from "@/components/features/shared/StatusBadge"
+import { ConfirmDialog } from "@/components/features/shared/ConfirmDialog"
 import { useLead } from "@/hooks/use-lead"
 import { GaleriaFotos } from "@/components/features/leads/GaleriaFotos"
 
 export default function LeadDetalhePage() {
   const params = useParams()
   const router = useRouter()
+  const { data: session } = useSession()
   const id = params.id as string
 
   const { lead, carregando, erro, recarregar } = useLead(id)
+  const [confirmExcluir, setConfirmExcluir] = useState(false)
+
+  const isGestor = session?.user?.perfil === "gestor"
+
+  async function handleExcluir() {
+    try {
+      const res = await fetch(`/api/leads/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      toast.success("Lead excluído permanentemente")
+      router.push("/leads")
+    } catch {
+      toast.error("Erro ao excluir lead")
+    }
+  }
 
   if (carregando) {
     return (
@@ -65,10 +84,18 @@ export default function LeadDetalhePage() {
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader titulo={lead.nome}>
-        <Button variant="outline" onClick={() => router.push("/leads")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => router.push("/leads")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+          {isGestor && (
+            <Button variant="destructive" onClick={() => setConfirmExcluir(true)}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir
+            </Button>
+          )}
+        </div>
       </PageHeader>
 
       <Tabs defaultValue="dados" className="mt-6">
@@ -235,6 +262,16 @@ export default function LeadDetalhePage() {
         </TabsContent>
 
       </Tabs>
+
+      <ConfirmDialog
+        titulo="Excluir lead permanentemente"
+        descricao={`Isso vai remover "${lead.nome}" e todos os dados relacionados (conversas, mensagens, fotos e memória da IA). Esta ação não pode ser desfeita.`}
+        aberto={confirmExcluir}
+        onFechar={() => setConfirmExcluir(false)}
+        onConfirmar={handleExcluir}
+        variante="destrutivo"
+        textoBotao="Excluir permanentemente"
+      />
     </div>
   )
 }

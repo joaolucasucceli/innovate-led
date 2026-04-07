@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { redis } from "@/lib/redis"
 import { requireAuth, requireAnyRole, requireRole } from "@/lib/auth-helpers"
 import { atualizarLeadSchema } from "@/lib/validations/lead"
 
@@ -111,19 +112,51 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { id } = await params
 
   const lead = await prisma.lead.findUnique({
-    where: { id, deletadoEm: null },
+    where: { id },
   })
 
   if (!lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  await prisma.lead.update({
-    where: { id },
-    data: {
-      deletadoEm: new Date(),
-    },
+  // Hard delete em cascata: mensagens → conversas → fotos → lead
+  const conversas = await prisma.conversa.findMany({
+    where: { leadId: id },
+    select: { id: true },
   })
+  const conversaIds = conversas.map((c) => c.id)
 
-  return NextResponse.json({ mensagem: "Lead removido" })
+  await prisma.$transaction([
+    // 1. Deletar todas as mensagens das conversas do lead
+    prisma.mensagemWhatsapp.deleteMany({
+      where: { conversaId: { in: conversaIds } },
+    }),
+    // 2. Deletar todas as conversas do lead
+    prisma.conversa.deleteMany({
+      where: { leadId: id },
+    }),
+    // 3. Deletar todas as fotos do lead
+    prisma.fotoLead.deleteMany({
+      where: { leadId: id },
+    }),
+    // 4. Deletar o lead
+    prisma.lead.delete({
+      where: { id },
+    }),
+  ])
+
+  // 5. Limpar memória e buffer da IA no Redis
+  const chatId = `${lead.whatsapp}@s.whatsapp.net`
+  try {
+    await redis.del(
+      `${chatId}_mem_innovate`,
+      `${chatId}_buf_innovate`,
+      `${chatId}_deb_innovate`,
+      `${chatId}_lock_innovate`
+    )
+  } catch {
+    // Redis indisponível não impede a exclusão do lead
+  }
+
+  return NextResponse.json({ mensagem: "Lead e dados relacionados removidos permanentemente" })
 }
