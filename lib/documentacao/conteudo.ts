@@ -7,8 +7,8 @@
  * o arquivo .md a partir deste módulo.
  */
 
-export const VERSAO_DOCUMENTACAO = "1.0.0"
-export const DATA_ATUALIZACAO = "2026-04-06"
+export const VERSAO_DOCUMENTACAO = "1.1.0"
+export const DATA_ATUALIZACAO = "2026-04-07"
 
 export const DOCUMENTACAO_MD = `# Documentação — Central Innovate Brazil
 > Versão ${VERSAO_DOCUMENTACAO} · Atualizado em ${DATA_ATUALIZACAO}
@@ -209,7 +209,8 @@ Agente de pré-qualificação IA para leads interessados em painéis de LED.
 \`\`\`
 POST /api/webhooks/whatsapp
   → detectar tipo de conteúdo
-  → processar mídia (Whisper/GPT-4o-mini)
+  → processar mídia (Whisper/GPT-4o-mini com análise contextualizada de instalação)
+  → salvar foto em FotoLead (se imagem)
   → buffer Redis (debounce 20s)
   → concatenar mensagens
   → GPT-4o (system prompt + memória Redis, 20 msgs)
@@ -236,6 +237,14 @@ POST /api/webhooks/whatsapp
 - A Lívia dispara webhooks para o n8n ao encaminhar contatos e criar tarefas
 - O n8n processa e cria/atualiza registros no Kommo CRM
 - Leads qualificados são atribuídos automaticamente a consultores comerciais
+
+### Análise de Imagens (Local de Instalação)
+
+Quando o lead envia uma foto, o GPT-4o-mini analisa a imagem com contexto especializado em instalação de painéis LED:
+- Tipo de espaço (interno/externo), superfície, dimensões estimadas
+- Iluminação, distância de visualização, obstruções
+- A descrição técnica é passada à Lívia que comenta pontos específicos do espaço
+- Fotos são salvas na tabela \`fotos_lead\` com a descrição e tipo de análise
 
 ### Automações CRON
 

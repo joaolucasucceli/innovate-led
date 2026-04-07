@@ -241,16 +241,17 @@ export async function POST(request: NextRequest) {
 
     let conteudo = msg.conteudo
     let storedMediaUrl: string | null = null
+    let descricaoImagem: string | null = null
 
     // Processar mídia
     try {
       if (msg.tipo === "audio" && msg.mediaUrl) {
         conteudo = `[Áudio transcrito]: ${await transcreverAudio(msg.mediaUrl)}`
       } else if (msg.tipo === "imagem" && msg.mediaUrl) {
-        const descricao = await descreverImagem(msg.mediaUrl)
+        descricaoImagem = await descreverImagem(msg.mediaUrl)
         conteudo = conteudo
-          ? `${conteudo}\n[Imagem]: ${descricao}`
-          : `[Imagem]: ${descricao}`
+          ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
+          : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
       }
     } catch {
       if (!conteudo) {
@@ -324,6 +325,23 @@ export async function POST(request: NextRequest) {
       where: { id: conversa.id },
       data: { ultimaMensagemEm: new Date() },
     })
+
+    // Salvar foto no registro do lead (FotoLead)
+    if (msg.tipo === "imagem" && storedMediaUrl) {
+      try {
+        await prisma.fotoLead.create({
+          data: {
+            leadId: lead.id,
+            url: storedMediaUrl,
+            descricao: descricaoImagem,
+            tipoAnalise: "local_instalacao",
+            ciclo: lead.cicloAtual,
+          },
+        })
+      } catch (err) {
+        console.error("[Webhook] Erro ao salvar FotoLead:", err)
+      }
+    }
 
     console.log("[Webhook] Mensagem processada", {
       leadId: lead.id,

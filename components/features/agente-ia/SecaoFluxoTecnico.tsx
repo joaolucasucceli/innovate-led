@@ -284,7 +284,7 @@ export function SecaoFluxoTecnico() {
                 <div>
                   <p className="text-sm font-medium">Imagem</p>
                   <p className="text-xs text-muted-foreground">
-                    Descrição visual via GPT-4o-mini (vision)
+                    Análise técnica do local de instalação via GPT-4o-mini (vision)
                   </p>
                 </div>
               </div>
