@@ -41,48 +41,118 @@ function stripQuotes(value: string) {
   return value.replace(/^["']|["']$/g, "")
 }
 
-async function downloadEUploadMidia(
-  mediaUrl: string,
+/** Obtém bytes da mídia usando 3 estratégias (base64, URLs diretas, POST /message/download) */
+async function obterBytesMidia(
+  msgRaw: any,
+  _payloadRaw: any,
+  uazapiUrl: string,
+  uazapiToken: string
+): Promise<{ bytes: Uint8Array; mimetype: string } | null> {
+  // ESTRATÉGIA A: Base64 inline no payload
+  const content = msgRaw.content
+  if (content && typeof content === "object" && content.base64 && content.base64.length > 100) {
+    console.log("[Webhook] Mídia: usando base64 inline")
+    const raw = content.base64.includes(",")
+      ? content.base64.split(",")[1]
+      : content.base64
+    const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
+    return { bytes, mimetype: content.mimetype || "application/octet-stream" }
+  }
+
+  // ESTRATÉGIA B: URLs diretas do payload
+  const urls = [
+    msgRaw.image_url,
+    msgRaw.audio_url,
+    msgRaw.document_url,
+    msgRaw.fileURL,
+    msgRaw.file_url,
+    content?.url,
+    content?.fileUrl,
+    content?.mediaUrl,
+  ].filter((u) => u && typeof u === "string" && u.startsWith("http"))
+
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { headers: { token: uazapiToken } })
+      const ct = res.headers.get("content-type") || ""
+      if (ct.includes("text/html")) continue // Página de erro
+      if (!res.ok) continue
+
+      const bytes = new Uint8Array(await res.arrayBuffer())
+      if (bytes.length > 100) {
+        console.log("[Webhook] Mídia: baixada via URL direta:", url.slice(0, 60))
+        return { bytes, mimetype: ct || "application/octet-stream" }
+      }
+    } catch {
+      continue
+    }
+  }
+
+  // ESTRATÉGIA C: POST /message/download
+  const messageId = msgRaw.messageid || msgRaw.id
+  if (messageId && uazapiUrl && uazapiToken) {
+    try {
+      const res = await fetch(`${uazapiUrl}/message/download`, {
+        method: "POST",
+        headers: { token: uazapiToken, "Content-Type": "application/json" },
+        body: JSON.stringify({ id: messageId, return_base64: true, return_link: false }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        const b64 = json.base64 || json.data || json.Body
+        if (b64 && typeof b64 === "string" && b64.length > 100) {
+          const raw = b64.includes(",") ? b64.split(",")[1] : b64
+          const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
+          console.log("[Webhook] Mídia: baixada via POST /message/download")
+          return { bytes, mimetype: json.mimetype || "application/octet-stream" }
+        }
+        // Pode retornar URL
+        const dlUrl = json.fileURL || json.url
+        if (dlUrl) {
+          const dlRes = await fetch(dlUrl, { headers: { token: uazapiToken } })
+          if (dlRes.ok) {
+            const bytes = new Uint8Array(await dlRes.arrayBuffer())
+            if (bytes.length > 100) {
+              console.log("[Webhook] Mídia: baixada via URL do /message/download")
+              return { bytes, mimetype: dlRes.headers.get("content-type") || "application/octet-stream" }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[Webhook] Erro no POST /message/download:", err)
+    }
+  }
+
+  console.warn("[Webhook] Nenhuma estratégia de download funcionou")
+  return null
+}
+
+/** Faz upload dos bytes para Supabase Storage e retorna URL pública */
+async function uploadParaStorage(
+  bytes: Uint8Array,
   tipo: TipoMensagem,
-  messageId: string
+  messageId: string,
+  mimetype: string
 ): Promise<string | null> {
   try {
     const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const rawKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!rawUrl || !rawKey) {
-      console.warn("[Webhook] Supabase URL ou Service Key não configurados — mídia não será salva")
-      return null
-    }
+    if (!rawUrl || !rawKey) return null
 
     const supabase = createClient(stripQuotes(rawUrl), stripQuotes(rawKey))
-
-    // Extrair token da URL (Uazapi precisa no header, não só query param)
-    const urlObj = new URL(mediaUrl)
-    const tokenParam = urlObj.searchParams.get("token")
-    const headers: Record<string, string> = {}
-    if (tokenParam) {
-      headers["token"] = tokenParam
-    }
-
-    const res = await fetch(mediaUrl, { headers })
-    if (!res.ok) {
-      console.warn("[Webhook] Erro ao baixar mídia:", res.status, mediaUrl.slice(0, 80))
-      return null
-    }
-
-    const buffer = Buffer.from(await res.arrayBuffer())
     const ext = tipo === "imagem" ? "jpg" : tipo === "audio" ? "ogg" : tipo === "video" ? "mp4" : "bin"
     const path = `webhook/${messageId}.${ext}`
 
     const { error } = await supabase.storage
       .from("atendimento-midias")
-      .upload(path, buffer, {
-        contentType: MIME_MAP[tipo] || "application/octet-stream",
+      .upload(path, bytes, {
+        contentType: mimetype || MIME_MAP[tipo] || "application/octet-stream",
         upsert: true,
       })
 
     if (error) {
-      console.error("[Webhook] Erro ao upload mídia:", error.message)
+      console.error("[Webhook] Erro ao upload Storage:", error.message)
       return null
     }
 
@@ -300,58 +370,33 @@ export async function POST(request: NextRequest) {
     let storedMediaUrl: string | null = null
     let descricaoImagem: string | null = null
 
-    // Construir URL de download da mídia
-    // Fonte 1: normalização (payload.BaseUrl + messageid)
-    // Fonte 2: ConfigWhatsapp do banco
-    let mediaDownloadUrl = msg.mediaUrl
-    const debugInfo: string[] = []
-
+    // Download mídia: 3 estratégias (base64 inline → URLs diretas → POST /message/download)
     if (msg.tipo !== "texto") {
-      debugInfo.push(`tipo=${msg.tipo}`)
-      debugInfo.push(`mediaUrlNorm=${msg.mediaUrl ? "sim" : "nao"}`)
-      debugInfo.push(`msgId=${msg.id}`)
-      // Capturar message.content raw para debug (pode conter URL ou base64 para imagens)
-      const rawContent = payload.message?.content
-      const contentType = typeof rawContent
-      const contentPreview = contentType === "string" ? rawContent.slice(0, 80) : contentType === "object" ? JSON.stringify(rawContent).slice(0, 80) : contentType
-      debugInfo.push(`contentRaw[${contentType}]=${contentPreview}`)
+      const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+      const uazapiUrl = configWa?.uazapiUrl || ""
+      const uazapiToken = configWa?.instanceToken || ""
 
-      if (!mediaDownloadUrl) {
-        const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
-        if (configWa?.uazapiUrl && configWa?.instanceToken) {
-          mediaDownloadUrl = `${configWa.uazapiUrl}/chat/downloadMediaMessage/${msg.id}?token=${configWa.instanceToken}`
-          debugInfo.push("fonte=ConfigWhatsapp")
-        } else {
-          debugInfo.push("fonte=NENHUMA(configWa vazio)")
-        }
-      } else {
-        debugInfo.push("fonte=payload")
+      const resultado = await obterBytesMidia(payload.message, payload, uazapiUrl, uazapiToken)
+
+      if (resultado) {
+        storedMediaUrl = await uploadParaStorage(resultado.bytes, msg.tipo, msg.id, resultado.mimetype)
       }
-      debugInfo.push(`urlFinal=${mediaDownloadUrl ? mediaDownloadUrl.slice(0, 80) : "NENHUMA"}`)
     }
 
-    // 1. Download mídia para Supabase PRIMEIRO
-    if (mediaDownloadUrl && msg.tipo !== "texto") {
-      storedMediaUrl = await downloadEUploadMidia(mediaDownloadUrl, msg.tipo, msg.id)
-      debugInfo.push(`upload=${storedMediaUrl ? "OK" : "FALHOU"}`)
-    }
-
-    // 2. Processar mídia (transcrição/descrição) usando URL pública estável
+    // Processar mídia (transcrição/descrição) usando URL pública do Supabase
     try {
-      if (msg.tipo === "audio" && (storedMediaUrl || mediaDownloadUrl)) {
-        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl || mediaDownloadUrl!)}`
-      } else if (msg.tipo === "imagem" && (storedMediaUrl || mediaDownloadUrl)) {
-        descricaoImagem = await descreverImagem(storedMediaUrl || mediaDownloadUrl!)
+      if (msg.tipo === "audio" && storedMediaUrl) {
+        conteudo = `[Áudio transcrito]: ${await transcreverAudio(storedMediaUrl)}`
+      } else if (msg.tipo === "imagem" && storedMediaUrl) {
+        descricaoImagem = await descreverImagem(storedMediaUrl)
         conteudo = conteudo
           ? `${conteudo}\n[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
           : `[Foto do local de instalação — análise técnica]: ${descricaoImagem}`
-        debugInfo.push("descricao=OK")
       }
     } catch (err) {
-      debugInfo.push(`erro=${err instanceof Error ? err.message.slice(0, 50) : "desconhecido"}`)
       console.error(`[Webhook] Erro ao processar ${msg.tipo}:`, err)
       if (!conteudo) {
-        conteudo = `[${msg.tipo} não processado] DEBUG: ${debugInfo.join(" | ")}`
+        conteudo = `[${msg.tipo} não processado]`
       }
     }
 
