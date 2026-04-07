@@ -83,7 +83,7 @@ async function obterBytesMidia(
       if (ct.includes("application/json")) {
         try {
           const json = await res.json()
-          const b64 = json.base64 || json.data
+          const b64 = json.base64Data || json.base64 || json.data
           if (typeof b64 === "string" && b64.length > 100) {
             const raw = b64.includes(",") ? b64.split(",")[1] : b64
             const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
@@ -125,8 +125,8 @@ async function obterBytesMidia(
       } else if (ct.includes("application/json")) {
         const json = await res.json()
 
-        // Tentar base64 (vários campos possíveis)
-        const b64 = json.base64 || json.data || json.Body
+        // Tentar base64 (vários campos possíveis — Uazapi usa base64Data)
+        const b64 = json.base64Data || json.base64 || json.data || json.Body
         if (typeof b64 === "string" && b64.length > 100) {
           const raw = b64.includes(",") ? b64.split(",")[1] : b64
           const bytes = Uint8Array.from(Buffer.from(raw, "base64"))
