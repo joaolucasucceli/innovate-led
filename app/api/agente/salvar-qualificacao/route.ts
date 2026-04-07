@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { validarApiSecret } from "@/lib/api-auth"
+import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
 
 export async function POST(request: NextRequest) {
   const erro = validarApiSecret(request)
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
   // APPEND em sobreOLead — NUNCA sobrescrever
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    select: { sobreOLead: true, nome: true, whatsapp: true },
+    select: { sobreOLead: true, nome: true, whatsapp: true, statusFunil: true },
   })
 
   const textoExistente = lead?.sobreOLead || ""
@@ -55,6 +56,23 @@ export async function POST(request: NextRequest) {
     where: { id: leadId },
     data: dadosAtualizar,
   })
+
+  // Avançar funil: acolhimento → qualificacao quando salva qualificação
+  if (lead?.statusFunil === "acolhimento") {
+    await prisma.$transaction([
+      prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          statusFunil: "qualificacao" as StatusFunil,
+          ultimaMovimentacaoEm: new Date(),
+        },
+      }),
+      prisma.conversa.update({
+        where: { id: conversaId },
+        data: { etapa: "qualificacao" as EtapaConversa },
+      }),
+    ])
+  }
 
   // Disparar webhook n8n (fire-and-forget)
   const webhookUrl = process.env.N8N_WEBHOOK_SALVAR_QUALIFICACAO_URL

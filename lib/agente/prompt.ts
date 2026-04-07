@@ -5,6 +5,8 @@ interface ContextoLead {
   ehRetorno?: boolean
   cicloAtual?: number
   ciclosCompletos?: number
+  leadId?: string
+  conversaId?: string
 }
 
 /** Gera o system prompt da Lívia com contexto dinâmico do lead */
@@ -19,6 +21,10 @@ export function gerarSystemPrompt(contexto?: ContextoLead): string {
 
     if (contexto.ehRetorno) {
       partes.push(`CONTATO DE RETORNO — ${contexto.cicloAtual}º atendimento. ${contexto.ciclosCompletos} contato(s) anterior(es).`)
+    }
+
+    if (contexto.leadId && contexto.conversaId) {
+      partes.push(`\n## IDs do Atendimento (usar nas ferramentas)\n- leadId: ${contexto.leadId}\n- conversaId: ${contexto.conversaId}`)
     }
 
     if (partes.length > 0) {

@@ -29,6 +29,8 @@ interface Lead {
       tipo: string
       conteudo: string
       remetente: string
+      mediaUrl: string | null
+      mediaType: string | null
       criadoEm: string
     }>
   }>

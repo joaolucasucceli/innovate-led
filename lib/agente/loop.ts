@@ -86,6 +86,8 @@ export async function processarMensagens(chatId: string): Promise<void> {
     ehRetorno?: boolean
     cicloAtual?: number
     ciclosCompletos?: number
+    leadId?: string
+    conversaId?: string
   } = {}
   let leadId: string | null = null
   let conversaId: string | null = null
@@ -112,6 +114,7 @@ export async function processarMensagens(chatId: string): Promise<void> {
             await executarFerramenta("consultar_lead", { whatsapp }, baseUrl)
           )
           if (leadAtualizado.lead) {
+            leadId = leadAtualizado.lead.id
             contextoLead = {
               nome: leadAtualizado.lead.nome,
               etapa: leadAtualizado.lead.statusFunil,
@@ -119,8 +122,9 @@ export async function processarMensagens(chatId: string): Promise<void> {
               ehRetorno: true,
               cicloAtual: leadAtualizado.lead.cicloAtual,
               ciclosCompletos: leadAtualizado.lead.ciclosCompletos,
+              leadId: leadId || undefined,
+              conversaId: conversaId || undefined,
             }
-            leadId = leadAtualizado.lead.id
           }
         } catch (err) {
           console.error("[Agente] Erro ao abrir novo ciclo:", err)
@@ -137,6 +141,8 @@ export async function processarMensagens(chatId: string): Promise<void> {
         const nomeConfirmado = resultadoLead.sobreOLead
           ? resultadoLead.lead.nome
           : undefined
+        leadId = resultadoLead.lead.id
+        conversaId = resultadoLead.conversa?.id || null
         contextoLead = {
           nome: nomeConfirmado,
           etapa: resultadoLead.lead.statusFunil,
@@ -144,9 +150,9 @@ export async function processarMensagens(chatId: string): Promise<void> {
           ehRetorno: resultadoLead.lead.ehRetorno,
           cicloAtual: resultadoLead.lead.cicloAtual,
           ciclosCompletos: resultadoLead.lead.ciclosCompletos,
+          leadId: leadId || undefined,
+          conversaId: conversaId || undefined,
         }
-        leadId = resultadoLead.lead.id
-        conversaId = resultadoLead.conversa?.id || null
       }
     }
   } catch (error) {
@@ -209,6 +215,9 @@ export async function processarMensagens(chatId: string): Promise<void> {
         if (toolCall.type !== "function") continue
         const fn = toolCall.function
         const args = JSON.parse(fn.arguments || "{}")
+        // Injetar IDs reais (sobrescreve possíveis alucinações do GPT)
+        if (leadId) args.leadId = leadId
+        if (conversaId) args.conversaId = conversaId
         const resultado = await executarFerramenta(
           fn.name,
           args,

@@ -30,12 +30,14 @@ interface BolhaChatProps {
 
 const CORES_REMETENTE = {
   paciente: "bg-muted text-foreground",
+  cliente: "bg-muted text-foreground",
   agente: "bg-blue-500/15 text-blue-950 dark:text-blue-100",
   atendente: "bg-green-500/15 text-green-950 dark:text-green-100",
 } as const
 
 const LABEL_REMETENTE: Record<string, string> = {
   paciente: "Lead",
+  cliente: "Lead",
   agente: "Lívia",
   atendente: "Atendente",
 }
@@ -100,7 +102,7 @@ function MidiaPreview({ mensagem }: { mensagem: MensagemChat }) {
 
 
 export function BolhaChat({ mensagem, onResponder, onScrollToReply }: BolhaChatProps) {
-  const ehPaciente = mensagem.remetente === "paciente"
+  const ehPaciente = mensagem.remetente === "paciente" || mensagem.remetente === "cliente"
   const corClasse = CORES_REMETENTE[mensagem.remetente as keyof typeof CORES_REMETENTE] || CORES_REMETENTE.paciente
   const temMidia = mensagem.mediaUrl && mensagem.tipo !== "texto"
 

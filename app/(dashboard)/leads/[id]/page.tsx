@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -176,6 +176,7 @@ export default function LeadDetalhePage() {
                           <CardContent className="space-y-2">
                             {conversa.mensagens.map((msg) => {
                               const ehAgente = msg.remetente === "agente"
+                              const temMidia = msg.mediaUrl && msg.tipo !== "texto"
                               return (
                                 <div
                                   key={msg.id}
@@ -191,7 +192,23 @@ export default function LeadDetalhePage() {
                                     <p className={`text-xs mb-1 font-medium ${ehAgente ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                                       {ehAgente ? "Lívia" : lead.nome.split(" ")[0]}
                                     </p>
-                                    <p>{msg.conteudo}</p>
+                                    {temMidia && msg.tipo === "imagem" && (
+                                      <img
+                                        src={msg.mediaUrl!}
+                                        alt="Foto enviada"
+                                        className="max-w-[240px] rounded-md mb-1 cursor-pointer"
+                                        onClick={() => window.open(msg.mediaUrl!, "_blank")}
+                                      />
+                                    )}
+                                    {temMidia && msg.tipo === "audio" && (
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <Mic className={`h-4 w-4 ${ehAgente ? "text-primary-foreground/70" : "text-muted-foreground"}`} />
+                                        <span className={`text-xs ${ehAgente ? "text-primary-foreground/70" : "text-muted-foreground"}`}>Áudio transcrito</span>
+                                      </div>
+                                    )}
+                                    {(!temMidia || msg.conteudo) && (
+                                      <p>{msg.conteudo}</p>
+                                    )}
                                     <p className={`text-xs mt-1 text-right ${ehAgente ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                                       {new Date(msg.criadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                                     </p>
