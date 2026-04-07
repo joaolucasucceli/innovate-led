@@ -4,6 +4,9 @@ import { validarApiSecret } from "@/lib/api-auth"
 import { processarMensagens } from "@/lib/agente/loop"
 import { redis } from "@/lib/redis"
 
+// Necessário para o sleep de 20s não exceder o timeout do Vercel (default 10s)
+export const maxDuration = 60
+
 const DEBOUNCE_MS = 20_000 // 20 segundos
 const LOCK_SUFFIX = "_lock_innovate"
 const LOCK_TTL = 30 // segundos (margem sobre o debounce)

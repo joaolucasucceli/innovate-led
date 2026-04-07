@@ -128,13 +128,15 @@ export async function processarMensagens(chatId: string): Promise<void> {
           }
         } catch (err) {
           console.error("[Agente] Erro ao abrir novo ciclo:", err)
+          leadId = resultadoLead.lead.id
+          conversaId = resultadoLead.conversa?.id || null
           contextoLead = {
             nome: resultadoLead.lead.nome,
             etapa: resultadoLead.lead.statusFunil,
             sobreOLead: resultadoLead.sobreOLead,
+            leadId: leadId || undefined,
+            conversaId: conversaId || undefined,
           }
-          leadId = resultadoLead.lead.id
-          conversaId = resultadoLead.conversa?.id || null
         }
       } else {
         // 5c. Fluxo normal
