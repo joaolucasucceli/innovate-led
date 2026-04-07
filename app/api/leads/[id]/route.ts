@@ -119,30 +119,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  // Hard delete em cascata: mensagens → conversas → fotos → lead
-  const conversas = await prisma.conversa.findMany({
-    where: { leadId: id },
-    select: { id: true },
+  // Hard delete em cascata: replyTo → mensagens → conversas → fotos → lead
+  // 1. Remover auto-referências (replyToId) para evitar FK violation
+  await prisma.mensagemWhatsapp.updateMany({
+    where: { leadId: id, replyToId: { not: null } },
+    data: { replyToId: null },
   })
-  const conversaIds = conversas.map((c) => c.id)
 
+  // 2. Deletar em ordem de dependência
   await prisma.$transaction([
-    // 1. Deletar todas as mensagens das conversas do lead
-    prisma.mensagemWhatsapp.deleteMany({
-      where: { conversaId: { in: conversaIds } },
-    }),
-    // 2. Deletar todas as conversas do lead
-    prisma.conversa.deleteMany({
-      where: { leadId: id },
-    }),
-    // 3. Deletar todas as fotos do lead
-    prisma.fotoLead.deleteMany({
-      where: { leadId: id },
-    }),
-    // 4. Deletar o lead
-    prisma.lead.delete({
-      where: { id },
-    }),
+    prisma.mensagemWhatsapp.deleteMany({ where: { leadId: id } }),
+    prisma.conversa.deleteMany({ where: { leadId: id } }),
+    prisma.fotoLead.deleteMany({ where: { leadId: id } }),
+    prisma.lead.delete({ where: { id } }),
   ])
 
   // 5. Limpar memória e buffer da IA no Redis

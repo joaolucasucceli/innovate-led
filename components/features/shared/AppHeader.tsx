@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LogOut, Search, User, Settings } from "lucide-react"
+import { LogOut, User, Settings } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,21 +14,7 @@ import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/features/shared/UserAvatar"
 import { MobileSidebarTrigger } from "@/components/features/shared/AppSidebar"
 import { Badge } from "@/components/ui/badge"
-import dynamic from "next/dynamic"
 import { ThemeToggle } from "@/components/features/shared/ThemeToggle"
-
-const BuscaGlobal = dynamic(
-  () => import("@/components/features/busca/BuscaGlobal").then((m) => m.BuscaGlobal),
-  { ssr: false }
-)
-
-const PainelNotificacoes = dynamic(
-  () =>
-    import("@/components/features/notificacoes/PainelNotificacoes").then(
-      (m) => m.PainelNotificacoes
-    ),
-  { ssr: false }
-)
 
 interface AppHeaderProps {
   nome: string
@@ -44,18 +29,6 @@ const perfilLabels: Record<string, string> = {
 
 export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
   const router = useRouter()
-  const [buscaAberta, setBuscaAberta] = useState(false)
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault()
-        setBuscaAberta(true)
-      }
-    }
-    document.addEventListener("keydown", handler)
-    return () => document.removeEventListener("keydown", handler)
-  }, [])
 
   return (
     <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
@@ -65,23 +38,6 @@ export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
 
       <div className="flex items-center gap-1">
         <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-muted-foreground"
-          onClick={() => setBuscaAberta(true)}
-          aria-label="Abrir busca"
-        >
-          <Search className="h-4 w-4" />
-          <span className="hidden text-xs sm:inline-block">
-            Buscar
-          </span>
-          <kbd className="hidden rounded border bg-muted px-1.5 text-xs sm:inline-block">
-            Ctrl K
-          </kbd>
-        </Button>
-
-        <PainelNotificacoes />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -122,8 +78,6 @@ export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      <BuscaGlobal aberto={buscaAberta} onFechar={() => setBuscaAberta(false)} />
     </header>
   )
 }
