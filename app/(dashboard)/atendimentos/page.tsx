@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react"
 import { Bot, ExternalLink, Loader2, MessageSquare, Pause, Play } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -69,7 +70,17 @@ export default function AtendimentosPage() {
 
       {/* Kanban */}
       <div className="mt-4">
-        <Suspense>
+        <Suspense fallback={
+          <div className="flex gap-4 mt-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex-1 min-w-[280px] space-y-3">
+                <Skeleton className="h-8 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-24 w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+        }>
           <KanbanView externalRefresh={refreshKey} />
         </Suspense>
       </div>

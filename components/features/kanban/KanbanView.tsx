@@ -5,8 +5,23 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useKanban } from "@/hooks/use-kanban"
 import { KanbanBoard } from "./KanbanBoard"
 import { KanbanFiltros } from "./KanbanFiltros"
-import { LoadingState } from "@/components/features/shared/LoadingState"
+import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorState } from "@/components/features/shared/ErrorState"
+
+function KanbanSkeleton() {
+  return (
+    <div className="flex gap-4 mt-4">
+      {Array.from({ length: 3 }).map((_, col) => (
+        <div key={col} className="flex-1 min-w-[280px] space-y-3">
+          <Skeleton className="h-8 w-full rounded-lg" />
+          {Array.from({ length: 3 - col }).map((_, card) => (
+            <Skeleton key={card} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 interface KanbanViewProps {
   externalRefresh?: number
@@ -35,7 +50,7 @@ export function KanbanView({ externalRefresh }: KanbanViewProps) {
     if (externalRefresh) recarregar()
   }, [externalRefresh])
 
-  if (carregando) return <LoadingState />
+  if (carregando) return <KanbanSkeleton />
   if (erro) return <ErrorState mensagem={erro} onTentar={recarregar} />
 
   return (
