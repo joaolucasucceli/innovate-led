@@ -55,9 +55,18 @@ async function downloadEUploadMidia(
     }
 
     const supabase = createClient(stripQuotes(rawUrl), stripQuotes(rawKey))
-    const res = await fetch(mediaUrl)
+
+    // Extrair token da URL (Uazapi precisa no header, não só query param)
+    const urlObj = new URL(mediaUrl)
+    const tokenParam = urlObj.searchParams.get("token")
+    const headers: Record<string, string> = {}
+    if (tokenParam) {
+      headers["token"] = tokenParam
+    }
+
+    const res = await fetch(mediaUrl, { headers })
     if (!res.ok) {
-      console.warn("[Webhook] Erro ao baixar mídia:", res.status, mediaUrl.slice(0, 100))
+      console.warn("[Webhook] Erro ao baixar mídia:", res.status, mediaUrl.slice(0, 80))
       return null
     }
 
