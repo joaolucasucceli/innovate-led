@@ -56,6 +56,11 @@ enum StatusSprint {
   concluida
 }
 
+enum StatusSolicitacao {
+  pendente
+  concluida
+}
+
 // ==========================================
 // Models
 // ==========================================
@@ -72,9 +77,10 @@ model Usuario {
   atualizadoEm DateTime   @updatedAt
   deletadoEm  DateTime?
 
-  leads       Lead[]       @relation("ResponsavelLead")
-  conversas   Conversa[]   @relation("AtendenteConversa")
-  auditLogs   AuditLog[]
+  leads         Lead[]                 @relation("ResponsavelLead")
+  conversas     Conversa[]             @relation("AtendenteConversa")
+  auditLogs     AuditLog[]
+  solicitacoes  SolicitacaoAlteracao[] @relation("SolicitacoesCriadas")
 
   @@map("usuarios")
 }
@@ -238,6 +244,23 @@ model SprintItem {
 
   @@index([sprintId])
   @@map("sprint_itens")
+}
+
+model SolicitacaoAlteracao {
+  id            String            @id @default(cuid())
+  titulo        String
+  descricao     String            @db.Text
+  status        StatusSolicitacao @default(pendente)
+  criadoPorId   String
+  criadoEm      DateTime          @default(now())
+  atualizadoEm  DateTime          @updatedAt
+  concluidoEm   DateTime?
+
+  criadoPor     Usuario           @relation("SolicitacoesCriadas", fields: [criadoPorId], references: [id])
+
+  @@index([criadoPorId])
+  @@index([status])
+  @@map("solicitacoes_alteracao")
 }
 
 model AuditLog {

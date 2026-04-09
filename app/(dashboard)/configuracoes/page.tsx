@@ -93,24 +93,6 @@ export default function ConfiguracoesPage() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => router.push("/configuracoes/usuarios")}>
-          <CardHeader className="flex flex-row items-center gap-3">
-            <Users className="h-8 w-8 text-muted-foreground" />
-            <div className="flex-1">
-              <CardTitle className="text-base">Usuários</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Gerencie os usuários do sistema
-              </p>
-            </div>
-          </CardHeader>
-          <CardContent className="flex items-center justify-end">
-            <Button variant="ghost" size="sm">
-              Gerenciar
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center gap-3">
             <Zap className="h-8 w-8 text-muted-foreground" />

@@ -9,6 +9,7 @@ import {
   Bot,
   Settings,
   BookOpen,
+  ClipboardList,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -64,6 +65,11 @@ const navGroups: NavGroup[] = [
   {
     label: "Sistema",
     itens: [
+      {
+        titulo: "Solicitações",
+        href: "/solicitacoes",
+        icone: <ClipboardList className="h-4 w-4" />,
+      },
       {
         titulo: "Documentação",
         href: "/documentacao",
