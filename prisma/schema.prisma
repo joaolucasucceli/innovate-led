@@ -282,6 +282,25 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+enum TipoRelatorioIA {
+  publico
+  qualidade
+}
+
+model RelatorioIA {
+  id          String           @id @default(cuid())
+  tipo        TipoRelatorioIA
+  conteudo    String           @db.Text
+  dataRef     DateTime
+  conversas   Int              @default(0)
+  leads       Int              @default(0)
+  criadoEm    DateTime         @default(now())
+
+  @@index([tipo])
+  @@index([dataRef])
+  @@map("relatorios_ia")
+}
+
 model ArtigoDocumentacao {
   id              String    @id @default(cuid())
   titulo          String

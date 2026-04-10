@@ -7,6 +7,7 @@ import {
   Kanban,
   UserSearch,
   Bot,
+  FileBarChart,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -42,6 +43,11 @@ const navItems: NavItem[] = [
     titulo: "Agente IA",
     href: "/agente-ia",
     icone: <Bot className="h-4 w-4" />,
+  },
+  {
+    titulo: "Relatorios",
+    href: "/relatorios",
+    icone: <FileBarChart className="h-4 w-4" />,
   },
 ]
 
