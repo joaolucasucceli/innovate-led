@@ -2,26 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Visão Geral do Projeto
+## Visao Geral do Projeto
 
-**Central Innovate** — sistema web para gestão de pré-atendimento da Innovate Brazil, empresa especializada em painéis LED. Dois módulos integrados em uma única aplicação Next.js:
+**Central Innovate** — sistema web para gestao de pre-atendimento da Innovate Brazil, empresa especializada em paineis LED. Dois modulos integrados em uma unica aplicacao Next.js:
 
-1. **Painel de Gestão** — kanban, leads, métricas, roadmap
-2. **Agente IA WhatsApp ("Lívia")** — pré-qualificação autônoma de leads via API Routes, alimentando o painel em tempo real + integração com Kommo CRM via n8n webhooks
+1. **Painel de Gestao** — dashboard, kanban, leads, relatorios IA
+2. **Agente IA WhatsApp ("Livia")** — pre-qualificacao autonoma de leads via API Routes, alimentando o painel em tempo real + integracao direta com Kommo CRM
 
-## Stack Tecnológica
+## Stack Tecnologica
 
 - **Framework:** Next.js 16 (App Router + Turbopack)
-- **UI:** shadcn/ui 4 exclusivamente — nunca criar botões, inputs ou cards do zero
-- **Estilização:** Tailwind CSS 4
+- **UI:** shadcn/ui 4 exclusivamente — nunca criar botoes, inputs ou cards do zero
+- **Estilizacao:** Tailwind CSS 4
 - **Banco de Dados:** PostgreSQL via Supabase, ORM: Prisma 7
-- **Autenticação:** NextAuth.js 4 (Credentials Provider + JWT)
+- **Autenticacao:** NextAuth.js 4 (Credentials Provider + JWT)
 - **Cache/Buffer:** Redis (Upstash)
-- **IA:** OpenAI GPT-4o (chat), Whisper (áudio), GPT-4o-mini (visão/classificação)
+- **IA:** OpenAI GPT-4o (chat), Whisper (audio), GPT-4o-mini (visao/classificacao)
 - **WhatsApp:** Uazapi v2 (gateway)
-- **CRM Externo:** Kommo via n8n webhooks
+- **CRM Externo:** Kommo — integracao direta via API (`lib/kommo.ts`)
 - **Data Fetching:** SWR
-- **Validação:** Zod
+- **Validacao:** Zod
 - **Deploy:** Vercel
 
 ## Comandos Comuns
@@ -44,85 +44,117 @@ npx prisma studio
 
 ## Arquitetura
 
-### Perfis de Usuário e Permissões
+### Perfis de Usuario e Permissoes
 
-Dois perfis: **Gestor** (acesso total), **Atendente** (operacional). O agente IA é um usuário especial do tipo Atendente (`tipo: "ia"`) que opera exclusivamente via API Routes.
+Dois perfis: **Gestor** (acesso total), **Atendente** (operacional). O agente IA e um usuario especial do tipo Atendente (`tipo: "ia"`) que opera exclusivamente via API Routes.
 
-### Funil Kanban (6 colunas)
+### Funil Kanban (3 etapas)
 
-| Coluna | Quem move | Descrição |
-|--------|-----------|-----------|
-| qualificacao | IA | Lívia coletando informações do lead |
+| Etapa | Quem move | Descricao |
+|-------|-----------|-----------|
+| acolhimento | IA | Livia acolhendo e capturando nome |
+| qualificacao | IA | Livia coletando informacoes do projeto |
 | encaminhado | IA | Lead qualificado, encaminhado ao comercial |
-| tarefa_criada | IA | Tarefa de ligação criada para consultor |
-| em_negociacao | Humano | Consultor em contato com o lead |
-| venda_realizada | Humano | Negócio fechado |
-| perdido | Humano/IA | Lead perdido |
 
-Colunas 1-3 são movidas automaticamente pelo agente IA. Colunas 4-5 exigem ação manual. Coluna 6 (Perdido) é manual.
+Apenas essas 3 etapas existem no enum `StatusFunil`. Apos encaminhamento, IA para de responder (gate no webhook).
 
 ### Arquitetura do Agente IA
 
-Fluxo do webhook: `POST /api/webhooks/whatsapp` → detectar tipo de conteúdo → processar mídia se necessário → buffer Redis (debounce 20s, chave: `{chat_id}_buf_innovate`) → concatenar mensagens → GPT-4o com system prompt + memória Redis (20 msgs, chave: `{chat_id}_mem_innovate`) → segmentar resposta → enviar via Uazapi com delay aleatório de 3-5s entre mensagens.
+Fluxo do webhook: `POST /api/webhooks/whatsapp` → detectar tipo de conteudo → processar midia se necessario → buffer Redis (debounce 20s, chave: `{chat_id}_buf_innovate`) → concatenar mensagens → GPT-4o com system prompt dinamico (base de conhecimento do banco) + memoria Redis (20 msgs, chave: `{chat_id}_mem_innovate`) → segmentar resposta (agrupa blocos curtos ate 500 chars) → enviar via Uazapi com delay aleatorio de 3-5s entre mensagens.
 
 O agente tem 3 ferramentas em `/api/agente/*`:
-- `salvar-qualificacao` — salva dados + webhook n8n → Kommo
-- `encaminhar-contato` — avança funil + webhook n8n → Kommo
-- `criar-tarefa` — cria tarefa comercial + webhook n8n → Kommo
+- `salvar-qualificacao` — salva dados no banco + cria/atualiza lead no Kommo
+- `encaminhar-contato` — avanca funil + sincroniza Kommo
+- `criar-tarefa` — cria tarefa de ligacao + sincroniza Kommo
 
-Rotas de infraestrutura (usadas pelo loop, não pelo agente GPT):
+Rotas de infraestrutura (usadas pelo loop, nao pelo agente GPT):
 - `consultar-lead` — busca/cria lead por WhatsApp
-- `registrar-mensagem` — registra mensagem no banco
+- `registrar-mensagem` — registra mensagem no banco (busca conversa existente antes de criar nova)
 
-### Integração n8n / Kommo CRM
+### Integracao Kommo CRM
 
-As 3 ferramentas do agente fazem dual-write:
+Integracao direta via API REST (`lib/kommo.ts`). As 3 ferramentas do agente fazem dual-write:
 1. Atualizam o banco local (PostgreSQL) para o dashboard
-2. Disparam webhook n8n (fire-and-forget) que sincroniza com Kommo CRM
+2. Sincronizam com Kommo CRM via API direta (fire-and-forget)
 
-Variáveis de ambiente: `N8N_WEBHOOK_SALVAR_QUALIFICACAO_URL`, `N8N_WEBHOOK_ENCAMINHA_CONTATO_URL`, `N8N_WEBHOOK_CRIAR_TAREFA_URL`
+Variavel de ambiente: `KOMMO_API_TOKEN`
 
-### Segurança da API
+### Base de Conhecimento Dinamica
+
+A base de conhecimento da Livia e armazenada no banco (tabela `artigos_documentacao`, secao `base-conhecimento`). O prompt carrega do banco em tempo real via `carregarBaseConhecimento()` em `lib/agente/prompt.ts`. Se o banco estiver indisponivel, usa fallback hardcoded.
+
+O cliente edita a base via pagina `/base-conhecimento` (CRUD com acordeoes).
+
+### CRONs Automaticos
+
+Configurados em `vercel.json`:
+- `/api/cron/follow-ups` — a cada hora, envia follow-ups automaticos
+- `/api/cron/auto-close` — a cada 6h, encerra conversas com 24h+ de silencio
+- `/api/cron/analise-publico` — diario 06h SP, analise IA do perfil dos leads
+- `/api/cron/analise-qualidade` — diario 06h SP, analise IA da qualidade do atendimento
+
+Relatorios salvos na tabela `relatorios_ia`, visiveis em `/relatorios`.
+
+### Seguranca da API
 
 - Rotas internas do agente validam header `x-api-secret`
-- Rotas do painel validam sessão do usuário
+- Rotas do painel validam sessao do usuario
 - Endpoint do webhook valida payload da Uazapi
+- CRONs validam `CRON_SECRET` (Vercel) ou `API_SECRET` (fallback dev)
 
 ### Regras de Componentes
 
-- `components/ui/` — shadcn/ui gerado, não editar
-- `components/features/` — componentes de domínio organizados por módulo
-- **StatusBadge** é o único componente que define cores de status
-- **ConfirmDialog** é o único diálogo de confirmação destrutiva
-- **MetricCard** é o único card de número/métrica
-- **DataTable** é a única tabela com filtro/paginação
-- **PageHeader** é obrigatório no topo de toda página
+- `components/ui/` — shadcn/ui gerado, nao editar
+- `components/features/` — componentes de dominio organizados por modulo
+- **StatusBadge** e o unico componente que define cores de status
+- **ConfirmDialog** e o unico dialogo de confirmacao destrutiva
+- **MetricCard** e o unico card de numero/metrica
+- **DataTable** e a unica tabela com filtro/paginacao
+- **PageHeader** e obrigatorio no topo de toda pagina
 
-### Convenção de Estrutura de Pastas
+### Convencao de Estrutura de Pastas
 
-- `app/(dashboard)/` — páginas do painel com sidebar + verificação de perfil
+- `app/(dashboard)/` — paginas do painel com sidebar
 - `app/api/agente/` — ferramentas do agente IA (5 endpoints)
-- `lib/agente/` — internos do agente: buffer, memória, processamento de mídia, prompt, ferramentas, sincronização do kanban
-- `prisma/seed.ts` — seed com usuário IA Lívia + admin
+- `app/api/cron/` — CRONs automaticos (4 endpoints)
+- `app/api/base-conhecimento/` — CRUD da base de conhecimento
+- `lib/agente/` — internos do agente: buffer, memoria, processamento de midia, prompt, ferramentas, sincronizacao do kanban, analise de conversas
+- `lib/kommo.ts` — integracao direta com Kommo CRM
+- `prisma/seed.ts` — seed com usuario IA Livia + admin
+
+### Paginas do Painel
+
+- `/dashboard` — total atendidos + funil por etapa
+- `/atendimentos` — kanban de atendimentos
+- `/leads` — lista de leads + detalhe com historico de conversas
+- `/agente-ia` — identidade, script, ferramentas, fluxo tecnico da Livia
+- `/relatorios` — analises IA diarias (publico + qualidade)
+- `/base-conhecimento` — base de conhecimento editavel (CRUD)
+- `/solicitacoes` — solicitacoes de ajuste do cliente
+- `/configuracoes/whatsapp` — conexao WhatsApp via Uazapi
 
 ## Notas do Modelo de Dados
 
-- `Lead.sobreOLead` é texto cumulativo — nunca sobrescrever, apenas adicionar (append)
-- `Lead.whatsapp` é único — usado para dedup
-- `MensagemWhatsapp.messageIdWhatsapp` é único — usado para dedup de mensagens
-- Todos os nomes de campos dos modelos estão em português (camelCase)
+- `Lead.sobreOLead` e texto cumulativo — nunca sobrescrever, apenas adicionar (append)
+- `Lead.whatsapp` e unico — usado para dedup
+- `MensagemWhatsapp.messageIdWhatsapp` e unico — usado para dedup de mensagens
+- `ArtigoDocumentacao` com `secao: "base-conhecimento"` alimenta o prompt da Livia
+- `RelatorioIA` armazena analises diarias (tipo: publico/qualidade)
+- Todos os nomes de campos dos modelos estao em portugues (camelCase)
 
-## Documentação — Regra Obrigatória
+## Regras do Agente IA
 
-O arquivo de documentação centralizada fica em: `lib/documentacao/conteudo.ts`
-
-**Toda sprint, feature ou mudança no sistema DEVE atualizar esse arquivo.**
+- Livia NUNCA informa valores, precos ou orcamentos
+- Livia NUNCA usa emojis
+- Livia NUNCA admite ser IA
+- Apos encaminhamento, IA para de responder (gate no webhook)
+- Base de conhecimento e carregada do banco em tempo real
 
 ## Idioma
 
-O sistema é **100% brasileiro**. Todo o código usa português para termos de domínio. Manter essa convenção.
+O sistema e **100% brasileiro**. Todo o codigo usa portugues para termos de dominio. Manter essa convencao.
 
-### Configurações regionais:
+### Configuracoes regionais:
 - **Timezone:** `America/Sao_Paulo`
 - **Locale:** `pt-BR`
 - **Moeda:** BRL (R$)
