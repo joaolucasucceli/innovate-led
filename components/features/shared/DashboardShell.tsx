@@ -1,7 +1,6 @@
 "use client"
 
-import { AppSidebar } from "@/components/features/shared/AppSidebar"
-import { AppHeader } from "@/components/features/shared/AppHeader"
+import { AppSidebar, MobileSidebarTrigger } from "@/components/features/shared/AppSidebar"
 
 interface DashboardShellProps {
   nome: string
@@ -11,16 +10,16 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({
-  nome,
-  email,
-  perfil,
   children,
 }: DashboardShellProps) {
   return (
     <div className="flex min-h-svh">
       <AppSidebar />
       <main className="flex-1 min-w-0 overflow-hidden">
-        <AppHeader nome={nome} email={email} perfil={perfil} />
+        <div className="flex h-14 items-center border-b px-4 md:hidden">
+          <MobileSidebarTrigger />
+          <span className="ml-2 text-lg font-bold tracking-tight">Innovate</span>
+        </div>
         <div className="p-4 md:p-6">{children}</div>
       </main>
     </div>

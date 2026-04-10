@@ -2,20 +2,26 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import {
   LayoutDashboard,
   Kanban,
   UserSearch,
   Bot,
   FileBarChart,
+  ClipboardList,
+  Settings,
+  LogOut,
+  Menu,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { Menu } from "lucide-react"
 import { useNaoLidas } from "@/hooks/use-nao-lidas"
+import { ThemeToggle } from "@/components/features/shared/ThemeToggle"
 
 interface NavItem {
   titulo: string
@@ -51,53 +57,97 @@ const navItems: NavItem[] = [
   },
 ]
 
+const bottomItems: NavItem[] = [
+  {
+    titulo: "Solicitacoes",
+    href: "/solicitacoes",
+    icone: <ClipboardList className="h-4 w-4" />,
+  },
+  {
+    titulo: "Configuracoes",
+    href: "/configuracoes",
+    icone: <Settings className="h-4 w-4" />,
+  },
+]
+
 function NavContent() {
   const pathname = usePathname()
   const naoLidas = useNaoLidas()
 
   return (
-    <nav className="grid gap-1 p-2">
-      {navItems.map((item) => {
-        const ativo = pathname === item.href || pathname.startsWith(item.href + "/")
-        const ehAtendimentos = item.href === "/atendimentos"
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-              ativo
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-            )}
+    <div className="flex h-full flex-col">
+      <nav className="grid gap-1 p-2 flex-1">
+        {navItems.map((item) => {
+          const ativo = pathname === item.href || pathname.startsWith(item.href + "/")
+          const ehAtendimentos = item.href === "/atendimentos"
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                ativo
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              {item.icone}
+              {item.titulo}
+              {ehAtendimentos && naoLidas > 0 && (
+                <Badge variant="default" className="ml-auto h-5 min-w-[20px] flex items-center justify-center text-[10px] px-1.5">
+                  {naoLidas > 99 ? "99+" : naoLidas}
+                </Badge>
+              )}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="p-2">
+        <Separator className="mb-2" />
+        {bottomItems.map((item) => {
+          const ativo = pathname === item.href || pathname.startsWith(item.href + "/")
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                ativo
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              {item.icone}
+              {item.titulo}
+            </Link>
+          )
+        })}
+        <div className="flex items-center justify-between px-3 py-2">
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex items-center gap-3 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
           >
-            {item.icone}
-            {item.titulo}
-            {ehAtendimentos && naoLidas > 0 && (
-              <Badge variant="default" className="ml-auto h-5 min-w-[20px] flex items-center justify-center text-[10px] px-1.5">
-                {naoLidas > 99 ? "99+" : naoLidas}
-              </Badge>
-            )}
-          </Link>
-        )
-      })}
-    </nav>
+            <LogOut className="h-4 w-4" />
+            Sair
+          </button>
+          <ThemeToggle />
+        </div>
+      </div>
+    </div>
   )
 }
 
 export function AppSidebar() {
   return (
-    <>
-      {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r bg-muted/40 md:block">
-        <div className="flex h-14 items-center border-b px-4">
-          <span className="text-lg font-bold tracking-tight">Innovate</span>
-        </div>
-        <ScrollArea className="h-[calc(100svh-3.5rem)]">
-          <NavContent />
-        </ScrollArea>
-      </aside>
-    </>
+    <aside className="hidden w-64 shrink-0 border-r bg-muted/40 md:block">
+      <div className="flex h-14 items-center border-b px-4">
+        <span className="text-lg font-bold tracking-tight">Innovate</span>
+      </div>
+      <div className="h-[calc(100svh-3.5rem)]">
+        <NavContent />
+      </div>
+    </aside>
   )
 }
 
@@ -114,9 +164,9 @@ export function MobileSidebarTrigger() {
         <SheetTitle className="flex h-14 items-center border-b px-4">
           <span className="text-lg font-bold tracking-tight">Innovate</span>
         </SheetTitle>
-        <ScrollArea className="h-[calc(100svh-3.5rem)]">
+        <div className="h-[calc(100svh-3.5rem)]">
           <NavContent />
-        </ScrollArea>
+        </div>
       </SheetContent>
     </Sheet>
   )
