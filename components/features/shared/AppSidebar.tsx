@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useNaoLidas } from "@/hooks/use-nao-lidas"
-import { ThemeToggle } from "@/components/features/shared/ThemeToggle"
 
 interface NavItem {
   titulo: string
@@ -108,16 +107,13 @@ function NavContent() {
       </nav>
 
       <div className="mt-auto px-2 pb-3">
-        <div className="flex items-center justify-between px-3 py-1.5">
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-3 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </button>
-          <ThemeToggle />
-        </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex items-center gap-3 rounded-md px-3 py-1.5 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </div>
     </div>
   )
