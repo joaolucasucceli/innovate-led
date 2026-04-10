@@ -262,7 +262,7 @@ function normalizarUazapiV2(payload: any): MensagemNormalizada | null {
 
   // Nome do contato — vem do chat do Uazapi
   const chat = payload.chat || {}
-  const nomeContato = chat.name || chat.wa_name || null
+  const nomeContato = chat.name || chat.wa_contactName || chat.wa_name || msg?.senderName || null
 
   if (!chatId || !messageId) {
     console.warn("[Webhook] UazapiGO — faltam chatId ou messageId", { chatId, messageId })

@@ -20,28 +20,37 @@ const STATUSES_RETORNO = ["encaminhado"]
 export function segmentarResposta(texto: string): string[] {
   if (!texto) return []
 
-  // Split por parágrafo duplo (cada bloco vira uma mensagem)
   const blocos = texto.split(/\n\n+/).filter((b) => b.trim())
 
+  // Agrupar blocos curtos em uma unica mensagem (ate 500 chars)
   const segmentos: string[] = []
+  let atual = ""
+
   for (const bloco of blocos) {
-    if (bloco.length <= 500) {
-      segmentos.push(bloco.trim())
+    const trimmed = bloco.trim()
+    if (atual.length + trimmed.length + 1 <= 500) {
+      atual = atual ? `${atual}\n${trimmed}` : trimmed
     } else {
-      // Quebrar por sentenças
-      const frases = bloco.split(/(?<=\.)\s+/)
-      let atual = ""
-      for (const frase of frases) {
-        if (atual.length + frase.length > 500 && atual) {
-          segmentos.push(atual.trim())
-          atual = frase
-        } else {
-          atual = atual ? `${atual} ${frase}` : frase
+      if (atual) segmentos.push(atual)
+      if (trimmed.length <= 500) {
+        atual = trimmed
+      } else {
+        // Quebrar bloco grande por sentencas
+        const frases = trimmed.split(/(?<=\.)\s+/)
+        let parte = ""
+        for (const frase of frases) {
+          if (parte.length + frase.length > 500 && parte) {
+            segmentos.push(parte.trim())
+            parte = frase
+          } else {
+            parte = parte ? `${parte} ${frase}` : frase
+          }
         }
+        if (parte.trim()) atual = parte.trim()
       }
-      if (atual.trim()) segmentos.push(atual.trim())
     }
   }
+  if (atual) segmentos.push(atual)
 
   return segmentos.filter((s) => s.length > 0)
 }

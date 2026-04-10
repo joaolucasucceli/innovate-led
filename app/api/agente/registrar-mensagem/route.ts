@@ -33,12 +33,20 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Se não há conversaId, criar nova conversa
+  // Se não há conversaId, buscar conversa existente antes de criar nova
   if (!conversaId) {
-    const conversa = await prisma.conversa.create({
-      data: { leadId },
+    const conversaExistente = await prisma.conversa.findFirst({
+      where: { leadId },
+      orderBy: { criadoEm: "desc" },
     })
-    conversaId = conversa.id
+    if (conversaExistente) {
+      conversaId = conversaExistente.id
+    } else {
+      const conversa = await prisma.conversa.create({
+        data: { leadId },
+      })
+      conversaId = conversa.id
+    }
   }
 
   const mensagem = await prisma.mensagemWhatsapp.create({
