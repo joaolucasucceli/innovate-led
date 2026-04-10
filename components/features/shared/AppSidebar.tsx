@@ -17,9 +17,7 @@ import {
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { useNaoLidas } from "@/hooks/use-nao-lidas"
 import { ThemeToggle } from "@/components/features/shared/ThemeToggle"
@@ -61,9 +59,6 @@ const navItems: NavItem[] = [
     href: "/base-conhecimento",
     icone: <BookOpen className="h-4 w-4" />,
   },
-]
-
-const bottomItems: NavItem[] = [
   {
     titulo: "Solicitacoes",
     href: "/solicitacoes",
@@ -82,7 +77,10 @@ function NavContent() {
 
   return (
     <div className="flex h-full flex-col">
-      <nav className="grid gap-1 p-2 flex-1">
+      <div className="px-3 pt-3 pb-1">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Menu</p>
+      </div>
+      <nav className="grid gap-0.5 px-2">
         {navItems.map((item) => {
           const ativo = pathname === item.href || pathname.startsWith(item.href + "/")
           const ehAtendimentos = item.href === "/atendimentos"
@@ -91,7 +89,7 @@ function NavContent() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 ativo
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -109,27 +107,8 @@ function NavContent() {
         })}
       </nav>
 
-      <div className="p-2">
-        <Separator className="mb-2" />
-        {bottomItems.map((item) => {
-          const ativo = pathname === item.href || pathname.startsWith(item.href + "/")
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                ativo
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              {item.icone}
-              {item.titulo}
-            </Link>
-          )
-        })}
-        <div className="flex items-center justify-between px-3 py-2">
+      <div className="mt-auto px-2 pb-3">
+        <div className="flex items-center justify-between px-3 py-1.5">
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex items-center gap-3 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
