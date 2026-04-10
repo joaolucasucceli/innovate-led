@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LogOut, User, Settings, ClipboardList, BookOpen } from "lucide-react"
+import { LogOut, Settings, ClipboardList } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,17 +58,9 @@ export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
               </Badge>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/meu-perfil")}>
-              <User className="mr-2 h-4 w-4" />
-              Meu Perfil
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push("/solicitacoes")}>
               <ClipboardList className="mr-2 h-4 w-4" />
               Solicitações
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/documentacao")}>
-              <BookOpen className="mr-2 h-4 w-4" />
-              Documentação
             </DropdownMenuItem>
             {perfil === "gestor" && (
               <DropdownMenuItem onClick={() => router.push("/configuracoes")}>
