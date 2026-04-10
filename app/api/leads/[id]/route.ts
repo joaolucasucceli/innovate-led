@@ -119,20 +119,26 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  // Hard delete em cascata: replyTo → mensagens → conversas → fotos → lead
-  // 1. Remover auto-referências (replyToId) para evitar FK violation
-  await prisma.mensagemWhatsapp.updateMany({
-    where: { leadId: id, replyToId: { not: null } },
-    data: { replyToId: null },
+  // Hard delete em cascata
+  // 1. Limpar replyToId — tanto deste lead quanto de outros leads que referenciam mensagens deste
+  const mensagensDoLead = await prisma.mensagemWhatsapp.findMany({
+    where: { leadId: id },
+    select: { id: true },
   })
+  const idsMsg = mensagensDoLead.map((m) => m.id)
 
-  // 2. Deletar em ordem de dependência
-  await prisma.$transaction([
-    prisma.mensagemWhatsapp.deleteMany({ where: { leadId: id } }),
-    prisma.conversa.deleteMany({ where: { leadId: id } }),
-    prisma.fotoLead.deleteMany({ where: { leadId: id } }),
-    prisma.lead.delete({ where: { id } }),
-  ])
+  if (idsMsg.length > 0) {
+    await prisma.mensagemWhatsapp.updateMany({
+      where: { replyToId: { in: idsMsg } },
+      data: { replyToId: null },
+    })
+  }
+
+  // 2. Deletar em ordem de dependência (sequencial)
+  await prisma.mensagemWhatsapp.deleteMany({ where: { leadId: id } })
+  await prisma.fotoLead.deleteMany({ where: { leadId: id } })
+  await prisma.conversa.deleteMany({ where: { leadId: id } })
+  await prisma.lead.delete({ where: { id } })
 
   // 5. Limpar memória e buffer da IA no Redis
   const chatId = `${lead.whatsapp}@s.whatsapp.net`
