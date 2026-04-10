@@ -527,29 +527,32 @@ export async function POST(request: NextRequest) {
       conteudo: conteudo.slice(0, 100),
     })
 
-    // Adicionar ao buffer Redis e acionar processamento imediatamente
-    // (setTimeout não funciona em serverless — a função é congelada após response)
-    try {
-      await adicionarAoBuffer(msg.chatId, {
-        tipo: msg.tipo,
-        conteudo,
-        timestamp: msg.timestamp,
-        messageId: msg.id,
-      })
+    // Só acionar IA se conversa estiver em etapa de atendimento ativo
+    if (conversa.etapa !== "encaminhado") {
+      try {
+        await adicionarAoBuffer(msg.chatId, {
+          tipo: msg.tipo,
+          conteudo,
+          timestamp: msg.timestamp,
+          messageId: msg.id,
+        })
 
-      const baseUrl = (process.env.NEXTAUTH_URL || "http://localhost:3000").trim()
-      await fetch(`${baseUrl}/api/agente/processar`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-secret": process.env.API_SECRET || "",
-        },
-        body: JSON.stringify({ chatId: msg.chatId }),
-      }).catch((err) => {
-        console.error("[Webhook] Erro ao acionar processar:", err)
-      })
-    } catch {
-      // Redis não configurado — mensagem já salva no banco, ok
+        const baseUrl = (process.env.NEXTAUTH_URL || "http://localhost:3000").trim()
+        await fetch(`${baseUrl}/api/agente/processar`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-secret": process.env.API_SECRET || "",
+          },
+          body: JSON.stringify({ chatId: msg.chatId }),
+        }).catch((err) => {
+          console.error("[Webhook] Erro ao acionar processar:", err)
+        })
+      } catch {
+        // Redis não configurado — mensagem já salva no banco, ok
+      }
+    } else {
+      console.log("[Webhook] Lead já encaminhado, IA não acionada. Mensagem salva no histórico.")
     }
   }
 
