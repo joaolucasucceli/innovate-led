@@ -7,7 +7,7 @@
  * o arquivo .md a partir deste módulo.
  */
 
-export const VERSAO_DOCUMENTACAO = "1.1.0"
+export const VERSAO_DOCUMENTACAO = "1.2.0"
 export const DATA_ATUALIZACAO = "2026-04-07"
 
 export const DOCUMENTACAO_MD = `# Documentação — Central Innovate Brazil
@@ -315,21 +315,24 @@ Integrações e configurações gerais do sistema.
 
 ---
 
-## Módulo 8 — Documentação
+## Módulo 8 — Documentação (Base de Conhecimento)
 
-Página de documentação do sistema com botão para download do arquivo .md completo.
+Base de conhecimento editável do sistema com CRUD completo de artigos.
 
 ### Funcionalidades
 
-- **Visualização** — Documentação completa renderizada na página
-- **Download** — Botão para baixar o arquivo .md atualizado
+- **Visualização** — Artigos organizados por seção com abas dinâmicas
+- **Criar artigo** — Gestor pode criar novos artigos com título, conteúdo e seção
+- **Editar artigo** — Gestor pode editar título, conteúdo e seção de qualquer artigo
+- **Excluir artigo** — Gestor pode excluir artigos (soft delete)
+- **Seções disponíveis** — Geral, Dashboard, Atendimentos, Leads, Configurações, Agente IA, Outros
 
 ### Permissões
 
 | Perfil | Acesso |
 |--------|--------|
-| Gestor | Total |
-| Atendente | Total |
+| Gestor | CRUD completo (criar, editar, excluir) |
+| Atendente | Apenas visualização |
 
 ---
 

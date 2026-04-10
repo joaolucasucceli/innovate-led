@@ -81,6 +81,7 @@ model Usuario {
   conversas     Conversa[]             @relation("AtendenteConversa")
   auditLogs     AuditLog[]
   solicitacoes  SolicitacaoAlteracao[] @relation("SolicitacoesCriadas")
+  artigosAtualizados ArtigoDocumentacao[] @relation("ArtigosAtualizados")
 
   @@map("usuarios")
 }
@@ -279,4 +280,21 @@ model AuditLog {
   @@index([entidade, entidadeId])
   @@index([usuarioId])
   @@map("audit_logs")
+}
+
+model ArtigoDocumentacao {
+  id              String    @id @default(cuid())
+  titulo          String
+  conteudo        String    @db.Text
+  secao           String
+  ordem           Int       @default(0)
+  ativo           Boolean   @default(true)
+  criadoEm        DateTime  @default(now())
+  atualizadoEm    DateTime  @updatedAt
+  atualizadoPorId String?
+  atualizadoPor   Usuario?  @relation("ArtigosAtualizados", fields: [atualizadoPorId], references: [id])
+
+  @@index([secao])
+  @@index([ativo])
+  @@map("artigos_documentacao")
 }
