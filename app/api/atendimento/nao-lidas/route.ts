@@ -6,10 +6,15 @@ export async function GET() {
   const auth = await requireAuth()
   if (auth.error) return auth.error
 
-  const total = await prisma.mensagemWhatsapp.count({
+  const total = await prisma.conversa.count({
     where: {
-      remetente: { in: ["paciente", "cliente"] },
-      lidaEm: null,
+      encerradaEm: null,
+      mensagens: {
+        some: {
+          remetente: "paciente",
+          lidaEm: null,
+        },
+      },
     },
   })
 
