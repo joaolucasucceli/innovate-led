@@ -23,6 +23,8 @@ interface Lead {
     id: string
     etapa: string
     ciclo: number
+    modoConversa: string
+    encerradaEm: string | null
     mensagens: Array<{
       id: string
       tipo: string

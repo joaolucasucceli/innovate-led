@@ -3,13 +3,14 @@
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { ArrowLeft, Mic, Trash2 } from "lucide-react"
+import { ArrowLeft, Bot, Loader2, Mic, Pause, Play, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/features/shared/PageHeader"
 import {
@@ -35,8 +36,36 @@ export default function LeadDetalhePage() {
 
   const { lead, carregando, erro, recarregar } = useLead(id)
   const [confirmExcluir, setConfirmExcluir] = useState(false)
+  const [alterandoModo, setAlterandoModo] = useState(false)
 
   const isGestor = session?.user?.perfil === "gestor"
+
+  const conversaAtiva = lead?.conversas.find((c) => !c.encerradaEm) ?? null
+  const iaAtiva = conversaAtiva?.modoConversa === "ia"
+
+  async function handlePausarRetomar() {
+    if (!conversaAtiva) return
+    setAlterandoModo(true)
+    const rota = iaAtiva ? "/api/atendimento/assumir" : "/api/atendimento/devolver"
+    try {
+      const res = await fetch(rota, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversaId: conversaAtiva.id }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        toast.error(data.error || "Erro ao alterar modo")
+        return
+      }
+      toast.success(iaAtiva ? "IA pausada" : "IA retomada")
+      recarregar()
+    } catch {
+      toast.error("Erro ao alterar modo")
+    } finally {
+      setAlterandoModo(false)
+    }
+  }
 
   async function handleExcluir() {
     try {
@@ -83,7 +112,30 @@ export default function LeadDetalhePage() {
         </BreadcrumbList>
       </Breadcrumb>
       <PageHeader titulo={lead.nome}>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {conversaAtiva && (
+            <>
+              <Badge variant={iaAtiva ? "default" : "secondary"} className="text-xs">
+                <Bot className="mr-1 h-3 w-3" />
+                {iaAtiva ? "IA Ativa" : "IA Pausada"}
+              </Badge>
+              <Button
+                variant={iaAtiva ? "outline" : "default"}
+                size="sm"
+                onClick={handlePausarRetomar}
+                disabled={alterandoModo}
+              >
+                {alterandoModo ? (
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                ) : iaAtiva ? (
+                  <Pause className="mr-1 h-3 w-3" />
+                ) : (
+                  <Play className="mr-1 h-3 w-3" />
+                )}
+                {iaAtiva ? "Pausar IA" : "Retomar IA"}
+              </Button>
+            </>
+          )}
           <Button variant="outline" onClick={() => router.push("/leads")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar

@@ -153,14 +153,12 @@ Visualização em kanban do funil comercial com 6 etapas.
 - **Movimentação automática** — Etapas 1 a 3 movidas pela Lívia via WhatsApp
 - **Ação manual (etapas 4–5)** — Controle manual do time comercial
 - **Filtros avançados** — Por responsável, etapa ou nome
-- **Chat WhatsApp integrado** — Alternância entre modo IA e modo humano
-
 ### Como usar
 
 1. Observe cada coluna representando uma etapa (número no cabeçalho = quantidade de leads)
 2. Use o menu do card (três pontos) para mudar a etapa de um lead nas colunas 4 e 5
 3. Ao mover para "Perdido", informe o motivo (alimenta relatórios de perda)
-4. Clique no card para abrir o chat WhatsApp com alternância IA/humano
+4. Clique no card para acessar o detalhe do lead
 
 ### Permissões
 
@@ -173,30 +171,29 @@ Visualização em kanban do funil comercial com 6 etapas.
 
 ---
 
-## Módulo 4 — Atendimentos (Chat WhatsApp)
+## Módulo 4 — Controle de IA (Pausar/Retomar)
 
-Interface de chat para atendimento via WhatsApp com alternância entre modo IA e modo humano.
+Controle do modo de atendimento (IA ou Humano) acessível na página de detalhe do lead.
 
 ### Funcionalidades
 
-- **Lista de conversas** — Todas as conversas ativas com preview da última mensagem
-- **Chat em tempo real** — Envio e recebimento de mensagens WhatsApp
-- **Modo IA / Humano** — Toggle para ativar ou desativar a Lívia em cada conversa
-- **Histórico completo** — Todas as mensagens trocadas com o lead
+- **Badge de status** — Mostra se a IA (Lívia) está ativa ou pausada na conversa atual
+- **Pausar IA** — Desativa a Lívia para o consultor assumir o atendimento manualmente
+- **Retomar IA** — Reativa a Lívia para retomar o atendimento automatizado
+- **Histórico de mensagens** — Visível na aba "Histórico de Atendimento" do lead
 
 ### Como usar
 
-1. Selecione uma conversa na lista lateral
-2. Visualize o histórico de mensagens
-3. Use o toggle para alternar entre modo IA (Lívia responde) e modo humano (consultor responde)
-4. No modo humano, digite e envie mensagens diretamente
+1. Acesse o detalhe de um lead (clicando no card do Kanban ou na lista de Leads)
+2. No header da página, veja o badge "IA Ativa" ou "IA Pausada"
+3. Clique em "Pausar IA" ou "Retomar IA" para alternar o modo
 
 ### Permissões
 
 | Perfil | Acesso |
 |--------|--------|
-| Gestor | Total — visualiza e interage em todas as conversas |
-| Atendente | Total — visualiza e interage nas conversas atribuídas |
+| Gestor | Total |
+| Atendente | Total |
 
 ---
 
