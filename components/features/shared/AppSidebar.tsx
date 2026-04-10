@@ -9,6 +9,7 @@ import {
   UserSearch,
   Bot,
   FileBarChart,
+  BookOpen,
   ClipboardList,
   Settings,
   LogOut,
@@ -54,6 +55,11 @@ const navItems: NavItem[] = [
     titulo: "Relatorios",
     href: "/relatorios",
     icone: <FileBarChart className="h-4 w-4" />,
+  },
+  {
+    titulo: "Base de Conhecimento",
+    href: "/base-conhecimento",
+    icone: <BookOpen className="h-4 w-4" />,
   },
 ]
 

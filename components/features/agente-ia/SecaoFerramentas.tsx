@@ -55,7 +55,7 @@ const ferramentas: Ferramenta[] = [
     nome: "encaminhar_contato",
     titulo: "Encaminhar para Comercial",
     descricao:
-      "Move o lead para a etapa \"encaminhado\" no funil do CRM. Dispara webhook n8n para sincronizar com Kommo.",
+      "Move o lead para a etapa \"encaminhado\" no funil do CRM e sincroniza com Kommo.",
     quandoUsar:
       "Após salvar a qualificação completa e quando o cliente confirmar interesse em falar com o consultor.",
     rota: "/api/agente/encaminhar-contato",
@@ -68,7 +68,7 @@ const ferramentas: Ferramenta[] = [
     nome: "criar_tarefa",
     titulo: "Criar Tarefa de Ligação",
     descricao:
-      "Cria uma tarefa de ligação para o consultor comercial entrar em contato com o cliente. Dispara webhook n8n para sincronizar com Kommo.",
+      "Cria uma tarefa de ligacao para o consultor comercial entrar em contato com o cliente. Sincroniza com Kommo.",
     quandoUsar:
       "Após coletar dia e horário de preferência do cliente, e após ter usado salvar_qualificacao e encaminhar_contato.",
     rota: "/api/agente/criar-tarefa",

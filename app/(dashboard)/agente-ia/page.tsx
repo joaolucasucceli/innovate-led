@@ -8,7 +8,6 @@ import { SecaoIdentidade } from "@/components/features/agente-ia/SecaoIdentidade
 import { SecaoScript } from "@/components/features/agente-ia/SecaoScript"
 import { SecaoFerramentas } from "@/components/features/agente-ia/SecaoFerramentas"
 import { SecaoFluxoTecnico } from "@/components/features/agente-ia/SecaoFluxoTecnico"
-import { SecaoBaseConhecimento } from "@/components/features/agente-ia/SecaoBaseConhecimento"
 
 export default function AgenteIAPage() {
   return (
@@ -24,7 +23,6 @@ export default function AgenteIAPage() {
           <TabsTrigger value="script">Script</TabsTrigger>
           <TabsTrigger value="ferramentas">Ferramentas</TabsTrigger>
           <TabsTrigger value="fluxo">Fluxo Técnico</TabsTrigger>
-          <TabsTrigger value="conhecimento">Base de Conhecimento</TabsTrigger>
         </TabsList>
 
         <TabsContent value="identidade" className="mt-4">
@@ -43,9 +41,6 @@ export default function AgenteIAPage() {
           <SecaoFluxoTecnico />
         </TabsContent>
 
-        <TabsContent value="conhecimento" className="mt-4">
-          <SecaoBaseConhecimento />
-        </TabsContent>
       </Tabs>
     </div>
   )

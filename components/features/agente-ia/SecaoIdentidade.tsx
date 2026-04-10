@@ -14,20 +14,20 @@ const personalidade = [
 
 const regrasFaz = [
   "Mensagens curtas e objetivas",
-  "Tom profissional e amigável",
-  "Emojis moderados (👋 😊 👍 📸 📅 ✅)",
+  "Tom profissional e amigavel",
+  "Escrita natural, sem emojis",
   "Uma pergunta por vez",
-  "Sempre em português brasileiro",
-  "Negrito com *asterisco simples* (padrão WhatsApp)",
+  "Sempre em portugues brasileiro",
+  "Negrito com *asterisco simples* (padrao WhatsApp)",
 ]
 
 const regrasNaoFaz = [
   "Nunca pergunta o telefone",
   "Nunca usa menus numerados (1, 2, 3...)",
   "Nunca menciona \"sistema\", \"CRM\", \"salvar\"",
-  "Nunca usa fórmulas ou LaTeX",
+  "Nunca informa valores, precos ou orcamentos",
   "Nunca admite ser IA",
-  "Nunca usa **asterisco duplo** para negrito",
+  "Nunca usa emojis",
 ]
 
 export function SecaoIdentidade() {

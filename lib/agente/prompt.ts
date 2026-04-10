@@ -9,8 +9,64 @@ interface ContextoLead {
   conversaId?: string
 }
 
+import { prisma } from "@/lib/prisma"
+
+/** Carrega base de conhecimento do banco (ou fallback hardcoded) */
+async function carregarBaseConhecimento(): Promise<string> {
+  try {
+    const artigos = await prisma.artigoDocumentacao.findMany({
+      where: { secao: "base-conhecimento", ativo: true },
+      orderBy: { ordem: "asc" },
+      select: { titulo: true, conteudo: true },
+    })
+
+    if (artigos.length > 0) {
+      return artigos.map((a) => `### ${a.titulo}\n${a.conteudo}`).join("\n\n")
+    }
+  } catch {
+    // Banco indisponivel — usar fallback
+  }
+
+  return FALLBACK_BASE_CONHECIMENTO
+}
+
+const FALLBACK_BASE_CONHECIMENTO = `### Sobre a Empresa
+A Innovate Brazil e especializada em paineis LED para comunicacao visual. Atuamos em fachadas, eventos, comunicacao interna, publicidade e retail.
+
+### Precos e Orcamento
+Voce NAO informa valores, precos ou faixas de investimento. O valor depende de muitas variaveis (tamanho, pitch, ambiente, estrutura) e apenas o consultor comercial tem autoridade para gerar orcamento apos analise tecnica. Quando perguntarem sobre preco, diga que o consultor fara a analise personalizada e apresentara as opcoes.
+
+### Painel Indoor (Interno)
+Para ambientes internos como recepcoes, lojas, shoppings e auditorios. Nao precisa resistir a chuva ou sol, exige menos brilho, oferece melhor definicao para curtas distancias.
+
+### Painel Outdoor (Externo)
+Resistente a chuva, sol e variacoes de temperatura. Possui alto brilho para visibilidade sob luz solar. Ideal para fachadas, totens e eventos ao ar livre.
+
+### Pitch e Resolucao
+O pitch e a distancia entre os LEDs. Quanto menor o pitch, maior a resolucao e mais nitida a imagem de perto:
+- P2.5 a P4: ideal para visualizacao de 2 a 5 metros
+- P5 a P6: ideal para 5 a 10 metros
+- P8 a P10: ideal para 10 a 20 metros
+- P16 ou maior: ideal para grandes distancias
+
+### Consumo de Energia
+Paineis LED sao muito eficientes. Consomem em media 100 a 300 watts por metro quadrado, dependendo do brilho. Muito mais economico que paineis tradicionais.
+
+### Instalacao
+Sim, oferecemos instalacao completa com equipe tecnica especializada. Podemos fornecer estrutura metalica se necessario. Todos os paineis possuem garantia.
+
+### Manutencao e Durabilidade
+Baixa manutencao — geralmente apenas limpeza periodica. Vida util media de 100.000 horas (mais de 10 anos de uso). Oferecemos suporte tecnico.
+
+### Conteudo
+Aceita videos, imagens, animacoes e texto. Pode ser controlado remotamente via software. O conteudo pode ser atualizado a qualquer momento.
+
+### Diferenca Indoor vs Outdoor
+Indoor: para ambientes internos, menos brilho, maior definicao de imagem.
+Outdoor: resistente ao tempo, alto brilho para compensar luz do sol.`
+
 /** Gera o system prompt da Lívia com contexto dinâmico do lead */
-export function gerarSystemPrompt(contexto?: ContextoLead): string {
+export async function gerarSystemPrompt(contexto?: ContextoLead): Promise<string> {
   let contextoStr = ""
 
   if (contexto) {
@@ -221,38 +277,5 @@ IMPORTANTE: Nunca dizer que não consegue visualizar ou processar mídias. Sempr
 
 ## BASE DE CONHECIMENTO
 
-### Sobre a Empresa
-A Innovate Brazil é especializada em painéis LED para comunicação visual. Atuamos em fachadas, eventos, comunicação interna, publicidade e retail.
-
-### Preços e Orçamento
-Voce NAO informa valores, precos ou faixas de investimento. O valor depende de muitas variaveis (tamanho, pitch, ambiente, estrutura) e apenas o consultor comercial tem autoridade para gerar orcamento apos analise tecnica. Quando perguntarem sobre preco, diga que o consultor fara a analise personalizada e apresentara as opcoes.
-
-### Painel Indoor (Interno)
-Para ambientes internos como recepções, lojas, shoppings e auditórios. Não precisa resistir a chuva ou sol, exige menos brilho, oferece melhor definição para curtas distâncias.
-
-### Painel Outdoor (Externo)
-Resistente a chuva, sol e variações de temperatura. Possui alto brilho para visibilidade sob luz solar. Ideal para fachadas, totens e eventos ao ar livre.
-
-### Pitch e Resolução
-O pitch é a distância entre os LEDs. Quanto menor o pitch, maior a resolução e mais nítida a imagem de perto:
-- P2.5 a P4: ideal para visualização de 2 a 5 metros
-- P5 a P6: ideal para 5 a 10 metros
-- P8 a P10: ideal para 10 a 20 metros
-- P16 ou maior: ideal para grandes distâncias
-
-### Consumo de Energia
-Painéis LED são muito eficientes. Consomem em média 100 a 300 watts por metro quadrado, dependendo do brilho. Muito mais econômico que painéis tradicionais.
-
-### Instalação
-Sim, oferecemos instalação completa com equipe técnica especializada. Podemos fornecer estrutura metálica se necessário. Todos os painéis possuem garantia.
-
-### Manutenção e Durabilidade
-Baixa manutenção — geralmente apenas limpeza periódica. Vida útil média de 100.000 horas (mais de 10 anos de uso). Oferecemos suporte técnico.
-
-### Conteúdo
-Aceita vídeos, imagens, animações e texto. Pode ser controlado remotamente via software. O conteúdo pode ser atualizado a qualquer momento.
-
-### Diferença Indoor vs Outdoor
-Indoor: para ambientes internos, menos brilho, maior definição de imagem.
-Outdoor: resistente ao tempo, alto brilho para compensar luz do sol.${contextoStr}`
+${await carregarBaseConhecimento()}${contextoStr}`
 }

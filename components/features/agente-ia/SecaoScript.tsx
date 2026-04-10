@@ -62,15 +62,15 @@ export function SecaoScript() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
-              <Passo numero="1.1" titulo="Saudação Inicial">
+              <Passo numero="1.1" titulo="Saudacao Inicial">
                 <MensagemModelo>
-                  &quot;Olá! 👋&quot;
+                  &quot;Ola!&quot;
                   <br /><br />
-                  &quot;Sou a Lívia, do time de pré-atendimento da Innovate Brazil,
-                  especializada em painéis LED para comunicação visual.&quot;
+                  &quot;Sou a Livia, do time de pre-atendimento da Innovate Brazil,
+                  especializada em paineis LED para comunicacao visual.&quot;
                   <br /><br />
-                  &quot;Que bom que você entrou em contato! Posso te ajudar a encontrar
-                  a melhor solução para o seu projeto.&quot;
+                  &quot;Que bom que voce entrou em contato! Posso te ajudar a encontrar
+                  a melhor solucao para o seu projeto.&quot;
                   <br /><br />
                   &quot;Como posso te chamar?&quot;
                 </MensagemModelo>
@@ -97,7 +97,7 @@ export function SecaoScript() {
             <AccordionContent className="space-y-4">
               <Passo numero="2.1" titulo="Objetivo do Painel">
                 <MensagemModelo>
-                  &quot;Prazer, [NOME]! 😊&quot;
+                  &quot;Prazer, [NOME]!&quot;
                   <br /><br />
                   &quot;Para começar, qual seria o objetivo do painel?&quot;
                   <br /><br />
@@ -130,7 +130,7 @@ export function SecaoScript() {
 
               <Passo numero="2.3" titulo="Foto do Local">
                 <MensagemModelo>
-                  &quot;Se possível, você pode nos enviar uma foto do local onde o painel será instalado? 📸&quot;
+                  &quot;Se possivel, voce pode nos enviar uma foto do local onde o painel sera instalado?&quot;
                   <br /><br />
                   &quot;A foto ajuda bastante a entender o espaço e sugerir o melhor posicionamento.&quot;
                 </MensagemModelo>
@@ -208,8 +208,8 @@ export function SecaoScript() {
                   &quot;Para que possamos indicar a melhor solução, existe alguma faixa de investimento prevista?&quot;
                 </MensagemModelo>
                 <Ramificacao>
-                  <p>Se perguntar preço → Responde com base de conhecimento, depois retoma a pergunta</p>
-                  <p className="mt-1">Se não quiser informar → &quot;O consultor te apresentará algumas opções de orçamento.&quot;</p>
+                  <p>Se perguntar preco → Redireciona para o consultor: &quot;O valor varia conforme o projeto. Nosso consultor fara a analise e apresentara as opcoes.&quot;</p>
+                  <p className="mt-1">Se nao quiser informar → &quot;O consultor te apresentara algumas opcoes de orcamento.&quot;</p>
                 </Ramificacao>
                 <div className="flex gap-1">
                   <Badge variant="secondary" className="text-xs">Dado: Investimento</Badge>
@@ -231,47 +231,43 @@ export function SecaoScript() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
-              <Passo numero="3.1" titulo="Salvar e Encaminhar">
-                <div className="flex flex-wrap gap-1">
-                  <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge>
-                  <Badge variant="secondary" className="text-xs">encaminhar_contato</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Salva qualificação completa e move o lead para &quot;encaminhado&quot; no funil.
-                </p>
-              </Passo>
-
-              <Separator />
-
-              <Passo numero="3.2" titulo="Solicitar Horário de Contato">
+              <Passo numero="3.1" titulo="Solicitar Horario de Contato">
                 <MensagemModelo>
-                  &quot;Perfeito, [NOME]! 😊&quot;
+                  &quot;Perfeito, [NOME]!&quot;
                   <br /><br />
-                  &quot;Com todas essas informações, já conseguimos entender bem o seu projeto.&quot;
+                  &quot;Com todas essas informacoes, ja conseguimos entender bem o seu projeto.&quot;
                   <br /><br />
-                  &quot;Vou passar seu atendimento para um dos nossos consultores comerciais.&quot;
+                  &quot;Vou passar seu atendimento para um dos nossos consultores comerciais, que fara a analise tecnica e entrara em contato com voce.&quot;
                   <br /><br />
-                  &quot;Qual seria o melhor dia e horário para o consultor te ligar? 📅&quot;
+                  &quot;Qual seria o melhor dia e horario para o consultor te ligar?&quot;
                 </MensagemModelo>
               </Passo>
 
               <Separator />
 
-              <Passo numero="3.3" titulo="Criar Tarefa e Confirmação">
+              <Passo numero="3.2" titulo="Salvar, Encaminhar e Criar Tarefa">
                 <div className="flex flex-wrap gap-1 mb-2">
+                  <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge>
+                  <Badge variant="secondary" className="text-xs">encaminhar_contato</Badge>
                   <Badge variant="secondary" className="text-xs">criar_tarefa</Badge>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  Salva qualificacao completa (incluindo dia/horario no sobreOLead), encaminha o lead no funil e cria tarefa de ligacao.
+                </p>
+              </Passo>
+
+              <Separator />
+
+              <Passo numero="3.3" titulo="Confirmacao Final">
                 <MensagemModelo>
-                  &quot;Ótimo! ✅&quot;
+                  &quot;Anotei aqui: [DIA E HORARIO]&quot;
                   <br /><br />
-                  &quot;Anotei aqui: [DIA E HORÁRIO]&quot;
+                  &quot;Vou passar essas informacoes para nossa equipe comercial. Em breve um
+                  consultor entrara em contato no horario combinado para apresentar a solucao e o orcamento do seu projeto.&quot;
                   <br /><br />
-                  &quot;Vou passar essas informações para nossa equipe comercial. Em breve um
-                  consultor entrará em contato no horário combinado.&quot;
+                  &quot;Caso precise de algo antes, e so me chamar!&quot;
                   <br /><br />
-                  &quot;Caso precise de algo antes, é só me chamar!&quot;
-                  <br /><br />
-                  &quot;Obrigada pelo contato e até breve! 👋&quot;
+                  &quot;Obrigada pelo contato e ate breve!&quot;
                 </MensagemModelo>
               </Passo>
             </AccordionContent>
