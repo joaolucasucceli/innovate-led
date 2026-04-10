@@ -5,54 +5,52 @@ import { Separator } from "@/components/ui/separator"
 
 const personalidade = [
   "Acolhedora, consultiva e profissional",
-  "Conhecimento técnico sobre painéis LED",
-  "Nunca pressiona o cliente",
-  "Adapta-se ao estilo de cada cliente (formal ou informal)",
-  "Valida informações antes de prosseguir",
-  "Usa frases suaves: \"só para alinhar melhor\", \"confirmando rapidinho\"",
+  "Conhece bem os paineis LED e sabe orientar o cliente",
+  "Nunca pressiona — sempre respeita o ritmo do cliente",
+  "Se adapta ao jeito de cada pessoa (formal ou informal)",
+  "Confirma as informacoes antes de avancar",
+  "Usa frases suaves como \"so para alinhar melhor\" e \"confirmando rapidinho\"",
 ]
 
-const regrasFaz = [
-  "Mensagens curtas e objetivas",
-  "Tom profissional e amigavel",
-  "Escrita natural, sem emojis",
-  "Uma pergunta por vez",
-  "Sempre em portugues brasileiro",
-  "Negrito com *asterisco simples* (padrao WhatsApp)",
+const oqueFaz = [
+  "Responde mensagens de forma natural, como uma atendente real",
+  "Faz uma pergunta por vez e espera a resposta",
+  "Coleta todas as informacoes do projeto do cliente",
+  "Encaminha o lead qualificado para o consultor comercial",
+  "Cria tarefa de ligacao com dia e horario preferido",
+  "Processa fotos, audios e documentos enviados pelo cliente",
 ]
 
-const regrasNaoFaz = [
-  "Nunca pergunta o telefone",
-  "Nunca usa menus numerados (1, 2, 3...)",
-  "Nunca menciona \"sistema\", \"CRM\", \"salvar\"",
-  "Nunca informa valores, precos ou orcamentos",
-  "Nunca admite ser IA",
+const oqueNaoFaz = [
+  "Nunca informa precos, valores ou orcamentos",
   "Nunca usa emojis",
+  "Nunca admite que e uma inteligencia artificial",
+  "Nunca pergunta o telefone (ja tem pelo WhatsApp)",
+  "Nunca usa menus numerados (1, 2, 3...)",
+  "Nunca menciona termos tecnicos como sistema, CRM ou banco de dados",
 ]
 
 export function SecaoIdentidade() {
   return (
     <Card>
       <CardContent className="space-y-6 pt-6">
-        {/* Header com identidade */}
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
             <Bot className="h-7 w-7 text-primary" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-semibold">Lívia</h2>
-              <Badge variant="secondary">GPT-4o</Badge>
+              <h2 className="text-xl font-semibold">Livia</h2>
+              <Badge variant="secondary">Assistente IA</Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Assistente de Pré-Atendimento — Innovate Brazil
+              Time de Pre-Atendimento — Innovate Brazil
             </p>
           </div>
         </div>
 
         <Separator />
 
-        {/* Personalidade */}
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Personalidade
@@ -69,27 +67,26 @@ export function SecaoIdentidade() {
 
         <Separator />
 
-        {/* Regras de comunicação */}
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Regras de Comunicação
+            Comportamento
           </h3>
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-green-600 dark:text-green-400">Faz</p>
-              {regrasFaz.map((regra) => (
-                <div key={regra} className="flex items-start gap-2 text-sm">
+              <p className="text-sm font-medium text-green-600 dark:text-green-400">O que ela faz</p>
+              {oqueFaz.map((item) => (
+                <div key={item} className="flex items-start gap-2 text-sm">
                   <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
-                  {regra}
+                  {item}
                 </div>
               ))}
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-red-600 dark:text-red-400">Não faz</p>
-              {regrasNaoFaz.map((regra) => (
-                <div key={regra} className="flex items-start gap-2 text-sm">
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">O que ela nao faz</p>
+              {oqueNaoFaz.map((item) => (
+                <div key={item} className="flex items-start gap-2 text-sm">
                   <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
-                  {regra}
+                  {item}
                 </div>
               ))}
             </div>

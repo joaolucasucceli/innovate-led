@@ -1,92 +1,38 @@
-import { Badge } from "@/components/ui/badge"
+import { Save, ArrowRight, Phone } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 
-interface Parametro {
-  nome: string
-  tipo: string
-  obrigatorio: boolean
-  descricao: string
-}
-
-interface Ferramenta {
-  nome: string
-  titulo: string
-  descricao: string
-  quandoUsar: string
-  rota: string
-  parametros: Parametro[]
-}
-
-const ferramentas: Ferramenta[] = [
+const ferramentas = [
   {
-    nome: "salvar_qualificacao",
-    titulo: "Salvar Qualificação",
-    descricao:
-      "Salva informações de qualificação do lead no CRM. O campo sobreOLead é cumulativo (nunca sobrescrito). Também atualiza o nome do lead se informado via nomeLead.",
-    quandoUsar:
-      "Sempre que coletar informação nova sobre o lead durante a conversa.",
-    rota: "/api/agente/salvar-qualificacao",
-    parametros: [
-      { nome: "leadId", tipo: "string", obrigatorio: true, descricao: "ID do lead/contato" },
-      { nome: "conversaId", tipo: "string", obrigatorio: true, descricao: "ID da conversa ativa" },
-      {
-        nome: "sobreOLead",
-        tipo: "string",
-        obrigatorio: true,
-        descricao: "Informações coletadas (cumulativo — append, nunca sobrescreve). Formato: \"Objetivo: X | Ambiente: Y | Distância: Z | Tamanho: W | Tipo: fixo/móvel | Prazo: P | Investimento: I | Foto: sim/não\"",
-      },
-      {
-        nome: "nomeLead",
-        tipo: "string",
-        obrigatorio: false,
-        descricao: "Nome real do contato, informado por ele na conversa",
-      },
+    icone: Save,
+    titulo: "Salvar qualificacao",
+    descricao: "Toda vez que a Livia coleta uma informacao nova sobre o projeto do cliente, ela salva automaticamente no sistema e no Kommo CRM.",
+    quando: "A cada resposta do cliente durante a qualificacao (objetivo, ambiente, tamanho, prazo, etc.)",
+    exemplos: [
+      "Cliente informou o nome → salva o nome",
+      "Cliente disse que quer painel para fachada → salva o objetivo",
+      "Cliente enviou foto do local → salva que enviou foto",
     ],
   },
   {
-    nome: "encaminhar_contato",
-    titulo: "Encaminhar para Comercial",
-    descricao:
-      "Move o lead para a etapa \"encaminhado\" no funil do CRM e sincroniza com Kommo.",
-    quandoUsar:
-      "Após salvar a qualificação completa e quando o cliente confirmar interesse em falar com o consultor.",
-    rota: "/api/agente/encaminhar-contato",
-    parametros: [
-      { nome: "leadId", tipo: "string", obrigatorio: true, descricao: "ID do lead/contato" },
-      { nome: "conversaId", tipo: "string", obrigatorio: true, descricao: "ID da conversa ativa" },
+    icone: ArrowRight,
+    titulo: "Encaminhar para o comercial",
+    descricao: "Quando a qualificacao esta completa, a Livia encaminha o lead para a equipe comercial. A partir desse momento, ela para de responder — o consultor assume.",
+    quando: "Apos coletar todas as informacoes e o cliente confirmar o dia/horario para contato",
+    exemplos: [
+      "Lead muda de \"em qualificacao\" para \"encaminhado\"",
+      "Livia para de responder mensagens desse lead",
+      "Dados ficam disponiveis para o consultor no sistema e no Kommo",
     ],
   },
   {
-    nome: "criar_tarefa",
-    titulo: "Criar Tarefa de Ligação",
-    descricao:
-      "Cria uma tarefa de ligacao para o consultor comercial entrar em contato com o cliente. Sincroniza com Kommo.",
-    quandoUsar:
-      "Após coletar dia e horário de preferência do cliente, e após ter usado salvar_qualificacao e encaminhar_contato.",
-    rota: "/api/agente/criar-tarefa",
-    parametros: [
-      { nome: "leadId", tipo: "string", obrigatorio: true, descricao: "ID do lead/contato" },
-      { nome: "conversaId", tipo: "string", obrigatorio: true, descricao: "ID da conversa ativa" },
-      {
-        nome: "dataHora",
-        tipo: "string",
-        obrigatorio: true,
-        descricao: "Dia e horário de preferência (ex: \"Hoje às 16h\", \"Segunda às 10h\", \"Amanhã de manhã\")",
-      },
-      {
-        nome: "resumo",
-        tipo: "string",
-        obrigatorio: true,
-        descricao: "Resumo completo da qualificação. Formato: \"Nome: X | Objetivo: Y | Ambiente: Z | Distância: W | Tamanho: T | Tipo: fixo/móvel | Prazo: P | Investimento: I | Foto: sim/não\"",
-      },
+    icone: Phone,
+    titulo: "Criar tarefa de ligacao",
+    descricao: "Cria uma tarefa para o consultor comercial ligar para o cliente no dia e horario combinado, com um resumo completo do projeto.",
+    quando: "Apos o cliente informar quando prefere receber a ligacao",
+    exemplos: [
+      "Cliente disse \"terca as 14h\" → tarefa criada para terca 14h",
+      "Resumo inclui: objetivo, ambiente, tamanho, prazo, investimento",
+      "Tarefa aparece no Kommo CRM para o consultor",
     ],
   },
 ]
@@ -94,70 +40,46 @@ const ferramentas: Ferramenta[] = [
 export function SecaoFerramentas() {
   return (
     <div className="space-y-4">
-      {ferramentas.map((ferramenta) => (
-        <Card key={ferramenta.nome}>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-base">{ferramenta.titulo}</CardTitle>
-              <Badge variant="outline" className="font-mono text-xs">
-                {ferramenta.nome}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">{ferramenta.descricao}</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-sm">
-                <span className="font-medium">Quando usar:</span>{" "}
-                {ferramenta.quandoUsar}
-              </p>
-            </div>
+      <p className="text-sm text-muted-foreground">
+        A Livia tem 3 acoes automaticas que executa durante o atendimento. Tudo acontece sem intervencao humana.
+      </p>
 
-            <div>
-              <p className="mb-2 text-sm font-medium">Parâmetros</p>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[140px]">Nome</TableHead>
-                      <TableHead className="w-[80px]">Tipo</TableHead>
-                      <TableHead className="w-[100px]">Obrigatório</TableHead>
-                      <TableHead>Descrição</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {ferramenta.parametros.map((param) => (
-                      <TableRow key={param.nome}>
-                        <TableCell className="font-mono text-xs">{param.nome}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs">
-                            {param.tipo}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {param.obrigatorio ? (
-                            <Badge variant="default" className="text-xs">Sim</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">Não</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm">{param.descricao}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+      {ferramentas.map((ferramenta) => {
+        const Icone = ferramenta.icone
+        return (
+          <Card key={ferramenta.titulo}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                  <Icone className="h-4 w-4 text-primary" />
+                </div>
+                <CardTitle className="text-base">{ferramenta.titulo}</CardTitle>
               </div>
-            </div>
+              <p className="text-sm text-muted-foreground">{ferramenta.descricao}</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm">
+                  <span className="font-medium">Quando acontece:</span>{" "}
+                  <span className="text-muted-foreground">{ferramenta.quando}</span>
+                </p>
+              </div>
 
-            <p className="text-xs text-muted-foreground">
-              Rota:{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-                {ferramenta.rota}
-              </code>
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+              <div>
+                <p className="mb-2 text-sm font-medium">Exemplos:</p>
+                <ul className="space-y-1">
+                  {ferramenta.exemplos.map((exemplo) => (
+                    <li key={exemplo} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                      {exemplo}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

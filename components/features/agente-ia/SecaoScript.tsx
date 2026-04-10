@@ -35,7 +35,7 @@ function Passo({
   )
 }
 
-function Ramificacao({ children }: { children: React.ReactNode }) {
+function Detalhe({ children }: { children: React.ReactNode }) {
   return (
     <div className="ml-4 border-l-2 border-muted-foreground/20 pl-3 text-sm text-muted-foreground">
       {children}
@@ -48,12 +48,11 @@ export function SecaoScript() {
     <Card>
       <CardContent className="pt-6">
         <p className="mb-4 text-sm text-muted-foreground">
-          O script de atendimento guia a Lívia em 3 etapas. Ela faz uma pergunta por vez
-          e aguarda a resposta antes de avançar.
+          A Livia segue um processo de atendimento em 3 etapas. Ela faz uma pergunta por vez
+          e espera a resposta antes de avancar.
         </p>
 
         <Accordion type="multiple" defaultValue={["etapa-1"]} className="w-full">
-          {/* ETAPA 1 */}
           <AccordionItem value="etapa-1">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
@@ -62,167 +61,81 @@ export function SecaoScript() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
-              <Passo numero="1.1" titulo="Saudacao Inicial">
+              <Passo numero="1.1" titulo="Saudacao">
                 <MensagemModelo>
                   &quot;Ola!&quot;
                   <br /><br />
-                  &quot;Sou a Livia, do time de pre-atendimento da Innovate Brazil,
-                  especializada em paineis LED para comunicacao visual.&quot;
+                  &quot;Sou a Livia, do time de pre-atendimento da Innovate Brazil, especializada em paineis LED para comunicacao visual.&quot;
                   <br /><br />
-                  &quot;Que bom que voce entrou em contato! Posso te ajudar a encontrar
-                  a melhor solucao para o seu projeto.&quot;
+                  &quot;Que bom que voce entrou em contato! Posso te ajudar a encontrar a melhor solucao para o seu projeto.&quot;
                   <br /><br />
                   &quot;Como posso te chamar?&quot;
                 </MensagemModelo>
               </Passo>
 
-              <Passo numero="1.2" titulo="Capturar Nome">
-                <Ramificacao>
-                  <p>Se informar nome → <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge> com nomeLead → Avança para Etapa 2</p>
-                  <p className="mt-1">Se não informar e fizer pergunta → Responde brevemente e pergunta o nome novamente</p>
-                </Ramificacao>
+              <Passo numero="1.2" titulo="Capturar nome">
+                <Detalhe>
+                  <p>Se o cliente informar o nome → salva e avanca para qualificacao</p>
+                  <p className="mt-1">Se nao informar e fizer uma pergunta → responde brevemente e pergunta o nome novamente</p>
+                </Detalhe>
               </Passo>
             </AccordionContent>
           </AccordionItem>
 
-          {/* ETAPA 2 */}
           <AccordionItem value="etapa-2">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">Etapa 2</Badge>
-                <span className="text-sm font-medium">Qualificação</span>
+                <span className="text-sm font-medium">Qualificacao</span>
                 <span className="text-xs text-muted-foreground">(8 perguntas)</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
-              <Passo numero="2.1" titulo="Objetivo do Painel">
-                <MensagemModelo>
-                  &quot;Prazer, [NOME]!&quot;
-                  <br /><br />
-                  &quot;Para começar, qual seria o objetivo do painel?&quot;
-                  <br /><br />
-                  &quot;Por exemplo: divulgação, fachada, eventos, comunicação interna...&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se vago → &quot;Só para alinhar melhor: esse painel será usado para mostrar conteúdos como vídeos, imagens ou anúncios?&quot;</p>
-                  <p className="mt-1">Se não souber → &quot;Ele seria mais para atrair clientes, informar pessoas ou uso em eventos?&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Objetivo</Badge>
-                </div>
+              <p className="text-sm text-muted-foreground">
+                A Livia coleta as informacoes do projeto uma por uma. Se o cliente nao souber responder, ela oferece opcoes ou segue adiante.
+              </p>
+
+              <Passo numero="2.1" titulo="Objetivo do painel">
+                <p className="text-sm text-muted-foreground">Para que sera usado? (fachada, eventos, comunicacao interna...)</p>
               </Passo>
-
               <Separator />
-
               <Passo numero="2.2" titulo="Ambiente">
-                <MensagemModelo>
-                  &quot;O painel será instalado em ambiente interno ou externo?&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se confuso → &quot;Ele ficará dentro do ambiente ou exposto ao tempo, como sol e chuva?&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Ambiente</Badge>
-                </div>
+                <p className="text-sm text-muted-foreground">Interno ou externo?</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.3" titulo="Foto do Local">
-                <MensagemModelo>
-                  &quot;Se possivel, voce pode nos enviar uma foto do local onde o painel sera instalado?&quot;
-                  <br /><br />
-                  &quot;A foto ajuda bastante a entender o espaço e sugerir o melhor posicionamento.&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se enviar → &quot;Ótimo! Recebi a foto.&quot;</p>
-                  <p className="mt-1">Se não tiver → &quot;Tranquilo! Quando tiver, pode enviar depois.&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Foto</Badge>
-                </div>
+              <Passo numero="2.3" titulo="Foto do local">
+                <p className="text-sm text-muted-foreground">Pede uma foto do local de instalacao. Se receber, analisa o espaco e comenta.</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.4" titulo="Distância de Visualização">
-                <MensagemModelo>
-                  &quot;Qual seria a distância mínima de visualização do painel?&quot;
-                  <br /><br />
-                  &quot;Por exemplo: 2 metros, 5 metros, 10 metros...&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se não souber → &quot;Ele será visto de perto (recepção) ou de longe (fachada/rua)?&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Distância</Badge>
-                </div>
+              <Passo numero="2.4" titulo="Distancia de visualizacao">
+                <p className="text-sm text-muted-foreground">De que distancia o painel sera visto? (2m, 5m, 10m...)</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.5" titulo="Tamanho do Painel">
-                <MensagemModelo>
-                  &quot;Você já tem alguma ideia do tamanho do painel ou do espaço disponível?&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se genérico → &quot;Seria algo mais próximo de 1-2m, 2-4m, ou maior?&quot;</p>
-                  <p className="mt-1">Se não souber → &quot;Podemos sugerir o tamanho ideal após analisar o local.&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Tamanho</Badge>
-                </div>
+              <Passo numero="2.5" titulo="Tamanho do painel">
+                <p className="text-sm text-muted-foreground">Ja tem ideia do tamanho ou do espaco disponivel?</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.6" titulo="Fixo ou Móvel">
-                <MensagemModelo>
-                  &quot;O painel seria fixo ou móvel?&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se não entender → Explica: Fixo = permanente no local / Móvel = transportado para eventos</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Tipo</Badge>
-                </div>
+              <Passo numero="2.6" titulo="Fixo ou movel">
+                <p className="text-sm text-muted-foreground">Instalacao permanente ou para transporte/eventos?</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.7" titulo="Prazo do Projeto">
-                <MensagemModelo>
-                  &quot;Existe algum prazo previsto para esse projeto?&quot;
-                  <br /><br />
-                  &quot;Por exemplo: inauguração, evento, campanha...&quot;
-                </MensagemModelo>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Prazo</Badge>
-                </div>
+              <Passo numero="2.7" titulo="Prazo do projeto">
+                <p className="text-sm text-muted-foreground">Tem alguma data prevista? (inauguracao, evento, campanha...)</p>
               </Passo>
-
               <Separator />
-
-              <Passo numero="2.8" titulo="Faixa de Investimento">
-                <MensagemModelo>
-                  &quot;Para que possamos indicar a melhor solução, existe alguma faixa de investimento prevista?&quot;
-                </MensagemModelo>
-                <Ramificacao>
-                  <p>Se perguntar preco → Redireciona para o consultor: &quot;O valor varia conforme o projeto. Nosso consultor fara a analise e apresentara as opcoes.&quot;</p>
-                  <p className="mt-1">Se nao quiser informar → &quot;O consultor te apresentara algumas opcoes de orcamento.&quot;</p>
-                </Ramificacao>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">Dado: Investimento</Badge>
-                </div>
+              <Passo numero="2.8" titulo="Faixa de investimento">
+                <p className="text-sm text-muted-foreground">Existe uma faixa de investimento prevista?</p>
+                <Detalhe>
+                  <p>Se perguntar preco → redireciona para o consultor comercial (Livia nao informa valores)</p>
+                </Detalhe>
               </Passo>
 
               <div className="mt-2 rounded-md bg-muted/50 p-3 text-sm">
-                Após coletar todas as informações → <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge> com todos os dados
+                Apos coletar tudo → salva os dados do projeto automaticamente
               </div>
             </AccordionContent>
           </AccordionItem>
 
-          {/* ETAPA 3 */}
           <AccordionItem value="etapa-3">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
@@ -231,7 +144,7 @@ export function SecaoScript() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
-              <Passo numero="3.1" titulo="Solicitar Horario de Contato">
+              <Passo numero="3.1" titulo="Perguntar horario de contato">
                 <MensagemModelo>
                   &quot;Perfeito, [NOME]!&quot;
                   <br /><br />
@@ -245,25 +158,19 @@ export function SecaoScript() {
 
               <Separator />
 
-              <Passo numero="3.2" titulo="Salvar, Encaminhar e Criar Tarefa">
-                <div className="flex flex-wrap gap-1 mb-2">
-                  <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge>
-                  <Badge variant="secondary" className="text-xs">encaminhar_contato</Badge>
-                  <Badge variant="secondary" className="text-xs">criar_tarefa</Badge>
-                </div>
+              <Passo numero="3.2" titulo="Salvar e encaminhar">
                 <p className="text-sm text-muted-foreground">
-                  Salva qualificacao completa (incluindo dia/horario no sobreOLead), encaminha o lead no funil e cria tarefa de ligacao.
+                  A Livia salva todos os dados do projeto (incluindo dia e horario), encaminha o lead para o comercial e cria a tarefa de ligacao — tudo automaticamente.
                 </p>
               </Passo>
 
               <Separator />
 
-              <Passo numero="3.3" titulo="Confirmacao Final">
+              <Passo numero="3.3" titulo="Confirmacao final">
                 <MensagemModelo>
                   &quot;Anotei aqui: [DIA E HORARIO]&quot;
                   <br /><br />
-                  &quot;Vou passar essas informacoes para nossa equipe comercial. Em breve um
-                  consultor entrara em contato no horario combinado para apresentar a solucao e o orcamento do seu projeto.&quot;
+                  &quot;Vou passar essas informacoes para nossa equipe comercial. Em breve um consultor entrara em contato no horario combinado para apresentar a solucao e o orcamento do seu projeto.&quot;
                   <br /><br />
                   &quot;Caso precise de algo antes, e so me chamar!&quot;
                   <br /><br />
@@ -273,34 +180,29 @@ export function SecaoScript() {
             </AccordionContent>
           </AccordionItem>
 
-          {/* RETORNO */}
           <AccordionItem value="retorno">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">Especial</Badge>
-                <span className="text-sm font-medium">Contato de Retorno</span>
+                <span className="text-sm font-medium">Contato de retorno</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Quando o lead já entrou em contato antes (ehRetorno = true):
+                Quando um cliente que ja foi atendido entra em contato novamente:
               </p>
               <ul className="space-y-2 text-sm">
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  Cumprimentar: &quot;Que bom ter você de volta, [nome]!&quot;
+                  Reconhece o cliente: &quot;Que bom ter voce de volta!&quot;
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  Pular Etapa 1 (nome já conhecido)
+                  Nao pergunta o nome de novo (ja sabe)
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  Ir direto: &quot;Como posso ajudar dessa vez?&quot;
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  Usar <Badge variant="secondary" className="text-xs">salvar_qualificacao</Badge> para o novo interesse
+                  Vai direto ao ponto: &quot;Como posso ajudar dessa vez?&quot;
                 </li>
               </ul>
             </AccordionContent>
