@@ -11,7 +11,7 @@ import {
   FileBarChart,
   BookOpen,
   ClipboardList,
-  Settings,
+  MessageCircle,
   LogOut,
   Menu,
 } from "lucide-react"
@@ -65,9 +65,9 @@ const navItems: NavItem[] = [
     icone: <ClipboardList className="h-4 w-4" />,
   },
   {
-    titulo: "Configuracoes",
-    href: "/configuracoes",
-    icone: <Settings className="h-4 w-4" />,
+    titulo: "WhatsApp",
+    href: "/configuracoes/whatsapp",
+    icone: <MessageCircle className="h-4 w-4" />,
   },
 ]
 

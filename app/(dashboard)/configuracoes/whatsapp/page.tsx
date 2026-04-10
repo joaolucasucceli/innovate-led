@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, CheckCircle, CheckCircle2, Edit2, Loader2, Plus, RefreshCw, Trash2, Wifi, WifiOff } from "lucide-react"
+import { CheckCircle, CheckCircle2, Edit2, Loader2, Plus, RefreshCw, Trash2, Wifi, WifiOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +16,7 @@ import { ErrorState } from "@/components/features/shared/ErrorState"
 import { useConfigWhatsapp } from "@/hooks/use-config-whatsapp"
 
 export default function WhatsAppConfigPage() {
-  const router = useRouter()
+
   const { configurado, conectado, status, numeroWhatsapp, config, carregando, erro, recarregar } =
     useConfigWhatsapp()
 
@@ -227,12 +226,7 @@ export default function WhatsAppConfigPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader titulo="WhatsApp" descricao="Gerencie a conexão com o WhatsApp via Uazapi">
-        <Button variant="outline" size="sm" onClick={() => router.push("/configuracoes")}>
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Voltar
-        </Button>
-      </PageHeader>
+      <PageHeader titulo="WhatsApp" descricao="Gerencie a conexao com o WhatsApp via Uazapi" />
 
       {/* Step indicator */}
       <div className="flex items-center gap-1 mb-2">
