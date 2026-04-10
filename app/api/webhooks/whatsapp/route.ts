@@ -362,6 +362,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true })
     }
     mensagens = normalizarBaileys(payload)
+  } else if (payload.EventType === "connection" && payload.instance) {
+    // Uazapi v2: evento de conexão — atualizar status no banco
+    const statusConexao = payload.instance.status
+    console.log("[Webhook] Evento de conexão:", statusConexao)
+
+    if (statusConexao === "disconnected" || statusConexao === "close") {
+      await prisma.configWhatsapp.updateMany({
+        where: { ativo: true },
+        data: { ativo: false },
+      })
+      console.log("[Webhook] WhatsApp desconectado — ativo setado para false")
+    } else if (statusConexao === "connected") {
+      const config = await prisma.configWhatsapp.findFirst({
+        orderBy: { criadoEm: "desc" },
+      })
+      if (config) {
+        await prisma.configWhatsapp.update({
+          where: { id: config.id },
+          data: { ativo: true },
+        })
+        console.log("[Webhook] WhatsApp conectado — ativo setado para true")
+      }
+    }
+
+    return NextResponse.json({ ok: true })
   } else {
     console.log("[Webhook] Evento ignorado", {
       EventType: payload.EventType,

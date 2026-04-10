@@ -81,10 +81,19 @@ export async function GET(_request: NextRequest) {
       },
     })
   } catch {
+    // Se a chamada ao Uazapi falhou, a instância provavelmente não existe mais
+    // Marcar como desconectado ao invés de retornar dado velho
+    if (config.ativo) {
+      await prisma.configWhatsapp.update({
+        where: { id: config.id },
+        data: { ativo: false },
+      })
+    }
+
     return NextResponse.json({
       configurado: true,
-      ativo: config.ativo,
-      status: "error",
+      ativo: false,
+      status: "disconnected",
       numeroWhatsapp: config.numeroWhatsapp,
       config: {
         uazapiUrl: config.uazapiUrl,

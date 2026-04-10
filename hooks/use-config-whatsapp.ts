@@ -54,6 +54,10 @@ export function useConfigWhatsapp(): UseConfigWhatsappReturn {
 
   useEffect(() => {
     buscar()
+
+    // Polling a cada 30s para detectar desconexões
+    const interval = setInterval(buscar, 30_000)
+    return () => clearInterval(interval)
   }, [buscar])
 
   return {
