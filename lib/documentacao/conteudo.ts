@@ -245,6 +245,7 @@ Quando o lead envia uma foto, o GPT-4o-mini analisa a imagem com contexto especi
 - Iluminação, distância de visualização, obstruções
 - A descrição técnica é passada à Lívia que comenta pontos específicos do espaço
 - Fotos são salvas na tabela \`fotos_lead\` com a descrição e tipo de análise
+- Fotos são visualizadas inline no Histórico de Atendimento do lead (não há aba separada de fotos)
 
 ### Automações CRON
 

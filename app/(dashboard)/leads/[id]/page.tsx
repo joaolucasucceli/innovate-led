@@ -26,7 +26,6 @@ import { EmptyState } from "@/components/features/shared/EmptyState"
 import { StatusBadge } from "@/components/features/shared/StatusBadge"
 import { ConfirmDialog } from "@/components/features/shared/ConfirmDialog"
 import { useLead } from "@/hooks/use-lead"
-import { GaleriaFotos } from "@/components/features/leads/GaleriaFotos"
 
 export default function LeadDetalhePage() {
   const params = useParams()
@@ -102,7 +101,6 @@ export default function LeadDetalhePage() {
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
           <TabsTrigger value="historico">Histórico de Atendimento</TabsTrigger>
-          <TabsTrigger value="fotos">Fotos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4 grid gap-6">
@@ -248,13 +246,6 @@ export default function LeadDetalhePage() {
               </div>
             )
           })()}
-        </TabsContent>
-
-        <TabsContent value="fotos" className="mt-4">
-          <GaleriaFotos
-            leadId={lead.id}
-            fotosIniciais={lead.fotos}
-          />
         </TabsContent>
 
       </Tabs>
