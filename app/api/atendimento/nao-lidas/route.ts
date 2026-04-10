@@ -9,6 +9,7 @@ export async function GET() {
   const total = await prisma.conversa.count({
     where: {
       encerradaEm: null,
+      lead: { deletadoEm: null },
       mensagens: {
         some: {
           remetente: "paciente",
