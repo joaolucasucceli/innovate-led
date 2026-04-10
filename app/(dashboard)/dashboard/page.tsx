@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSession } from "next-auth/react"
-import { Users, UserPlus, TrendingUp, GitBranch, Download } from "lucide-react"
+import { Users, UserPlus, TrendingUp, GitBranch, PieChart, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,6 +23,9 @@ import { MetricCard } from "@/components/features/shared/MetricCard"
 import { SkeletonCard } from "@/components/features/shared/SkeletonCard"
 import { ErrorState } from "@/components/features/shared/ErrorState"
 import { GraficoFunil } from "@/components/features/dashboard/GraficoFunil"
+import { GraficoOrigem } from "@/components/features/dashboard/GraficoOrigem"
+import { LeadsAlerta } from "@/components/features/dashboard/LeadsAlerta"
+import { LeadsFollowUpAtivos } from "@/components/features/dashboard/LeadsFollowUpAtivos"
 import { useDashboard } from "@/hooks/use-dashboard"
 import { exportarRelatorio } from "@/hooks/use-relatorio"
 
@@ -135,16 +138,34 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Funil por Etapa */}
-      <Card className="mt-4">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <GitBranch className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-base">Funil por Etapa</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <GraficoFunil dados={metricas.leadsPorEtapa} />
-        </CardContent>
-      </Card>
+      {/* Gráficos */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <GitBranch className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base">Funil por Etapa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GraficoFunil dados={metricas.leadsPorEtapa} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center gap-2">
+            <PieChart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base">Leads por Origem</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GraficoOrigem dados={metricas.leadsPorOrigem} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Alertas e Follow-ups */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <LeadsAlerta />
+        <LeadsFollowUpAtivos />
+      </div>
     </div>
   )
 }
