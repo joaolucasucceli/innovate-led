@@ -18,7 +18,7 @@ export function DashboardShell({
 }: DashboardShellProps) {
   return (
     <div className="flex min-h-svh">
-      <AppSidebar perfil={perfil} />
+      <AppSidebar />
       <main className="flex-1 min-w-0 overflow-hidden">
         <AppHeader nome={nome} email={email} perfil={perfil} />
         <div className="p-4 md:p-6">{children}</div>

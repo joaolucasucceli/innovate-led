@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { LogOut, User, Settings } from "lucide-react"
+import { LogOut, User, Settings, ClipboardList, BookOpen } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,8 @@ export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
   return (
     <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
       <div className="flex items-center gap-2">
-        <MobileSidebarTrigger perfil={perfil} />
+        <MobileSidebarTrigger />
+        <span className="text-lg font-bold tracking-tight md:hidden">Innovate</span>
       </div>
 
       <div className="flex items-center gap-1">
@@ -60,6 +61,14 @@ export function AppHeader({ nome, email, perfil }: AppHeaderProps) {
             <DropdownMenuItem onClick={() => router.push("/meu-perfil")}>
               <User className="mr-2 h-4 w-4" />
               Meu Perfil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/solicitacoes")}>
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Solicitações
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/documentacao")}>
+              <BookOpen className="mr-2 h-4 w-4" />
+              Documentação
             </DropdownMenuItem>
             {perfil === "gestor" && (
               <DropdownMenuItem onClick={() => router.push("/configuracoes")}>
