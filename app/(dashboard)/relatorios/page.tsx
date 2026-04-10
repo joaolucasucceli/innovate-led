@@ -70,10 +70,10 @@ function ListaRelatorios({ tipo }: { tipo: "publico" | "qualidade" }) {
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <FileText className="h-10 w-10 text-muted-foreground/50" />
         <p className="mt-3 text-sm text-muted-foreground">
-          Nenhum relatorio gerado ainda.
+          Ainda nao ha dados suficientes para gerar analises.
         </p>
         <p className="text-xs text-muted-foreground">
-          Os relatorios sao gerados automaticamente todos os dias as 06h.
+          As analises sao geradas automaticamente todos os dias as 06h, com base nas conversas do dia anterior.
         </p>
       </div>
     )
