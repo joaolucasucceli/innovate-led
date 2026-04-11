@@ -5,6 +5,7 @@ import type { TipoMensagem } from "@/generated/prisma/enums"
 import { adicionarAoBuffer } from "@/lib/agente/buffer"
 import { transcreverAudio, descreverImagem } from "@/lib/agente/processar-midia"
 import { criarLeadKommo } from "@/lib/kommo"
+import { configurarPrivacidade } from "@/lib/uazapi"
 import { createClient } from "@supabase/supabase-js"
 
 // ── Tipos UazapiGO v2 ─────────────────────────────────────────────
@@ -383,6 +384,17 @@ export async function POST(request: NextRequest) {
           data: { ativo: true },
         })
         console.log("[Webhook] WhatsApp conectado — ativo setado para true")
+
+        // Configurar privacidade: sempre online + sem visto por último
+        const token = config.instanceToken || config.adminToken
+        if (token) {
+          try {
+            await configurarPrivacidade(config.uazapiUrl, token)
+            console.log("[Webhook] Privacidade configurada — sempre online")
+          } catch {
+            console.warn("[Webhook] Erro ao configurar privacidade")
+          }
+        }
       }
     }
 

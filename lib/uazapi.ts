@@ -202,6 +202,21 @@ export async function enviarMidia(
   })
 }
 
+/** Configura privacidade — sempre online, sem visto por último */
+export async function configurarPrivacidade(
+  url: string,
+  instanceToken: string
+): Promise<void> {
+  await uazapiFetch(url, "/instance/privacy", instanceToken, {
+    method: "POST",
+    body: JSON.stringify({
+      online: "all",
+      last: "none",
+      readreceipts: "all",
+    }),
+  })
+}
+
 /** Envia indicador de digitação — POST /message/presence */
 export async function enviarDigitando(
   url: string,
