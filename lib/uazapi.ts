@@ -202,20 +202,18 @@ export async function enviarMidia(
   })
 }
 
-/** Envia indicador de digitação — POST /chat/presence */
+/** Envia indicador de digitação — POST /message/presence */
 export async function enviarDigitando(
   url: string,
   instanceToken: string,
   chatId: string,
   ativo: boolean
 ): Promise<void> {
-  const phone = chatId.split("@")[0]
-  await uazapiFetch(url, "/chat/presence", instanceToken, {
+  await uazapiFetch(url, "/message/presence", instanceToken, {
     method: "POST",
     body: JSON.stringify({
-      Phone: phone,
-      State: ativo ? "composing" : "paused",
-      Media: "",
+      number: chatId,
+      presence: ativo ? "composing" : "paused",
     }),
   })
 }
