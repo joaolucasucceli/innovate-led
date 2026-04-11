@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server"
 import { validarApiSecret } from "@/lib/api-auth"
 import { processarMensagens } from "@/lib/agente/loop"
 import { redis } from "@/lib/redis"
+import { prisma } from "@/lib/prisma"
+import { enviarDigitando } from "@/lib/uazapi"
 
 // Necessário para o sleep de 20s não exceder o timeout do Vercel (default 10s)
 export const maxDuration = 60
@@ -36,6 +38,16 @@ export async function POST(request: NextRequest) {
 
   // Adquirir lock e aguardar debounce para acumular mensagens
   await redis.set(lockKey, "1", { ex: LOCK_TTL })
+
+  // Mostrar "digitando" imediatamente (antes do debounce)
+  try {
+    const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+    if (configWa?.instanceToken) {
+      await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, true)
+    }
+  } catch {
+    // Não bloquear fluxo se digitando falhar
+  }
 
   // Esperar debounce — mensagens que chegarem nesse intervalo serão acumuladas no buffer
   await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_MS))
