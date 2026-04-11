@@ -193,7 +193,7 @@ export async function processarMensagens(chatId: string): Promise<void> {
   try {
     await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, true)
   } catch {
-    // Ignorar erro de digitação
+    console.warn("[Agente] Erro ao enviar indicador de digitação")
   }
 
   try {
@@ -273,6 +273,17 @@ export async function processarMensagens(chatId: string): Promise<void> {
     for (let i = 0; i < segmentos.length; i++) {
       const segmento = segmentos[i]
 
+      // Mostrar "digitando" antes de cada mensagem
+      try {
+        await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, true)
+      } catch {
+        console.warn("[Agente] Erro ao enviar digitando antes do segmento")
+      }
+
+      // Delay proporcional ao tamanho (simula digitação humana, max 3s)
+      const delayDigitando = Math.min(segmento.length * 30, 3000)
+      await new Promise((resolve) => setTimeout(resolve, delayDigitando))
+
       // Enviar via Uazapi
       await enviarMensagem(
         configWa.uazapiUrl,
@@ -316,7 +327,7 @@ export async function processarMensagens(chatId: string): Promise<void> {
     try {
       await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, false)
     } catch {
-      // Ignorar
+      console.warn("[Agente] Erro ao parar indicador de digitação")
     }
   }
 }
