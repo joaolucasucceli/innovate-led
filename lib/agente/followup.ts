@@ -55,32 +55,54 @@ export async function buscarConversasParaFollowUp(): Promise<FollowUpPendente[]>
   return pendentes
 }
 
-/** Gera mensagem de follow-up via GPT-4o com fallback para template */
+/** Gera mensagem de follow-up via GPT-4o com contexto do lead */
 async function gerarMensagemFollowUp(
   lead: Lead,
+  conversa: ConversaComLead,
   tipo: "1h" | "6h" | "24h"
 ): Promise<string> {
   const nome = lead.nome.replace(/^WhatsApp\s+/, "") || "cliente"
 
-  // Templates de fallback
+  // Contexto do lead para personalizar
+  const contexto = lead.sobreOLead
+    ? `\nInformacoes ja coletadas sobre o projeto: ${lead.sobreOLead}`
+    : ""
+  const etapa = conversa.etapa === "acolhimento"
+    ? "ainda na fase inicial (nao coletamos o nome ou acabamos de coletar)"
+    : "na fase de qualificacao (ja coletamos algumas informacoes do projeto)"
+
+  // Templates de fallback (sem emojis — regra da Livia)
   const templates: Record<string, string> = {
-    "1h": `Oi ${nome}, tudo bem? 😊 Ainda tenho algumas informações sobre painéis LED pra compartilhar com você. Posso te ajudar?`,
-    "6h": `Oi ${nome}! Só passando pra lembrar que a Innovate Brazil é referência em painéis LED. Nosso consultor pode fazer uma análise personalizada do seu projeto — quer que eu encaminhe? 😊`,
-    "24h": `Oi ${nome}! Vou deixar o espaço aberto por aqui, mas se quiser conversar sobre seu projeto de painéis LED ou falar com nosso consultor, é só chamar! Estarei por aqui 😊`,
+    "1h": `Oi ${nome}, tudo bem? Ficou com alguma duvida? Estou aqui para te ajudar com o seu projeto.`,
+    "6h": `Oi ${nome}! Sei que o dia a dia e corrido. Quando puder, estou por aqui para continuar falando sobre o seu projeto de painel LED.`,
+    "24h": `Oi ${nome}! Vou encerrar nosso atendimento por aqui, mas se quiser retomar a conversa sobre o seu projeto, e so me chamar. Estarei por aqui!`,
   }
 
   try {
-    const prompts: Record<string, string> = {
-      "1h": `Escreva uma mensagem curta de follow-up leve e amigável no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 1 hora. Tom acolhedor, informal, máximo 2 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
-      "6h": `Escreva uma mensagem de follow-up com valor no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas parou de responder há 6 horas. Mencione brevemente um benefício dos painéis LED e reforce que um consultor pode fazer análise gratuita. Tom acolhedor, máximo 3 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
-      "24h": `Escreva uma mensagem de encerramento gentil no WhatsApp para ${nome}, que demonstrou interesse em painéis LED mas não responde há 24 horas. Deixe a porta aberta para retorno. Tom empático, máximo 2 linhas. Você é Lívia, do time de pré-atendimento da Innovate Brazil.`,
+    const instrucaoBase = `Voce e a Livia, do time de pre-atendimento da Innovate Brazil (paineis LED). Escreva uma mensagem de follow-up no WhatsApp.
+
+Regras:
+- NUNCA use emojis
+- Tom acolhedor e profissional
+- Maximo 2-3 linhas curtas
+- Personalize com base no contexto do lead (se disponivel)
+- Nao repita informacoes que o lead ja deu
+- Escreva como uma pessoa real digitando no WhatsApp
+
+Lead: ${nome}
+Etapa: ${etapa}${contexto}`
+
+    const instrucoes: Record<string, string> = {
+      "1h": `${instrucaoBase}\n\nTipo: Follow-up leve (1 hora sem resposta). Objetivo: retomar a conversa de forma natural, perguntar se ficou alguma duvida ou se pode ajudar com algo.`,
+      "6h": `${instrucaoBase}\n\nTipo: Follow-up de valor (6 horas sem resposta). Objetivo: trazer um beneficio relevante sobre paineis LED relacionado ao projeto do lead, e reforcar que o consultor pode fazer uma analise personalizada.`,
+      "24h": `${instrucaoBase}\n\nTipo: Encerramento gentil (24 horas sem resposta). Objetivo: encerrar o atendimento de forma empática, deixando a porta aberta para retorno.`,
     }
 
     const resposta = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompts[tipo] }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: instrucoes[tipo] }],
       max_tokens: 200,
-      temperature: 0.8,
+      temperature: 0.7,
     })
 
     return resposta.choices[0]?.message?.content || templates[tipo]
@@ -95,7 +117,7 @@ export async function enviarFollowUp(
   tipo: "1h" | "6h" | "24h",
   configWa: ConfigWhatsapp
 ): Promise<void> {
-  const mensagem = await gerarMensagemFollowUp(conversa.lead, tipo)
+  const mensagem = await gerarMensagemFollowUp(conversa.lead, conversa, tipo)
 
   // Enviar via Uazapi
   await enviarMensagem(
