@@ -209,13 +209,13 @@ export async function enviarDigitando(
   chatId: string,
   ativo: boolean
 ): Promise<void> {
-  // Uazapi v2 espera "number" (sem @s.whatsapp.net)
-  const numero = chatId.split("@")[0]
+  const phone = chatId.split("@")[0]
   await uazapiFetch(url, "/chat/presence", instanceToken, {
     method: "POST",
     body: JSON.stringify({
-      number: numero,
-      presence: ativo ? "composing" : "paused",
+      Phone: phone,
+      State: ativo ? "composing" : "paused",
+      Media: "",
     }),
   })
 }
