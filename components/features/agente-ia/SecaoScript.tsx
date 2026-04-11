@@ -62,15 +62,15 @@ export function SecaoScript() {
             </AccordionTrigger>
             <AccordionContent className="space-y-4">
               <Passo numero="1.1" titulo="Saudacao">
-                <MensagemModelo>
-                  &quot;Ola!&quot;
-                  <br /><br />
-                  &quot;Sou a Livia, do time de pre-atendimento da Innovate Brazil, especializada em paineis LED para comunicacao visual.&quot;
-                  <br /><br />
-                  &quot;Que bom que voce entrou em contato! Posso te ajudar a encontrar a melhor solucao para o seu projeto.&quot;
-                  <br /><br />
-                  &quot;Como posso te chamar?&quot;
-                </MensagemModelo>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  Cada bloco abaixo e enviado como uma mensagem separada no WhatsApp, com indicador &quot;digitando...&quot; entre elas:
+                </p>
+                <div className="space-y-2">
+                  <MensagemModelo>&quot;Bom dia!&quot; / &quot;Boa tarde!&quot; / &quot;Boa noite!&quot; (automatico pelo horario)</MensagemModelo>
+                  <MensagemModelo>&quot;Sou a Livia, do time de pre-atendimento da Innovate Brazil, especializada em paineis LED para comunicacao visual.&quot;</MensagemModelo>
+                  <MensagemModelo>&quot;Que bom que voce entrou em contato! Posso te ajudar a encontrar a melhor solucao para o seu projeto.&quot;</MensagemModelo>
+                  <MensagemModelo>&quot;Como posso te chamar?&quot;</MensagemModelo>
+                </div>
               </Passo>
 
               <Passo numero="1.2" titulo="Capturar nome">

@@ -60,7 +60,21 @@ Apenas essas 3 etapas existem no enum `StatusFunil`. Apos encaminhamento, IA par
 
 ### Arquitetura do Agente IA
 
-Fluxo do webhook: `POST /api/webhooks/whatsapp` → detectar tipo de conteudo → processar midia se necessario → buffer Redis (debounce 20s, chave: `{chat_id}_buf_innovate`) → concatenar mensagens → GPT-4o com system prompt dinamico (base de conhecimento do banco) + memoria Redis (20 msgs, chave: `{chat_id}_mem_innovate`) → segmentar resposta (agrupa blocos curtos ate 500 chars) → enviar via Uazapi com delay aleatorio de 3-5s entre mensagens.
+Fluxo do webhook: `POST /api/webhooks/whatsapp` → detectar tipo de conteudo → processar midia se necessario → buffer Redis (debounce 20s, chave: `{chat_id}_buf_innovate`) → **digitando imediato** (antes do debounce) → concatenar mensagens → GPT-4o com system prompt dinamico (base de conhecimento do banco) + memoria Redis (20 msgs, chave: `{chat_id}_mem_innovate`) → segmentar resposta por delimitador `---` (ou fallback `\n\n`, max 300 chars) → **digitando + delay proporcional antes de cada mensagem** → enviar via Uazapi com delay aleatorio de 3-5s entre mensagens.
+
+#### Humanizacao do Atendimento
+
+- **Sempre online**: Ao conectar, webhook chama `POST /instance/privacy` com `online: "all"` e `last: "none"`
+- **Digitando imediato**: Indicador "digitando..." enviado antes do debounce de 20s (usuario ve que a IA "leu")
+- **Digitando por segmento**: Re-enviado antes de cada mensagem com delay proporcional ao tamanho do texto (max 3s)
+- **Saudacao com horario**: `obterSaudacao()` retorna "Bom dia!", "Boa tarde!" ou "Boa noite!" baseado no horario SP
+- **Fragmentacao natural**: Prompt usa `---` como delimitador para mensagens WhatsApp individuais
+
+#### Monitoramento de Conexao
+
+- Webhook trata `EventType: "connection"` e atualiza `configWhatsapp.ativo` no banco em tempo real
+- Status API (`/api/whatsapp/status`) marca `ativo: false` quando chamada ao Uazapi falha (nao retorna dado velho)
+- Frontend (`hooks/use-config-whatsapp.ts`) faz polling a cada 30s para detectar desconexoes automaticamente
 
 O agente tem 3 ferramentas em `/api/agente/*`:
 - `salvar-qualificacao` — salva dados no banco + cria/atualiza lead no Kommo
@@ -149,6 +163,10 @@ Relatorios salvos na tabela `relatorios_ia`, visiveis em `/relatorios`.
 - Livia NUNCA admite ser IA
 - Apos encaminhamento, IA para de responder (gate no webhook)
 - Base de conhecimento e carregada do banco em tempo real
+- Saudacao baseada no horario: bom dia (5-12h), boa tarde (12-18h), boa noite (18-5h)
+- Mensagens fragmentadas com delimitador `---` no prompt (cada bloco = 1 msg WhatsApp)
+- Indicador "digitando..." antes de cada mensagem + delay proporcional ao tamanho
+- Perfil sempre online (`POST /instance/privacy` com `online: "all"`, `last: "none"`)
 
 ## Idioma
 

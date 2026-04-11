@@ -19,6 +19,10 @@ const oqueFaz = [
   "Encaminha o lead qualificado para o consultor comercial",
   "Cria tarefa de ligacao com dia e horario preferido",
   "Processa fotos, audios e documentos enviados pelo cliente",
+  "Mostra \"digitando...\" antes de cada mensagem para humanizar",
+  "Envia mensagens fragmentadas como uma pessoa real no WhatsApp",
+  "Usa saudacao com horario: bom dia, boa tarde, boa noite",
+  "Fica sempre online no WhatsApp (nunca mostra \"visto por ultimo\")",
 ]
 
 const oqueNaoFaz = [
