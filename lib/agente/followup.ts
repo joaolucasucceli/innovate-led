@@ -73,9 +73,9 @@ async function gerarMensagemFollowUp(
 
   // Templates de fallback (sem emojis — regra da Livia)
   const templates: Record<string, string> = {
-    "1h": `Oi ${nome}, tudo bem? Ficou com alguma duvida? Estou aqui para te ajudar com o seu projeto.`,
-    "6h": `Oi ${nome}! Sei que o dia a dia e corrido. Quando puder, estou por aqui para continuar falando sobre o seu projeto de painel LED.`,
-    "24h": `Oi ${nome}! Vou encerrar nosso atendimento por aqui, mas se quiser retomar a conversa sobre o seu projeto, e so me chamar. Estarei por aqui!`,
+    "1h": `Ficou com alguma duvida, ${nome}? Estou por aqui para te ajudar com o seu projeto.`,
+    "6h": `${nome}, sei que o dia a dia e corrido. Quando puder, estou por aqui para continuar falando sobre o seu projeto de painel LED.`,
+    "24h": `${nome}, vou encerrar nosso atendimento por aqui, mas se quiser retomar a conversa sobre o seu projeto, e so me chamar!`,
   }
 
   try {
@@ -83,19 +83,21 @@ async function gerarMensagemFollowUp(
 
 Regras:
 - NUNCA use emojis
+- NUNCA comece com "Oi" ou "Ola" — voces ja estao conversando, nao precisa cumprimentar de novo
+- Va direto ao ponto, continue a conversa naturalmente
 - Tom acolhedor e profissional
 - Maximo 2-3 linhas curtas
 - Personalize com base no contexto do lead (se disponivel)
 - Nao repita informacoes que o lead ja deu
-- Escreva como uma pessoa real digitando no WhatsApp
+- Pode usar o nome do lead no meio ou fim da frase, nunca como saudacao
 
 Lead: ${nome}
 Etapa: ${etapa}${contexto}`
 
     const instrucoes: Record<string, string> = {
-      "1h": `${instrucaoBase}\n\nTipo: Follow-up leve (1 hora sem resposta). Objetivo: retomar a conversa de forma natural, perguntar se ficou alguma duvida ou se pode ajudar com algo.`,
-      "6h": `${instrucaoBase}\n\nTipo: Follow-up de valor (6 horas sem resposta). Objetivo: trazer um beneficio relevante sobre paineis LED relacionado ao projeto do lead, e reforcar que o consultor pode fazer uma analise personalizada.`,
-      "24h": `${instrucaoBase}\n\nTipo: Encerramento gentil (24 horas sem resposta). Objetivo: encerrar o atendimento de forma empática, deixando a porta aberta para retorno.`,
+      "1h": `${instrucaoBase}\n\nTipo: Follow-up leve (1 hora sem resposta). Objetivo: retomar a conversa de forma natural, perguntar se ficou alguma duvida ou se pode ajudar com algo. Escreva como se estivesse continuando a conversa que ja estava rolando.`,
+      "6h": `${instrucaoBase}\n\nTipo: Follow-up de valor (6 horas sem resposta). Objetivo: trazer um beneficio relevante sobre paineis LED relacionado ao projeto do lead, e reforcar que o consultor pode fazer uma analise personalizada gratuita.`,
+      "24h": `${instrucaoBase}\n\nTipo: Encerramento gentil (24 horas sem resposta). Objetivo: encerrar o atendimento de forma empática, deixando a porta aberta para retorno futuro.`,
     }
 
     const resposta = await openai.chat.completions.create({
