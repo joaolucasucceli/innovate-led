@@ -16,30 +16,37 @@ const STATUSES_SILENCIO = ["encaminhado"]
 /** Statuses que indicam contato retornando — IA abre novo ciclo */
 const STATUSES_RETORNO = ["encaminhado"]
 
-/** Segmenta resposta longa em mensagens curtas para WhatsApp */
+/** Segmenta resposta em mensagens individuais para WhatsApp */
 export function segmentarResposta(texto: string): string[] {
   if (!texto) return []
 
+  // Prioridade 1: delimitador explicito --- (instruido no prompt)
+  if (texto.includes("---")) {
+    return texto
+      .split(/\n?---\n?/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+  }
+
+  // Fallback: separar por dupla quebra de linha
   const blocos = texto.split(/\n\n+/).filter((b) => b.trim())
 
-  // Agrupar blocos curtos em uma unica mensagem (ate 500 chars)
   const segmentos: string[] = []
   let atual = ""
 
   for (const bloco of blocos) {
     const trimmed = bloco.trim()
-    if (atual.length + trimmed.length + 1 <= 500) {
+    if (atual.length + trimmed.length + 1 <= 300) {
       atual = atual ? `${atual}\n${trimmed}` : trimmed
     } else {
       if (atual) segmentos.push(atual)
-      if (trimmed.length <= 500) {
+      if (trimmed.length <= 300) {
         atual = trimmed
       } else {
-        // Quebrar bloco grande por sentencas
         const frases = trimmed.split(/(?<=\.)\s+/)
         let parte = ""
         for (const frase of frases) {
-          if (parte.length + frase.length > 500 && parte) {
+          if (parte.length + frase.length > 300 && parte) {
             segmentos.push(parte.trim())
             parte = frase
           } else {

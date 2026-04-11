@@ -30,6 +30,14 @@ function obterHoraSP(data?: Date): { hora: number; diaSemana: number } {
   return { hora, diaSemana }
 }
 
+/** Retorna saudação baseada no horário de São Paulo */
+export function obterSaudacao(data?: Date): string {
+  const { hora } = obterHoraSP(data)
+  if (hora >= 5 && hora < 12) return "Bom dia!"
+  if (hora >= 12 && hora < 18) return "Boa tarde!"
+  return "Boa noite!"
+}
+
 /**
  * Verifica se é horário comercial em São Paulo.
  * Seg-Sex: 8h-18h | Sáb: 8h-12h | Dom: fechado
