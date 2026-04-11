@@ -414,16 +414,25 @@ export async function POST(request: NextRequest) {
 
   for (const msg of mensagens) {
     // Ignorar mensagens do próprio bot
-    if (msg.fromMe) continue
+    if (msg.fromMe) {
+      console.warn("[Webhook] Ignorada (fromMe)", { numero: msg.numero, conteudo: msg.conteudo?.slice(0, 80) })
+      continue
+    }
 
     // Ignorar grupos
-    if (msg.isGroup) continue
+    if (msg.isGroup) {
+      console.warn("[Webhook] Ignorada (grupo)", { chatId: msg.chatId })
+      continue
+    }
 
     // Dedup: verificar se já processou
     const existe = await prisma.mensagemWhatsapp.findUnique({
       where: { messageIdWhatsapp: msg.id },
     })
-    if (existe) continue
+    if (existe) {
+      console.warn("[Webhook] Ignorada (duplicada)", { messageId: msg.id })
+      continue
+    }
 
     let conteudo = msg.conteudo
     let storedMediaUrl: string | null = null
