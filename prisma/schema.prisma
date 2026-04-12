@@ -50,12 +50,6 @@ enum ModoConversa {
   hibrido
 }
 
-enum StatusSprint {
-  planejada
-  em_andamento
-  concluida
-}
-
 enum StatusSolicitacao {
   pendente
   concluida
@@ -197,54 +191,6 @@ model ConfigWhatsapp {
   atualizadoEm    DateTime  @updatedAt
 
   @@map("config_whatsapp")
-}
-
-model ConfigSite {
-  id                  String   @id @default(cuid())
-  whatsappNumero      String?
-  whatsappMensagem    String?
-  empresaNome         String?
-  empresaSegmento     String?
-  instagramUrl        String?
-  contatoTelefone     String?
-  contatoEndereco     String?
-  contatoCidade       String?
-  ativo               Boolean  @default(true)
-  criadoEm            DateTime @default(now())
-  atualizadoEm        DateTime @updatedAt
-
-  @@map("config_site")
-}
-
-model Sprint {
-  id            String        @id @default(cuid())
-  nome          String
-  descricao     String?       @db.Text
-  status        StatusSprint  @default(planejada)
-  dataInicio    DateTime?
-  dataFim       DateTime?
-  ordem         Int           @default(0)
-  criadoEm      DateTime      @default(now())
-  atualizadoEm  DateTime      @updatedAt
-  deletadoEm    DateTime?
-
-  itens         SprintItem[]
-
-  @@map("sprints")
-}
-
-model SprintItem {
-  id          String   @id @default(cuid())
-  sprintId    String
-  titulo      String
-  concluido   Boolean  @default(false)
-  ordem       Int      @default(0)
-  criadoEm    DateTime @default(now())
-
-  sprint      Sprint   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
-
-  @@index([sprintId])
-  @@map("sprint_itens")
 }
 
 model SolicitacaoAlteracao {
