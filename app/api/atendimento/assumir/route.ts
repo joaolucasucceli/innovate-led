@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 import { z } from "zod"
 
@@ -17,9 +17,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "conversaId obrigatório" }, { status: 400 })
   }
 
-  const conversa = await prisma.conversa.findUnique({
-    where: { id: parse.data.conversaId },
-  })
+  const { data: conversa } = await supabaseAdmin
+    .from("conversas")
+    .select("*")
+    .eq("id", parse.data.conversaId)
+    .single()
 
   if (!conversa) {
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
@@ -29,19 +31,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Conversa já está em modo humano" }, { status: 400 })
   }
 
-  await prisma.$transaction([
-    prisma.conversa.update({
-      where: { id: conversa.id },
-      data: {
-        modoConversa: "humano",
-        atendenteId: auth.session.user.id,
-      },
-    }),
-    prisma.lead.update({
-      where: { id: conversa.leadId },
-      data: { responsavelId: auth.session.user.id },
-    }),
-  ])
+  // Transaction: atualizar conversa + lead sequencialmente
+  await supabaseAdmin
+    .from("conversas")
+    .update({
+      modoConversa: "humano",
+      atendenteId: auth.session.user.id,
+      atualizadoEm: agora(),
+    })
+    .eq("id", conversa.id)
+
+  await supabaseAdmin
+    .from("leads")
+    .update({
+      responsavelId: auth.session.user.id,
+      atualizadoEm: agora(),
+    })
+    .eq("id", conversa.leadId)
 
   return NextResponse.json({ sucesso: true, modoConversa: "humano" })
 }

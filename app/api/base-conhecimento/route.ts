@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { requireAuth, requireRole } from "@/lib/auth-helpers"
 
 const SECAO = "base-conhecimento"
@@ -9,18 +9,18 @@ export async function GET() {
   const auth = await requireAuth()
   if (auth.error) return auth.error
 
-  const artigos = await prisma.artigoDocumentacao.findMany({
-    where: { secao: SECAO, ativo: true },
-    orderBy: { ordem: "asc" },
-    select: {
-      id: true,
-      titulo: true,
-      conteudo: true,
-      ordem: true,
-    },
-  })
+  const { data: artigos, error } = await supabaseAdmin
+    .from("artigos_documentacao")
+    .select("id, titulo, conteudo, ordem")
+    .eq("secao", SECAO)
+    .eq("ativo", true)
+    .order("ordem", { ascending: true })
 
-  return NextResponse.json(artigos)
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(artigos || [])
 }
 
 export async function POST(request: NextRequest) {
@@ -34,20 +34,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "titulo e conteudo sao obrigatorios" }, { status: 400 })
   }
 
-  const maxOrdem = await prisma.artigoDocumentacao.aggregate({
-    where: { secao: SECAO, ativo: true },
-    _max: { ordem: true },
-  })
+  // Buscar max ordem
+  const { data: maxOrdemRows } = await supabaseAdmin
+    .from("artigos_documentacao")
+    .select("ordem")
+    .eq("secao", SECAO)
+    .eq("ativo", true)
+    .order("ordem", { ascending: false })
+    .limit(1)
 
-  const artigo = await prisma.artigoDocumentacao.create({
-    data: {
+  const maxOrdem = maxOrdemRows && maxOrdemRows.length > 0 ? maxOrdemRows[0].ordem : -1
+
+  const { data: artigo, error } = await supabaseAdmin
+    .from("artigos_documentacao")
+    .insert({
+      id: gerarId(),
       titulo,
       conteudo,
       secao: SECAO,
-      ordem: (maxOrdem._max.ordem ?? -1) + 1,
+      ordem: (maxOrdem ?? -1) + 1,
       atualizadoPorId: auth.session!.user.id,
-    },
-  })
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   return NextResponse.json(artigo, { status: 201 })
 }

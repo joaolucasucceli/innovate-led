@@ -1,9 +1,7 @@
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { openai } from "@/lib/openai"
 import { enviarMensagem } from "@/lib/uazapi"
-import type { Conversa, Lead, ConfigWhatsapp } from "@/generated/prisma/client"
-
-type ConversaComLead = Conversa & { lead: Lead }
+import type { Conversa, Lead, ConfigWhatsapp, ConversaComLead } from "@/types/database"
 
 interface FollowUpPendente {
   conversa: ConversaComLead
@@ -12,35 +10,29 @@ interface FollowUpPendente {
 
 /** Busca conversas que precisam de follow-up */
 export async function buscarConversasParaFollowUp(): Promise<FollowUpPendente[]> {
-  const agora = new Date()
-  const ha1h = new Date(agora.getTime() - 1 * 60 * 60 * 1000)
+  const now = new Date()
+  const ha1h = new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString()
 
-  // Buscar conversas ativas com ultimaMensagemEm > 1h atrás
-  const conversas = await prisma.conversa.findMany({
-    where: {
-      encerradaEm: null,
-      ultimaMensagemEm: {
-        not: null,
-        lt: ha1h,
-      },
-      etapa: {
-        in: ["acolhimento", "qualificacao"],
-      },
-      lead: {
-        arquivado: false,
-        deletadoEm: null,
-      },
-    },
-    include: {
-      lead: true,
-    },
-  })
+  const { data: conversas } = await supabaseAdmin
+    .from("conversas")
+    .select("*, lead:leads!leadId(*)")
+    .is("encerradaEm", null)
+    .not("ultimaMensagemEm", "is", null)
+    .lt("ultimaMensagemEm", ha1h)
+    .in("etapa", ["acolhimento", "qualificacao"])
+
+  if (!conversas || conversas.length === 0) return []
+
+  // Filtrar leads não arquivados e não deletados
+  const conversasFiltradas = conversas.filter(
+    (c: { lead: Lead }) => c.lead && !c.lead.arquivado && !c.lead.deletadoEm
+  ) as ConversaComLead[]
 
   const pendentes: FollowUpPendente[] = []
-  const ha6h = new Date(agora.getTime() - 6 * 60 * 60 * 1000)
-  const ha24h = new Date(agora.getTime() - 24 * 60 * 60 * 1000)
+  const ha6h = new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString()
+  const ha24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
 
-  for (const conversa of conversas) {
+  for (const conversa of conversasFiltradas) {
     const ultimaMsg = conversa.ultimaMensagemEm!
 
     if (ultimaMsg < ha24h && !conversa.followUpEnviados.includes("24h")) {
@@ -149,19 +141,21 @@ export async function enviarFollowUp(
     // Não impedir fluxo se registro falhar
   }
 
-  // Marcar follow-up como enviado
-  await prisma.conversa.update({
-    where: { id: conversa.id },
-    data: {
-      followUpEnviados: { push: tipo },
-    },
-  })
+  // Marcar follow-up como enviado (array append)
+  const followUpsAtualizados = [...conversa.followUpEnviados, tipo]
+  await supabaseAdmin
+    .from("conversas")
+    .update({
+      followUpEnviados: followUpsAtualizados,
+      atualizadoEm: agora(),
+    })
+    .eq("id", conversa.id)
 
   // Se follow-up 24h: encerrar conversa
   if (tipo === "24h") {
-    await prisma.conversa.update({
-      where: { id: conversa.id },
-      data: { encerradaEm: new Date() },
-    })
+    await supabaseAdmin
+      .from("conversas")
+      .update({ encerradaEm: agora(), atualizadoEm: agora() })
+      .eq("id", conversa.id)
   }
 }

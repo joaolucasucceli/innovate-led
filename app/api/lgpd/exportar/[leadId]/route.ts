@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 
 export async function GET(
@@ -11,37 +11,42 @@ export async function GET(
 
   const { leadId } = await params
 
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    include: {
-      conversas: {
-        include: {
-          mensagens: {
-            select: {
-              id: true,
-              tipo: true,
-              conteudo: true,
-              remetente: true,
-              criadoEm: true,
-            },
-          },
-        },
-      },
-      fotos: {
-        select: {
-          id: true,
-          url: true,
-          descricao: true,
-          tipoAnalise: true,
-          criadoEm: true,
-        },
-      },
-    },
-  })
+  const { data: lead, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single()
 
-  if (!lead) {
+  if (findError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
+
+  // Buscar conversas com mensagens
+  const { data: conversas } = await supabaseAdmin
+    .from("conversas")
+    .select("*")
+    .eq("leadId", leadId)
+
+  const conversasComMensagens = await Promise.all(
+    (conversas || []).map(async (conversa) => {
+      const { data: mensagens } = await supabaseAdmin
+        .from("mensagens_whatsapp")
+        .select("id, tipo, conteudo, remetente, criadoEm")
+        .eq("conversaId", conversa.id)
+      return {
+        id: conversa.id,
+        etapa: conversa.etapa,
+        criadoEm: conversa.criadoEm,
+        mensagens: mensagens || [],
+      }
+    })
+  )
+
+  // Buscar fotos
+  const { data: fotos } = await supabaseAdmin
+    .from("fotos_lead")
+    .select("id, url, descricao, tipoAnalise, criadoEm")
+    .eq("leadId", leadId)
 
   const payload = {
     exportadoEm: new Date().toISOString(),
@@ -56,13 +61,8 @@ export async function GET(
       consentimentoLgpdEm: lead.consentimentoLgpdEm,
       criadoEm: lead.criadoEm,
     },
-    conversas: lead.conversas.map((c) => ({
-      id: c.id,
-      etapa: c.etapa,
-      criadoEm: c.criadoEm,
-      mensagens: c.mensagens,
-    })),
-    fotos: lead.fotos.map((f) => ({
+    conversas: conversasComMensagens,
+    fotos: (fotos || []).map((f) => ({
       id: f.id,
       url: f.url,
       descricao: f.descricao,

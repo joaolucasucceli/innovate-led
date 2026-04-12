@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(req: Request) {
@@ -11,86 +11,67 @@ export async function GET(req: Request) {
   const busca = searchParams.get("busca") || ""
   const userId = auth.session.user.id
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {
-    encerradaEm: null,
-  }
+  // Montar query base: conversas abertas com lead e atendente
+  let query = supabaseAdmin
+    .from("conversas")
+    .select("*, lead:leads!inner(id, nome, whatsapp, statusFunil), atendente:usuarios(id, nome)")
+    .is("encerradaEm", null)
+    .order("ultimaMensagemEm", { ascending: false })
+    .limit(50)
 
   if (filtro === "minhas") {
-    where.atendenteId = userId
+    query = query.eq("atendenteId", userId)
   }
 
   if (filtro === "pendentes") {
-    where.modoConversa = "ia"
-    where.mensagens = {
-      some: {
-        remetente: "paciente",
-        lidaEm: null,
-      },
-    }
+    query = query.eq("modoConversa", "ia")
   }
 
   if (busca) {
-    where.lead = {
-      OR: [
-        { nome: { contains: busca, mode: "insensitive" } },
-        { whatsapp: { contains: busca } },
-      ],
-    }
+    // Buscar por nome ou whatsapp do lead (ilike = case insensitive)
+    query = query.or(`nome.ilike.%${busca}%,whatsapp.ilike.%${busca}%`, { referencedTable: "leads" })
   }
 
-  const conversas = await prisma.conversa.findMany({
-    where,
-    orderBy: { ultimaMensagemEm: "desc" },
-    take: 50,
-    include: {
-      lead: {
-        select: {
-          id: true,
-          nome: true,
-          whatsapp: true,
-          statusFunil: true,
-        },
-      },
-      atendente: {
-        select: { id: true, nome: true },
-      },
-      mensagens: {
-        orderBy: { criadoEm: "desc" },
-        take: 1,
-        select: {
-          id: true,
-          conteudo: true,
-          remetente: true,
-          tipo: true,
-          criadoEm: true,
-        },
-      },
-      _count: {
-        select: {
-          mensagens: {
-            where: {
-              remetente: "paciente",
-              lidaEm: null,
-            },
-          },
-        },
-      },
-    },
-  })
+  const { data: conversas, error } = await query
 
-  const resultado = conversas.map((c) => ({
-    id: c.id,
-    leadId: c.leadId,
-    etapa: c.etapa,
-    modoConversa: c.modoConversa,
-    atendenteId: c.atendenteId,
-    atendente: c.atendente,
-    ultimaMensagemEm: c.ultimaMensagemEm,
-    lead: c.lead,
-    ultimaMensagem: c.mensagens[0] || null,
-    naoLidas: c._count.mensagens,
-  }))
+  if (error) {
+    console.error("[Conversas] Erro ao buscar:", error.message)
+    return NextResponse.json({ conversas: [] })
+  }
+
+  // Para cada conversa, buscar última mensagem e contagem de não lidas
+  const resultado = await Promise.all(
+    (conversas || []).map(async (c: any) => {
+      // Última mensagem
+      const { data: ultimasMsgs } = await supabaseAdmin
+        .from("mensagens_whatsapp")
+        .select("id, conteudo, remetente, tipo, criadoEm")
+        .eq("conversaId", c.id)
+        .order("criadoEm", { ascending: false })
+        .limit(1)
+
+      // Contagem de não lidas
+      const { count } = await supabaseAdmin
+        .from("mensagens_whatsapp")
+        .select("*", { count: "exact", head: true })
+        .eq("conversaId", c.id)
+        .eq("remetente", "paciente")
+        .is("lidaEm", null)
+
+      return {
+        id: c.id,
+        leadId: c.leadId,
+        etapa: c.etapa,
+        modoConversa: c.modoConversa,
+        atendenteId: c.atendenteId,
+        atendente: c.atendente,
+        ultimaMensagemEm: c.ultimaMensagemEm,
+        lead: c.lead,
+        ultimaMensagem: ultimasMsgs?.[0] || null,
+        naoLidas: count || 0,
+      }
+    })
+  )
 
   return NextResponse.json({ conversas: resultado })
 }

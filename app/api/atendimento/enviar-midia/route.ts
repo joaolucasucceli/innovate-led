@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 import { enviarMidia } from "@/lib/uazapi"
 import { z } from "zod"
@@ -36,16 +36,22 @@ export async function POST(req: Request) {
 
   const { conversaId, arquivoUrl, tipo, legenda, replyToId, nomeDocumento } = parse.data
 
-  const conversa = await prisma.conversa.findUnique({
-    where: { id: conversaId },
-    include: { lead: true },
-  })
+  const { data: conversa } = await supabaseAdmin
+    .from("conversas")
+    .select("*, lead:leads(*)")
+    .eq("id", conversaId)
+    .single()
 
   if (!conversa) {
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
   }
 
-  const config = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+  const { data: config } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .eq("ativo", true)
+    .limit(1)
+    .maybeSingle()
   if (!config?.instanceToken || !config?.uazapiUrl) {
     return NextResponse.json({ error: "WhatsApp não configurado" }, { status: 400 })
   }
@@ -53,10 +59,11 @@ export async function POST(req: Request) {
   // Buscar messageIdWhatsapp do reply se fornecido
   let replyMessageId: string | undefined
   if (replyToId) {
-    const replyMsg = await prisma.mensagemWhatsapp.findUnique({
-      where: { id: replyToId },
-      select: { messageIdWhatsapp: true },
-    })
+    const { data: replyMsg } = await supabaseAdmin
+      .from("mensagens_whatsapp")
+      .select("messageIdWhatsapp")
+      .eq("id", replyToId)
+      .single()
     if (replyMsg) replyMessageId = replyMsg.messageIdWhatsapp
   }
 
@@ -77,8 +84,10 @@ export async function POST(req: Request) {
 
   // Salvar no banco
   const conteudo = legenda || `[${tipo}]`
-  const mensagem = await prisma.mensagemWhatsapp.create({
-    data: {
+  const { data: mensagem } = await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .insert({
+      id: gerarId(),
       conversaId,
       leadId: conversa.leadId,
       messageIdWhatsapp: `atendente_${randomUUID()}`,
@@ -88,13 +97,15 @@ export async function POST(req: Request) {
       mediaUrl: arquivoUrl,
       mediaType: tipo,
       replyToId: replyToId || null,
-    },
-  })
+      criadoEm: agora(),
+    })
+    .select()
+    .single()
 
-  await prisma.conversa.update({
-    where: { id: conversaId },
-    data: { ultimaMensagemEm: new Date() },
-  })
+  await supabaseAdmin
+    .from("conversas")
+    .update({ ultimaMensagemEm: agora(), atualizadoEm: agora() })
+    .eq("id", conversaId)
 
   return NextResponse.json(mensagem, { status: 201 })
 }

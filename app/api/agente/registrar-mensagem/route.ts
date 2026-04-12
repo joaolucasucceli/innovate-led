@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { validarApiSecret } from "@/lib/api-auth"
-import { createId } from "@paralleldrive/cuid2"
-import type { TipoMensagem } from "@/generated/prisma/enums"
+import type { TipoMensagem } from "@/types/database"
 
 export async function POST(request: NextRequest) {
   const erro = validarApiSecret(request)
@@ -35,36 +34,60 @@ export async function POST(request: NextRequest) {
 
   // Se não há conversaId, buscar conversa existente antes de criar nova
   if (!conversaId) {
-    const conversaExistente = await prisma.conversa.findFirst({
-      where: { leadId },
-      orderBy: { criadoEm: "desc" },
-    })
+    const { data: conversaExistente } = await supabaseAdmin
+      .from("conversas")
+      .select("*")
+      .eq("leadId", leadId)
+      .order("criadoEm", { ascending: false })
+      .limit(1)
+      .single()
+
     if (conversaExistente) {
       conversaId = conversaExistente.id
     } else {
-      const conversa = await prisma.conversa.create({
-        data: { leadId },
-      })
-      conversaId = conversa.id
+      const { data: novaConversa, error: erroCriar } = await supabaseAdmin
+        .from("conversas")
+        .insert({
+          id: gerarId(),
+          leadId,
+        })
+        .select()
+        .single()
+
+      if (erroCriar) {
+        return NextResponse.json({ error: erroCriar.message }, { status: 500 })
+      }
+
+      conversaId = novaConversa.id
     }
   }
 
-  const mensagem = await prisma.mensagemWhatsapp.create({
-    data: {
+  const { data: mensagem, error: erroMsg } = await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .insert({
+      id: gerarId(),
       conversaId,
       leadId,
-      messageIdWhatsapp: messageIdWhatsapp || `agente_${createId()}`,
+      messageIdWhatsapp: messageIdWhatsapp || `agente_${gerarId()}`,
       tipo: (tipo || "texto") as TipoMensagem,
       conteudo,
       remetente: direcao === "agente" ? "agente" : "cliente",
-    },
-  })
+    })
+    .select()
+    .single()
+
+  if (erroMsg) {
+    return NextResponse.json({ error: erroMsg.message }, { status: 500 })
+  }
 
   // Atualizar ultimaMensagemEm na conversa
-  await prisma.conversa.update({
-    where: { id: conversaId },
-    data: { ultimaMensagemEm: new Date() },
-  })
+  await supabaseAdmin
+    .from("conversas")
+    .update({
+      ultimaMensagemEm: new Date().toISOString(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", conversaId)
 
   return NextResponse.json({ mensagem, conversaId })
 }

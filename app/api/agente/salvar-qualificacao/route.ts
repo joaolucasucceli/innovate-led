@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { validarApiSecret } from "@/lib/api-auth"
 import { criarLeadKommo, salvarQualificacaoKommo } from "@/lib/kommo"
-import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
+import type { StatusFunil, EtapaConversa } from "@/types/database"
 
 export async function POST(request: NextRequest) {
   const erro = validarApiSecret(request)
@@ -31,10 +31,11 @@ export async function POST(request: NextRequest) {
   }
 
   // APPEND em sobreOLead — NUNCA sobrescrever
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    select: { sobreOLead: true, nome: true, whatsapp: true, statusFunil: true },
-  })
+  const { data: lead } = await supabaseAdmin
+    .from("leads")
+    .select("sobreOLead, nome, whatsapp, statusFunil")
+    .eq("id", leadId)
+    .single()
 
   const textoExistente = lead?.sobreOLead || ""
   const novoTexto = textoExistente
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
 
   const dadosAtualizar: Record<string, unknown> = {
     sobreOLead: novoTexto,
+    atualizadoEm: agora(),
   }
 
   // Atualizar nome do lead se informado e o atual é genérico (WhatsApp XXXXX)
@@ -53,26 +55,29 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: dadosAtualizar,
-  })
+  await supabaseAdmin
+    .from("leads")
+    .update(dadosAtualizar)
+    .eq("id", leadId)
 
   // Avançar funil: acolhimento → qualificacao quando salva qualificação
   if (lead?.statusFunil === "acolhimento") {
-    await prisma.$transaction([
-      prisma.lead.update({
-        where: { id: leadId },
-        data: {
-          statusFunil: "qualificacao" as StatusFunil,
-          ultimaMovimentacaoEm: new Date(),
-        },
-      }),
-      prisma.conversa.update({
-        where: { id: conversaId },
-        data: { etapa: "qualificacao" as EtapaConversa },
-      }),
-    ])
+    await supabaseAdmin
+      .from("leads")
+      .update({
+        statusFunil: "qualificacao" as StatusFunil,
+        ultimaMovimentacaoEm: new Date().toISOString(),
+        atualizadoEm: agora(),
+      })
+      .eq("id", leadId)
+
+    await supabaseAdmin
+      .from("conversas")
+      .update({
+        etapa: "qualificacao" as EtapaConversa,
+        atualizadoEm: agora(),
+      })
+      .eq("id", conversaId)
   }
 
   // Sincronizar com Kommo CRM (fire-and-forget)

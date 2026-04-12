@@ -1,7 +1,8 @@
 import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ leadId: string }> }
@@ -11,8 +12,13 @@ export async function POST(
 
   const { leadId } = await params
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } })
-  if (!lead) {
+  const { data: lead, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single()
+
+  if (findError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
@@ -22,19 +28,23 @@ export async function POST(
 
   const whatsappHash = createHash("sha256").update(lead.whatsapp).digest("hex")
 
-  await prisma.$transaction([
-    prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        nome: "Usuário Anonimizado",
-        whatsapp: whatsappHash,
-        email: null,
-        sobreOLead: null,
-        deletadoEm: new Date(),
-      },
-    }),
-    prisma.mensagemWhatsapp.deleteMany({ where: { leadId } }),
-  ])
+  // Sequential calls (replacing $transaction)
+  await supabaseAdmin
+    .from("leads")
+    .update({
+      nome: "Usuário Anonimizado",
+      whatsapp: whatsappHash,
+      email: null,
+      sobreOLead: null,
+      deletadoEm: new Date().toISOString(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", leadId)
+
+  await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .delete()
+    .eq("leadId", leadId)
 
   return NextResponse.json({ ok: true })
 }

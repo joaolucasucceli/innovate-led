@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { compare, hash } from "bcryptjs"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 const atualizarMeSchema = z.object({
@@ -19,19 +19,14 @@ export async function GET() {
   const { session, error } = await requireAuth()
   if (error) return error
 
-  const usuario = await prisma.usuario.findUnique({
-    where: { id: session!.user.id, deletadoEm: null },
-    select: {
-      id: true,
-      nome: true,
-      email: true,
-      perfil: true,
-      tipo: true,
-      criadoEm: true,
-    },
-  })
+  const { data: usuario, error: findError } = await supabaseAdmin
+    .from("usuarios")
+    .select("id, nome, email, perfil, tipo, criadoEm")
+    .eq("id", session!.user.id)
+    .is("deletadoEm", null)
+    .single()
 
-  if (!usuario) {
+  if (findError || !usuario) {
     return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
   }
 
@@ -54,17 +49,25 @@ export async function PATCH(request: NextRequest) {
 
   const { nome, email, senhaAtual, novaSenha } = parsed.data
 
-  const usuario = await prisma.usuario.findUnique({
-    where: { id: session!.user.id, deletadoEm: null },
-  })
+  const { data: usuario, error: findError } = await supabaseAdmin
+    .from("usuarios")
+    .select("*")
+    .eq("id", session!.user.id)
+    .is("deletadoEm", null)
+    .single()
 
-  if (!usuario) {
+  if (findError || !usuario) {
     return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
   }
 
   // Verificar email único
   if (email && email !== usuario.email) {
-    const emailExistente = await prisma.usuario.findUnique({ where: { email } })
+    const { data: emailExistente } = await supabaseAdmin
+      .from("usuarios")
+      .select("id")
+      .eq("email", email)
+      .limit(1)
+      .single()
     if (emailExistente) {
       return NextResponse.json({ error: "Email já cadastrado" }, { status: 409 })
     }
@@ -83,16 +86,16 @@ export async function PATCH(request: NextRequest) {
   if (email) dados.email = email
   if (novaSenha) dados.senha = await hash(novaSenha, 12)
 
-  const atualizado = await prisma.usuario.update({
-    where: { id: session!.user.id },
-    data: dados,
-    select: {
-      id: true,
-      nome: true,
-      email: true,
-      perfil: true,
-    },
-  })
+  const { data: atualizado, error: updateError } = await supabaseAdmin
+    .from("usuarios")
+    .update({ ...dados, atualizadoEm: agora() })
+    .eq("id", session!.user.id)
+    .select("id, nome, email, perfil")
+    .single()
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
 
   return NextResponse.json(atualizado)
 }

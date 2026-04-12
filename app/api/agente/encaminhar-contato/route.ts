@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { validarApiSecret } from "@/lib/api-auth"
 import { encaminharLeadKommo } from "@/lib/kommo"
-import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
+import type { StatusFunil, EtapaConversa } from "@/types/database"
 
 export async function POST(request: NextRequest) {
   const erro = validarApiSecret(request)
@@ -26,25 +26,29 @@ export async function POST(request: NextRequest) {
   }
 
   // Avançar lead para "encaminhado"
-  await prisma.$transaction([
-    prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        statusFunil: "encaminhado" as StatusFunil,
-        ultimaMovimentacaoEm: new Date(),
-      },
-    }),
-    prisma.conversa.update({
-      where: { id: conversaId },
-      data: { etapa: "encaminhado" as EtapaConversa },
-    }),
-  ])
+  await supabaseAdmin
+    .from("leads")
+    .update({
+      statusFunil: "encaminhado" as StatusFunil,
+      ultimaMovimentacaoEm: new Date().toISOString(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", leadId)
+
+  await supabaseAdmin
+    .from("conversas")
+    .update({
+      etapa: "encaminhado" as EtapaConversa,
+      atualizadoEm: agora(),
+    })
+    .eq("id", conversaId)
 
   // Buscar dados do lead para webhook
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    select: { nome: true, whatsapp: true, sobreOLead: true },
-  })
+  const { data: lead } = await supabaseAdmin
+    .from("leads")
+    .select("nome, whatsapp, sobreOLead")
+    .eq("id", leadId)
+    .single()
 
   // Sincronizar com Kommo CRM (fire-and-forget)
   if (lead?.whatsapp) {

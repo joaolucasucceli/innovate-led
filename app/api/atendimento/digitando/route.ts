@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 import { enviarDigitando } from "@/lib/uazapi"
 import { z } from "zod"
@@ -18,16 +18,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "conversaId obrigatório" }, { status: 400 })
   }
 
-  const conversa = await prisma.conversa.findUnique({
-    where: { id: parse.data.conversaId },
-    include: { lead: { select: { whatsapp: true } } },
-  })
+  const { data: conversa } = await supabaseAdmin
+    .from("conversas")
+    .select("*, lead:leads(whatsapp)")
+    .eq("id", parse.data.conversaId)
+    .single()
 
   if (!conversa) {
     return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 })
   }
 
-  const config = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+  const { data: config } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .eq("ativo", true)
+    .limit(1)
+    .maybeSingle()
   if (!config?.instanceToken || !config?.uazapiUrl) {
     return NextResponse.json({ error: "WhatsApp não configurado" }, { status: 400 })
   }

@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Framework:** Next.js 16 (App Router + Turbopack)
 - **UI:** shadcn/ui 4 exclusivamente — nunca criar botoes, inputs ou cards do zero
 - **Estilizacao:** Tailwind CSS 4
-- **Banco de Dados:** PostgreSQL via Supabase, ORM: Prisma 7
+- **Banco de Dados:** PostgreSQL via Supabase (client direto, sem ORM)
 - **Autenticacao:** NextAuth.js 4 (Credentials Provider + JWT)
 - **Cache/Buffer:** Redis (Upstash)
 - **IA:** OpenAI GPT-4o (chat), Whisper (audio), GPT-4o-mini (visao/classificacao)
@@ -30,16 +30,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Setup inicial
 npm install
 
-# Banco de dados
-npx prisma generate
-npx prisma db push
-npx prisma db seed
+# Seed (popular banco com usuarios iniciais)
+npx tsx prisma/seed.ts
 
 # Desenvolvimento
 npm run dev
-
-# Prisma
-npx prisma studio
 ```
 
 ## Arquitetura
@@ -134,7 +129,7 @@ Relatorios salvos na tabela `relatorios_ia`, visiveis em `/relatorios`.
 - `app/api/base-conhecimento/` — CRUD da base de conhecimento
 - `lib/agente/` — internos do agente: buffer, memoria, processamento de midia, prompt, ferramentas, sincronizacao do kanban, analise de conversas
 - `lib/kommo.ts` — integracao direta com Kommo CRM
-- `prisma/seed.ts` — seed com usuario IA Livia + admin
+- `prisma/seed.ts` — seed Supabase com usuario IA Livia + admin
 
 ### Paginas do Painel
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { validarApiSecret } from "@/lib/api-auth"
 
 export async function POST(request: NextRequest) {
@@ -20,32 +20,54 @@ export async function POST(request: NextRequest) {
   }
 
   // Buscar lead existente
-  let lead = await prisma.lead.findUnique({
-    where: { whatsapp },
-  })
+  const { data: leadExistente } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("whatsapp", whatsapp)
+    .single()
+
+  let lead = leadExistente
 
   // Se não existe, criar novo lead com responsável IA
   if (!lead) {
-    const usuarioIa = await prisma.usuario.findFirst({
-      where: { tipo: "ia", ativo: true, deletadoEm: null },
-    })
+    const { data: usuarioIa } = await supabaseAdmin
+      .from("usuarios")
+      .select("*")
+      .eq("tipo", "ia")
+      .eq("ativo", true)
+      .is("deletadoEm", null)
+      .limit(1)
+      .single()
 
-    lead = await prisma.lead.create({
-      data: {
+    const { data: novoLead, error: erroCriar } = await supabaseAdmin
+      .from("leads")
+      .insert({
+        id: gerarId(),
         nome: `WhatsApp ${whatsapp}`,
         whatsapp,
         origem: "whatsapp",
         statusFunil: "qualificacao",
         responsavelId: usuarioIa?.id || null,
-      },
-    })
+      })
+      .select()
+      .single()
+
+    if (erroCriar) {
+      return NextResponse.json({ error: erroCriar.message }, { status: 500 })
+    }
+
+    lead = novoLead
   }
 
   // Buscar conversa ativa do ciclo atual (mais recente)
-  const conversa = await prisma.conversa.findFirst({
-    where: { leadId: lead.id, ciclo: lead.cicloAtual },
-    orderBy: { criadoEm: "desc" },
-  })
+  const { data: conversa } = await supabaseAdmin
+    .from("conversas")
+    .select("*")
+    .eq("leadId", lead.id)
+    .eq("ciclo", lead.cicloAtual)
+    .order("criadoEm", { ascending: false })
+    .limit(1)
+    .single()
 
   return NextResponse.json({
     lead: {

@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { validarApiSecret } from "@/lib/api-auth"
 import { processarMensagens } from "@/lib/agente/loop"
 import { redis } from "@/lib/redis"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { enviarDigitando } from "@/lib/uazapi"
 
 // Necessário para o sleep de 20s não exceder o timeout do Vercel (default 10s)
@@ -41,7 +41,13 @@ export async function POST(request: NextRequest) {
 
   // Mostrar "digitando" imediatamente (antes do debounce)
   try {
-    const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+    const { data: configWa } = await supabaseAdmin
+      .from("config_whatsapp")
+      .select("*")
+      .eq("ativo", true)
+      .limit(1)
+      .single()
+
     if (configWa?.instanceToken) {
       await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, true)
     }

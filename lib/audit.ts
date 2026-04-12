@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/prisma"
-import type { Prisma } from "@/generated/prisma/client"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 
 interface AuditLogParams {
   usuarioId: string
@@ -21,16 +20,15 @@ export async function registrarAuditLog({
   ip,
 }: AuditLogParams): Promise<void> {
   try {
-    await prisma.auditLog.create({
-      data: {
-        usuarioId,
-        acao,
-        entidade,
-        entidadeId: entidadeId ?? null,
-        dadosAntes: dadosAntes ? (dadosAntes as Prisma.InputJsonValue) : undefined,
-        dadosDepois: dadosDepois ? (dadosDepois as Prisma.InputJsonValue) : undefined,
-        ip: ip ?? null,
-      },
+    await supabaseAdmin.from("audit_logs").insert({
+      id: gerarId(),
+      usuarioId,
+      acao,
+      entidade,
+      entidadeId: entidadeId ?? null,
+      dadosAntes: dadosAntes ?? null,
+      dadosDepois: dadosDepois ?? null,
+      ip: ip ?? null,
     })
   } catch {
     // Falha no audit log não deve bloquear a operação principal

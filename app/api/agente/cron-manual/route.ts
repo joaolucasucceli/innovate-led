@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { ehHorarioComercial } from "@/lib/agente/horario-comercial"
 import { buscarConversasParaFollowUp, enviarFollowUp } from "@/lib/agente/followup"
@@ -8,9 +8,12 @@ export async function POST() {
   const { error } = await requireRole("gestor")
   if (error) return error
 
-  const configWa = await prisma.configWhatsapp.findFirst({
-    where: { ativo: true },
-  })
+  const { data: configWa } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .eq("ativo", true)
+    .limit(1)
+    .single()
 
   const resultado = {
     followups: 0,
@@ -43,22 +46,24 @@ export async function POST() {
 
   // Auto-close (sempre, independente de horário)
   try {
-    const ha24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const conversas = await prisma.conversa.findMany({
-      where: {
-        encerradaEm: null,
-        ultimaMensagemEm: { not: null, lt: ha24h },
-        followUpEnviados: { has: "24h" },
-      },
-      select: { id: true },
-    })
+    const ha24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { data: conversas } = await supabaseAdmin
+      .from("conversas")
+      .select("id")
+      .is("encerradaEm", null)
+      .not("ultimaMensagemEm", "is", null)
+      .lt("ultimaMensagemEm", ha24h)
+      .contains("followUpEnviados", ["24h"])
 
-    for (const conversa of conversas) {
+    for (const conversa of conversas || []) {
       try {
-        await prisma.conversa.update({
-          where: { id: conversa.id },
-          data: { encerradaEm: new Date() },
-        })
+        await supabaseAdmin
+          .from("conversas")
+          .update({
+            encerradaEm: new Date().toISOString(),
+            atualizadoEm: agora(),
+          })
+          .eq("id", conversa.id)
         resultado.autoClose++
       } catch {
         // Continuar

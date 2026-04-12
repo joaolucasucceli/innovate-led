@@ -1,11 +1,12 @@
 import { openai } from "@/lib/openai"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { obterELimparBuffer } from "@/lib/agente/buffer"
 import { obterMemoria, adicionarAMemoria } from "@/lib/agente/memoria"
 import { gerarSystemPrompt } from "@/lib/agente/prompt"
 import { ferramentasAgente, executarFerramenta } from "@/lib/agente/ferramentas"
 import { abrirNovoCiclo } from "@/lib/agente/kanban-sync"
 import { enviarMensagem, enviarDigitando } from "@/lib/uazapi"
+import type { ConfigWhatsapp } from "@/types/database"
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions"
 
 const MAX_TOOL_ITERATIONS = 10
@@ -68,10 +69,14 @@ function extrairNumero(chatId: string): string {
 }
 
 /** Busca config WhatsApp ativa do banco */
-async function obterConfigWhatsapp() {
-  return prisma.configWhatsapp.findFirst({
-    where: { ativo: true },
-  })
+async function obterConfigWhatsapp(): Promise<ConfigWhatsapp | null> {
+  const { data } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .eq("ativo", true)
+    .limit(1)
+    .single()
+  return data
 }
 
 /** Processa mensagens acumuladas no buffer e responde via GPT-4o */
@@ -179,10 +184,11 @@ export async function processarMensagens(chatId: string): Promise<void> {
 
   // 5d. Checar modo de conversa — se humano está atendendo, IA não responde
   if (conversaId) {
-    const conversa = await prisma.conversa.findUnique({
-      where: { id: conversaId },
-      select: { modoConversa: true },
-    })
+    const { data: conversa } = await supabaseAdmin
+      .from("conversas")
+      .select("modoConversa")
+      .eq("id", conversaId)
+      .single()
     if (conversa?.modoConversa === "humano") {
       console.log(`[Agente] Conversa ${conversaId} em modo humano — IA não responde`)
       return

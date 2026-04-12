@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function POST(request: NextRequest) {
@@ -14,9 +14,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "leadId é obrigatório" }, { status: 400 })
   }
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } })
+  const { data: lead, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single()
 
-  if (!lead) {
+  if (findError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
@@ -29,26 +33,28 @@ export async function POST(request: NextRequest) {
 
   const novoCiclo = lead.cicloAtual + 1
 
-  await prisma.$transaction([
-    prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        cicloAtual: novoCiclo,
-        ciclosCompletos: { increment: 1 },
-        ehRetorno: true,
-        statusFunil: "qualificacao",
-        motivoPerda: null,
-        ultimaMovimentacaoEm: new Date(),
-      },
-    }),
-    prisma.conversa.create({
-      data: {
-        leadId,
-        ciclo: novoCiclo,
-        etapa: "qualificacao",
-      },
-    }),
-  ])
+  // Sequential calls (replacing $transaction)
+  await supabaseAdmin
+    .from("leads")
+    .update({
+      cicloAtual: novoCiclo,
+      ciclosCompletos: lead.ciclosCompletos + 1,
+      ehRetorno: true,
+      statusFunil: "qualificacao",
+      motivoPerda: null,
+      ultimaMovimentacaoEm: new Date().toISOString(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", leadId)
+
+  await supabaseAdmin
+    .from("conversas")
+    .insert({
+      id: gerarId(),
+      leadId,
+      ciclo: novoCiclo,
+      etapa: "qualificacao",
+    })
 
   return NextResponse.json({ sucesso: true })
 }

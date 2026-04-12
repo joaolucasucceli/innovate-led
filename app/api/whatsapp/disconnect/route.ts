@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { desconectar } from "@/lib/uazapi"
 
@@ -8,9 +8,12 @@ export async function POST(request: NextRequest) {
   const auth = await requireRole("gestor")
   if (auth.error) return auth.error
 
-  const config = await prisma.configWhatsapp.findFirst({
-    orderBy: { criadoEm: "desc" },
-  })
+  const { data: config } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .order("criadoEm", { ascending: false })
+    .limit(1)
+    .single()
 
   const instanceToken = config?.instanceToken || config?.adminToken
 
@@ -29,16 +32,17 @@ export async function POST(request: NextRequest) {
   }
 
   // Limpar dados de instância
-  await prisma.configWhatsapp.update({
-    where: { id: config.id },
-    data: {
+  await supabaseAdmin
+    .from("config_whatsapp")
+    .update({
       instanceId: null,
       instanceToken: null,
       numeroWhatsapp: null,
       webhookUrl: null,
       ativo: false,
-    },
-  })
+      atualizadoEm: agora(),
+    })
+    .eq("id", config.id)
 
   return NextResponse.json({ sucesso: true })
 }

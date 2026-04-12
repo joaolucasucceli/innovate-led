@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { configWhatsappSchema } from "@/lib/validations/whatsapp-config"
 import { validarAdminToken } from "@/lib/uazapi"
@@ -32,19 +32,22 @@ export async function POST(request: NextRequest) {
   }
 
   // Upsert config — salvar credenciais admin
-  const existente = await prisma.configWhatsapp.findFirst({
-    orderBy: { criadoEm: "desc" },
-  })
+  const { data: existente } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("id")
+    .order("criadoEm", { ascending: false })
+    .limit(1)
+    .single()
 
   if (existente) {
-    await prisma.configWhatsapp.update({
-      where: { id: existente.id },
-      data: { uazapiUrl, adminToken },
-    })
+    await supabaseAdmin
+      .from("config_whatsapp")
+      .update({ uazapiUrl, adminToken, atualizadoEm: agora() })
+      .eq("id", existente.id)
   } else {
-    await prisma.configWhatsapp.create({
-      data: { uazapiUrl, adminToken, instanceToken: "" },
-    })
+    await supabaseAdmin
+      .from("config_whatsapp")
+      .insert({ id: gerarId(), uazapiUrl, adminToken, instanceToken: "" })
   }
 
   return NextResponse.json({ sucesso: true })

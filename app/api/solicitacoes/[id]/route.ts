@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function PATCH(
@@ -21,20 +21,29 @@ export async function PATCH(
     )
   }
 
-  const solicitacao = await prisma.solicitacaoAlteracao.update({
-    where: { id },
-    data: {
+  const { data: solicitacao, error: updateError } = await supabaseAdmin
+    .from("solicitacoes_alteracao")
+    .update({
       status,
-      concluidoEm: status === "concluida" ? new Date() : null,
-    },
-    include: {
-      criadoPor: {
-        select: { id: true, nome: true, email: true },
-      },
-    },
-  })
+      concluidoEm: status === "concluida" ? new Date().toISOString() : null,
+      atualizadoEm: agora(),
+    })
+    .eq("id", id)
+    .select()
+    .single()
 
-  return NextResponse.json(solicitacao)
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
+
+  // Buscar criador
+  const { data: criadoPor } = await supabaseAdmin
+    .from("usuarios")
+    .select("id, nome, email")
+    .eq("id", solicitacao.criadoPorId)
+    .single()
+
+  return NextResponse.json({ ...solicitacao, criadoPor })
 }
 
 export async function DELETE(
@@ -46,18 +55,20 @@ export async function DELETE(
 
   const { id } = await params
 
-  const solicitacao = await prisma.solicitacaoAlteracao.findUnique({
-    where: { id },
-  })
+  const { data: solicitacao, error: findError } = await supabaseAdmin
+    .from("solicitacoes_alteracao")
+    .select("id")
+    .eq("id", id)
+    .single()
 
-  if (!solicitacao) {
+  if (findError || !solicitacao) {
     return NextResponse.json(
       { error: "Solicitacao nao encontrada" },
       { status: 404 }
     )
   }
 
-  await prisma.solicitacaoAlteracao.delete({ where: { id } })
+  await supabaseAdmin.from("solicitacoes_alteracao").delete().eq("id", id)
 
   return NextResponse.json({ ok: true })
 }

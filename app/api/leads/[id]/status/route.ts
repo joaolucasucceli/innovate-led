@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 import { mudarStatusSchema } from "@/lib/validations/lead"
 
@@ -21,11 +21,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     )
   }
 
-  const lead = await prisma.lead.findUnique({
-    where: { id, deletadoEm: null },
-  })
+  const { data: lead, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .is("deletadoEm", null)
+    .single()
 
-  if (!lead) {
+  if (findError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
@@ -41,25 +44,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     )
   }
 
-  const statusAnterior = lead.statusFunil
   const novoStatus = parsed.data.statusFunil
 
   // Preparar dados de atualização
   const dataUpdate: Record<string, unknown> = {
     statusFunil: novoStatus,
-    ultimaMovimentacaoEm: new Date(),
+    ultimaMovimentacaoEm: new Date().toISOString(),
+    atualizadoEm: agora(),
   }
 
-  const leadAtualizado = await prisma.lead.update({
-    where: { id },
-    data: dataUpdate,
-    select: {
-      id: true,
-      nome: true,
-      statusFunil: true,
-      motivoPerda: true,
-    },
-  })
+  const { data: leadAtualizado, error: updateError } = await supabaseAdmin
+    .from("leads")
+    .update(dataUpdate)
+    .eq("id", id)
+    .select("id, nome, statusFunil, motivoPerda")
+    .single()
+
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
 
   return NextResponse.json(leadAtualizado)
 }

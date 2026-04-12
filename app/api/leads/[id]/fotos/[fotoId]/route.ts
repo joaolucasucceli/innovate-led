@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { requireRole } from "@/lib/auth-helpers"
 import { supabaseAdmin } from "@/lib/supabase"
+import { requireRole } from "@/lib/auth-helpers"
 
 type RouteParams = { params: Promise<{ id: string; fotoId: string }> }
 
@@ -12,9 +11,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
   const { id, fotoId } = await params
 
-  const foto = await prisma.fotoLead.findFirst({
-    where: { id: fotoId, leadId: id },
-  })
+  const { data: foto } = await supabaseAdmin
+    .from("fotos_lead")
+    .select("*")
+    .eq("id", fotoId)
+    .eq("leadId", id)
+    .limit(1)
+    .single()
 
   if (!foto) {
     return NextResponse.json({ error: "Foto não encontrada" }, { status: 404 })
@@ -27,7 +30,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await supabaseAdmin.storage.from("fotos-leads").remove([storagePath])
   }
 
-  await prisma.fotoLead.delete({ where: { id: fotoId } })
+  await supabaseAdmin.from("fotos_lead").delete().eq("id", fotoId)
 
   return NextResponse.json({ mensagem: "Foto removida" })
 }

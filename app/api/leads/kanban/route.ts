@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
-import type { StatusFunil } from "@/generated/prisma/client"
+import type { StatusFunil } from "@/types/database"
 
 const ETAPAS_FUNIL: StatusFunil[] = [
   "acolhimento",
@@ -16,54 +16,79 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const responsavelId = searchParams.get("responsavelId")
-  const where: Record<string, unknown> = {
-    deletadoEm: null,
-    arquivado: false,
-  }
+
+  let query = supabaseAdmin
+    .from("leads")
+    .select("id, nome, whatsapp, statusFunil, criadoEm, atualizadoEm, ultimaMovimentacaoEm, motivoPerda, ehRetorno, cicloAtual, responsavelId")
+    .is("deletadoEm", null)
+    .eq("arquivado", false)
+    .order("atualizadoEm", { ascending: false })
 
   if (responsavelId) {
-    where.responsavelId = responsavelId
+    query = query.eq("responsavelId", responsavelId)
   }
 
-  const leads = await prisma.lead.findMany({
-    where,
-    select: {
-      id: true,
-      nome: true,
-      whatsapp: true,
-      statusFunil: true,
-      criadoEm: true,
-      atualizadoEm: true,
-      ultimaMovimentacaoEm: true,
-      motivoPerda: true,
-      ehRetorno: true,
-      cicloAtual: true,
-      responsavel: { select: { id: true, nome: true } },
-      conversas: { where: { encerradaEm: null }, select: { followUpEnviados: true }, take: 1, orderBy: { criadoEm: "desc" } },
-    },
-    orderBy: { atualizadoEm: "desc" },
-  })
+  const { data: leads, error } = await query
 
-  const agora = Date.now()
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Buscar responsáveis
+  const responsavelIds = [...new Set((leads || []).map((l) => l.responsavelId).filter(Boolean))]
+  let responsaveisMap: Record<string, { id: string; nome: string }> = {}
+  if (responsavelIds.length > 0) {
+    const { data: responsaveis } = await supabaseAdmin
+      .from("usuarios")
+      .select("id, nome")
+      .in("id", responsavelIds)
+    if (responsaveis) {
+      responsaveisMap = Object.fromEntries(responsaveis.map((r) => [r.id, r]))
+    }
+  }
+
+  // Buscar conversas ativas (para followUpEnviados)
+  const leadIds = (leads || []).map((l) => l.id)
+  let conversasMap: Record<string, { followUpEnviados: string[] }> = {}
+  if (leadIds.length > 0) {
+    const { data: conversas } = await supabaseAdmin
+      .from("conversas")
+      .select("leadId, followUpEnviados")
+      .in("leadId", leadIds)
+      .is("encerradaEm", null)
+      .order("criadoEm", { ascending: false })
+    if (conversas) {
+      // Pegar somente a primeira conversa de cada lead
+      for (const c of conversas) {
+        if (!conversasMap[c.leadId]) {
+          conversasMap[c.leadId] = { followUpEnviados: c.followUpEnviados || [] }
+        }
+      }
+    }
+  }
+
+  const agoraMs = Date.now()
   const colunas: Record<string, unknown[]> = {}
 
   for (const etapa of ETAPAS_FUNIL) {
     colunas[etapa] = []
   }
 
-  for (const { conversas, ...lead } of leads) {
-    const referencia = lead.ultimaMovimentacaoEm || lead.atualizadoEm
-    const diasNaEtapa = Math.floor((agora - referencia.getTime()) / 86400000)
+  for (const lead of leads || []) {
+    const { responsavelId: rId, ...rest } = lead
+    const referencia = rest.ultimaMovimentacaoEm || rest.atualizadoEm
+    const diasNaEtapa = Math.floor((agoraMs - new Date(referencia).getTime()) / 86400000)
 
-    colunas[lead.statusFunil].push({
-      ...lead,
+    colunas[rest.statusFunil].push({
+      ...rest,
+      responsavel: rId ? responsaveisMap[rId] || null : null,
       diasNaEtapa,
-      followUpEnviados: conversas[0]?.followUpEnviados ?? [],
+      followUpEnviados: conversasMap[rest.id]?.followUpEnviados ?? [],
     })
   }
 
   return NextResponse.json({
     colunas,
-    total: leads.length,
+    total: (leads || []).length,
   })
 }

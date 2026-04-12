@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
-import type { TipoMensagem } from "@/generated/prisma/enums"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
+import type { TipoMensagem } from "@/types/database"
 import { adicionarAoBuffer } from "@/lib/agente/buffer"
 import { transcreverAudio, descreverImagem } from "@/lib/agente/processar-midia"
 import { criarLeadKommo } from "@/lib/kommo"
@@ -369,20 +369,23 @@ export async function POST(request: NextRequest) {
     console.log("[Webhook] Evento de conexão:", statusConexao)
 
     if (statusConexao === "disconnected" || statusConexao === "close") {
-      await prisma.configWhatsapp.updateMany({
-        where: { ativo: true },
-        data: { ativo: false },
-      })
+      await supabaseAdmin
+        .from("config_whatsapp")
+        .update({ ativo: false, atualizadoEm: agora() })
+        .eq("ativo", true)
       console.log("[Webhook] WhatsApp desconectado — ativo setado para false")
     } else if (statusConexao === "connected") {
-      const config = await prisma.configWhatsapp.findFirst({
-        orderBy: { criadoEm: "desc" },
-      })
+      const { data: config } = await supabaseAdmin
+        .from("config_whatsapp")
+        .select("*")
+        .order("criadoEm", { ascending: false })
+        .limit(1)
+        .single()
       if (config) {
-        await prisma.configWhatsapp.update({
-          where: { id: config.id },
-          data: { ativo: true },
-        })
+        await supabaseAdmin
+          .from("config_whatsapp")
+          .update({ ativo: true, atualizadoEm: agora() })
+          .eq("id", config.id)
         console.log("[Webhook] WhatsApp conectado — ativo setado para true")
 
         // Configurar privacidade: sempre online + sem visto por último
@@ -426,9 +429,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Dedup: verificar se já processou
-    const existe = await prisma.mensagemWhatsapp.findUnique({
-      where: { messageIdWhatsapp: msg.id },
-    })
+    const { data: existe } = await supabaseAdmin
+      .from("mensagens_whatsapp")
+      .select("id")
+      .eq("messageIdWhatsapp", msg.id)
+      .limit(1)
+      .maybeSingle()
     if (existe) {
       console.warn("[Webhook] Ignorada (duplicada)", { messageId: msg.id })
       continue
@@ -440,7 +446,12 @@ export async function POST(request: NextRequest) {
 
     // Download mídia: 3 estratégias (base64 inline → URLs diretas → POST /message/download)
     if (msg.tipo !== "texto") {
-      const configWa = await prisma.configWhatsapp.findFirst({ where: { ativo: true } })
+      const { data: configWa } = await supabaseAdmin
+        .from("config_whatsapp")
+        .select("*")
+        .eq("ativo", true)
+        .limit(1)
+        .maybeSingle()
       const uazapiUrl = configWa?.uazapiUrl || ""
       const uazapiToken = configWa?.instanceToken || ""
 
@@ -485,53 +496,88 @@ export async function POST(request: NextRequest) {
     }
 
     // Encontrar ou criar lead pelo whatsapp
-    let lead = await prisma.lead.findUnique({
-      where: { whatsapp: msg.numero },
-    })
+    const { data: leadExistente } = await supabaseAdmin
+      .from("leads")
+      .select("*")
+      .eq("whatsapp", msg.numero)
+      .limit(1)
+      .maybeSingle()
+
+    let lead = leadExistente
 
     if (lead && lead.deletadoEm) {
       // Lead foi deletado mas recebeu nova mensagem — reativar
-      lead = await prisma.lead.update({
-        where: { id: lead.id },
-        data: {
+      const { data: leadAtualizado } = await supabaseAdmin
+        .from("leads")
+        .update({
           deletadoEm: null,
           nome: msg.nomeContato?.trim() || lead.nome,
-        },
-      })
+          atualizadoEm: agora(),
+        })
+        .eq("id", lead.id)
+        .select()
+        .single()
+      lead = leadAtualizado
     }
 
     if (!lead) {
-      const usuarioIa = await prisma.usuario.findFirst({
-        where: { tipo: "ia", ativo: true, deletadoEm: null },
-      })
+      const { data: usuarioIa } = await supabaseAdmin
+        .from("usuarios")
+        .select("id")
+        .eq("tipo", "ia")
+        .eq("ativo", true)
+        .is("deletadoEm", null)
+        .limit(1)
+        .maybeSingle()
       const nomeLead = msg.nomeContato?.trim() || `WhatsApp ${msg.numero}`
-      lead = await prisma.lead.create({
-        data: {
+      const { data: novoLead } = await supabaseAdmin
+        .from("leads")
+        .insert({
+          id: gerarId(),
           nome: nomeLead,
           whatsapp: msg.numero,
           origem: "whatsapp",
           responsavelId: usuarioIa?.id || null,
-        },
-      })
+          criadoEm: agora(),
+          atualizadoEm: agora(),
+        })
+        .select()
+        .single()
+      lead = novoLead
       // Criar lead no Kommo CRM (fire-and-forget)
       criarLeadKommo(nomeLead, msg.numero).catch(() => {})
     }
 
     // Encontrar ou criar conversa
-    let conversa = await prisma.conversa.findFirst({
-      where: { leadId: lead.id },
-      orderBy: { criadoEm: "desc" },
-    })
+    const { data: conversaExistente } = await supabaseAdmin
+      .from("conversas")
+      .select("*")
+      .eq("leadId", lead.id)
+      .order("criadoEm", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let conversa = conversaExistente
 
     if (!conversa) {
-      conversa = await prisma.conversa.create({
-        data: { leadId: lead.id },
-      })
+      const { data: novaConversa } = await supabaseAdmin
+        .from("conversas")
+        .insert({
+          id: gerarId(),
+          leadId: lead.id,
+          criadoEm: agora(),
+          atualizadoEm: agora(),
+        })
+        .select()
+        .single()
+      conversa = novaConversa
     }
 
     // Salvar mensagem
-    await prisma.mensagemWhatsapp.create({
-      data: {
+    await supabaseAdmin
+      .from("mensagens_whatsapp")
+      .insert({
+        id: gerarId(),
         conversaId: conversa.id,
         leadId: lead.id,
         messageIdWhatsapp: msg.id,
@@ -540,27 +586,29 @@ export async function POST(request: NextRequest) {
         remetente: "cliente",
         mediaUrl: storedMediaUrl,
         mediaType: msg.tipo !== "texto" ? msg.tipo : null,
-      },
-    })
+        criadoEm: agora(),
+      })
 
     // Atualizar ultimaMensagemEm na conversa
-    await prisma.conversa.update({
-      where: { id: conversa.id },
-      data: { ultimaMensagemEm: new Date() },
-    })
+    await supabaseAdmin
+      .from("conversas")
+      .update({ ultimaMensagemEm: agora(), atualizadoEm: agora() })
+      .eq("id", conversa.id)
 
     // Salvar foto no registro do lead (FotoLead) — só se descrição foi gerada
     if (msg.tipo === "imagem" && storedMediaUrl && descricaoImagem) {
       try {
-        await prisma.fotoLead.create({
-          data: {
+        await supabaseAdmin
+          .from("fotos_lead")
+          .insert({
+            id: gerarId(),
             leadId: lead.id,
             url: storedMediaUrl,
             descricao: descricaoImagem,
             tipoAnalise: "local_instalacao",
             ciclo: lead.cicloAtual,
-          },
-        })
+            criadoEm: agora(),
+          })
       } catch (err) {
         console.error("[Webhook] Erro ao salvar FotoLead:", err)
       }

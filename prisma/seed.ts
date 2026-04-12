@@ -1,74 +1,73 @@
-import { PrismaClient } from "../generated/prisma/client"
-import { PrismaPg } from "@prisma/adapter-pg"
+import { createClient } from "@supabase/supabase-js"
 import { hash } from "bcryptjs"
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
-const prisma = new PrismaClient({ adapter })
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 async function main() {
-  console.log("🌱 Iniciando seed da Central Innovate...")
+  console.log("Iniciando seed da Central Innovate...")
 
-  // ── Usuário Gestor (admin) ──────────────────────────────────────────────────
+  // -- Usuario Gestor (admin) --
   const senhaHash = await hash("innovate2026", 10)
 
-  const admin = await prisma.usuario.upsert({
-    where: { email: "admin@innovatebrazil.com" },
-    update: {},
-    create: {
-      nome: "Administrador",
-      email: "admin@innovatebrazil.com",
-      senha: senhaHash,
-      perfil: "gestor",
-      tipo: "humano",
-    },
-  })
-  console.log(`✅ Admin: ${admin.email}`)
+  const { data: existeAdmin } = await supabase
+    .from("usuarios")
+    .select("id")
+    .eq("email", "admin@innovatebrazil.com")
+    .maybeSingle()
 
-  // ── Usuário IA (Lívia) ──────────────────────────────────────────────────
+  if (!existeAdmin) {
+    const { data: admin } = await supabase
+      .from("usuarios")
+      .insert({
+        id: crypto.randomUUID(),
+        nome: "Administrador",
+        email: "admin@innovatebrazil.com",
+        senha: senhaHash,
+        perfil: "gestor",
+        tipo: "humano",
+      })
+      .select()
+      .single()
+    console.log(`Admin criado: ${admin?.email}`)
+  } else {
+    console.log("Admin ja existe: admin@innovatebrazil.com")
+  }
+
+  // -- Usuario IA (Livia) --
   const senhaIa = await hash("ia-livia-innovate-2026", 10)
 
-  const livia = await prisma.usuario.upsert({
-    where: { email: "livia@innovatebrazil.com" },
-    update: {},
-    create: {
-      nome: "Lívia",
-      email: "livia@innovatebrazil.com",
-      senha: senhaIa,
-      perfil: "atendente",
-      tipo: "ia",
-    },
-  })
-  console.log(`✅ Agente IA: ${livia.nome} (${livia.email})`)
+  const { data: existeLivia } = await supabase
+    .from("usuarios")
+    .select("id")
+    .eq("email", "livia@innovatebrazil.com")
+    .maybeSingle()
 
-  // ── Config Site ──────────────────────────────────────────────────────────────
-  await prisma.configSite.upsert({
-    where: { id: "default-config" },
-    update: {},
-    create: {
-      id: "default-config",
-      empresaNome: "Innovate Brazil",
-      empresaSegmento: "Painéis LED para comunicação visual",
-      whatsappNumero: "",
-      contatoTelefone: "",
-      contatoEndereco: "",
-      contatoCidade: "",
-      instagramUrl: "",
-    },
-  })
-  console.log("✅ ConfigSite criada")
+  if (!existeLivia) {
+    const { data: livia } = await supabase
+      .from("usuarios")
+      .insert({
+        id: crypto.randomUUID(),
+        nome: "Livia",
+        email: "livia@innovatebrazil.com",
+        senha: senhaIa,
+        perfil: "atendente",
+        tipo: "ia",
+      })
+      .select()
+      .single()
+    console.log(`Agente IA criado: ${livia?.nome} (${livia?.email})`)
+  } else {
+    console.log("Agente IA ja existe: livia@innovatebrazil.com")
+  }
 
-  console.log("\n🎉 Seed concluído!")
-  console.log("─────────────────────────────────────────")
+  console.log("\nSeed concluido!")
   console.log("Login admin: admin@innovatebrazil.com / innovate2026")
-  console.log("─────────────────────────────────────────")
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})

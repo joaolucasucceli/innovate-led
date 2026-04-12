@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { verificarStatus } from "@/lib/uazapi"
 
@@ -13,9 +13,12 @@ export async function GET(_request: NextRequest) {
   const auth = await requireRole("gestor")
   if (auth.error) return auth.error
 
-  const config = await prisma.configWhatsapp.findFirst({
-    orderBy: { criadoEm: "desc" },
-  })
+  const { data: config } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .order("criadoEm", { ascending: false })
+    .limit(1)
+    .single()
 
   if (!config) {
     return NextResponse.json({
@@ -51,10 +54,10 @@ export async function GET(_request: NextRequest) {
       const numero = resultado.jid.split("@")[0]
 
       if (!config.ativo || config.numeroWhatsapp !== numero) {
-        await prisma.configWhatsapp.update({
-          where: { id: config.id },
-          data: { ativo: true, numeroWhatsapp: numero },
-        })
+        await supabaseAdmin
+          .from("config_whatsapp")
+          .update({ ativo: true, numeroWhatsapp: numero, atualizadoEm: agora() })
+          .eq("id", config.id)
       }
 
       return NextResponse.json({
@@ -84,10 +87,10 @@ export async function GET(_request: NextRequest) {
     // Se a chamada ao Uazapi falhou, a instância provavelmente não existe mais
     // Marcar como desconectado ao invés de retornar dado velho
     if (config.ativo) {
-      await prisma.configWhatsapp.update({
-        where: { id: config.id },
-        data: { ativo: false },
-      })
+      await supabaseAdmin
+        .from("config_whatsapp")
+        .update({ ativo: false, atualizadoEm: agora() })
+        .eq("id", config.id)
     }
 
     return NextResponse.json({

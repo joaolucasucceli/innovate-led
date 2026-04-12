@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { redis } from "@/lib/redis"
 import { deletarLeadKommo } from "@/lib/kommo"
 import { requireAuth, requireAnyRole, requireRole } from "@/lib/auth-helpers"
@@ -14,31 +14,61 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
   const { id } = await params
 
-  const lead = await prisma.lead.findUnique({
-    where: { id, deletadoEm: null },
-    include: {
-      responsavel: {
-        select: { id: true, nome: true },
-      },
-      conversas: {
-        orderBy: [{ ciclo: "desc" }, { atualizadoEm: "desc" }],
-        include: {
-          mensagens: {
-            orderBy: { criadoEm: "asc" },
-          },
-        },
-      },
-      fotos: {
-        orderBy: { criadoEm: "desc" },
-      },
-    },
-  })
+  // Buscar lead
+  const { data: lead, error: leadError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .is("deletadoEm", null)
+    .single()
 
-  if (!lead) {
+  if (leadError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  return NextResponse.json(lead)
+  // Buscar responsável
+  let responsavel = null
+  if (lead.responsavelId) {
+    const { data: resp } = await supabaseAdmin
+      .from("usuarios")
+      .select("id, nome")
+      .eq("id", lead.responsavelId)
+      .single()
+    responsavel = resp
+  }
+
+  // Buscar conversas com mensagens
+  const { data: conversas } = await supabaseAdmin
+    .from("conversas")
+    .select("*")
+    .eq("leadId", id)
+    .order("ciclo", { ascending: false })
+    .order("atualizadoEm", { ascending: false })
+
+  const conversasComMensagens = await Promise.all(
+    (conversas || []).map(async (conversa) => {
+      const { data: mensagens } = await supabaseAdmin
+        .from("mensagens_whatsapp")
+        .select("*")
+        .eq("conversaId", conversa.id)
+        .order("criadoEm", { ascending: true })
+      return { ...conversa, mensagens: mensagens || [] }
+    })
+  )
+
+  // Buscar fotos
+  const { data: fotos } = await supabaseAdmin
+    .from("fotos_lead")
+    .select("*")
+    .eq("leadId", id)
+    .order("criadoEm", { ascending: false })
+
+  return NextResponse.json({
+    ...lead,
+    responsavel,
+    conversas: conversasComMensagens,
+    fotos: fotos || [],
+  })
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
@@ -56,15 +86,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     )
   }
 
-  const leadAtual = await prisma.lead.findUnique({
-    where: { id, deletadoEm: null },
-  })
+  const { data: leadAtual, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .is("deletadoEm", null)
+    .single()
 
-  if (!leadAtual) {
+  if (findError || !leadAtual) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
-  const dados = { ...parsed.data }
+  const dados: Record<string, unknown> = { ...parsed.data }
 
   // sobreOLead: APPEND, nunca overwrite
   if (dados.sobreOLead) {
@@ -76,31 +109,27 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   // Se whatsapp mudou, verificar unicidade
   if (dados.whatsapp && dados.whatsapp !== leadAtual.whatsapp) {
-    const existente = await prisma.lead.findUnique({
-      where: { whatsapp: dados.whatsapp },
-    })
+    const { data: existente } = await supabaseAdmin
+      .from("leads")
+      .select("id")
+      .eq("whatsapp", dados.whatsapp as string)
+      .limit(1)
+      .single()
     if (existente) {
       return NextResponse.json({ error: "WhatsApp já cadastrado" }, { status: 409 })
     }
   }
 
-  const leadAtualizado = await prisma.lead.update({
-    where: { id },
-    data: dados,
-    select: {
-      id: true,
-      nome: true,
-      whatsapp: true,
-      statusFunil: true,
-      origem: true,
-      sobreOLead: true,
-      responsavelId: true,
-      arquivado: true,
-      criadoEm: true,
-      atualizadoEm: true,
-    },
-  })
+  const { data: leadAtualizado, error: updateError } = await supabaseAdmin
+    .from("leads")
+    .update({ ...dados, atualizadoEm: agora() })
+    .eq("id", id)
+    .select("id, nome, whatsapp, statusFunil, origem, sobreOLead, responsavelId, arquivado, criadoEm, atualizadoEm")
+    .single()
 
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 })
+  }
 
   return NextResponse.json(leadAtualizado)
 }
@@ -111,34 +140,37 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
   const { id } = await params
 
-  const lead = await prisma.lead.findUnique({
-    where: { id },
-  })
+  const { data: lead, error: findError } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", id)
+    .single()
 
-  if (!lead) {
+  if (findError || !lead) {
     return NextResponse.json({ error: "Lead não encontrado" }, { status: 404 })
   }
 
   // Hard delete em cascata
   // 1. Limpar replyToId — tanto deste lead quanto de outros leads que referenciam mensagens deste
-  const mensagensDoLead = await prisma.mensagemWhatsapp.findMany({
-    where: { leadId: id },
-    select: { id: true },
-  })
-  const idsMsg = mensagensDoLead.map((m) => m.id)
+  const { data: mensagensDoLead } = await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .select("id")
+    .eq("leadId", id)
+
+  const idsMsg = (mensagensDoLead || []).map((m) => m.id)
 
   if (idsMsg.length > 0) {
-    await prisma.mensagemWhatsapp.updateMany({
-      where: { replyToId: { in: idsMsg } },
-      data: { replyToId: null },
-    })
+    await supabaseAdmin
+      .from("mensagens_whatsapp")
+      .update({ replyToId: null })
+      .in("replyToId", idsMsg)
   }
 
   // 2. Deletar em ordem de dependência (sequencial)
-  await prisma.mensagemWhatsapp.deleteMany({ where: { leadId: id } })
-  await prisma.fotoLead.deleteMany({ where: { leadId: id } })
-  await prisma.conversa.deleteMany({ where: { leadId: id } })
-  await prisma.lead.delete({ where: { id } })
+  await supabaseAdmin.from("mensagens_whatsapp").delete().eq("leadId", id)
+  await supabaseAdmin.from("fotos_lead").delete().eq("leadId", id)
+  await supabaseAdmin.from("conversas").delete().eq("leadId", id)
+  await supabaseAdmin.from("leads").delete().eq("id", id)
 
   // 5. Limpar memória e buffer da IA no Redis
   const chatId = `${lead.whatsapp}@s.whatsapp.net`

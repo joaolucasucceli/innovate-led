@@ -1,18 +1,19 @@
-import { prisma } from "@/lib/prisma"
-import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
+import type { StatusFunil, EtapaConversa, Lead } from "@/types/database"
 
 /** Atualiza o statusFunil de um lead + ultimaMovimentacaoEm */
 export async function sincronizarFunil(
   leadId: string,
   novoStatus: StatusFunil
 ): Promise<void> {
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: {
+  await supabaseAdmin
+    .from("leads")
+    .update({
       statusFunil: novoStatus,
-      ultimaMovimentacaoEm: new Date(),
-    },
-  })
+      ultimaMovimentacaoEm: agora(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", leadId)
 }
 
 /** Avança a etapa de uma conversa */
@@ -20,10 +21,10 @@ export async function avancarEtapa(
   conversaId: string,
   novaEtapa: EtapaConversa
 ): Promise<void> {
-  await prisma.conversa.update({
-    where: { id: conversaId },
-    data: { etapa: novaEtapa },
-  })
+  await supabaseAdmin
+    .from("conversas")
+    .update({ etapa: novaEtapa, atualizadoEm: agora() })
+    .eq("id", conversaId)
 }
 
 interface ResultadoNovoCiclo {
@@ -37,10 +38,17 @@ interface ResultadoNovoCiclo {
  * Incrementa cicloAtual, reseta statusFunil e cria nova conversa vinculada ao ciclo.
  */
 export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo> {
-  const lead = await prisma.lead.findUniqueOrThrow({ where: { id: leadId } })
+  const { data: lead, error } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("id", leadId)
+    .single()
 
-  const statusAnterior = lead.statusFunil
-  const novoCiclo = lead.cicloAtual + 1
+  if (error || !lead) throw new Error(`Lead ${leadId} não encontrado`)
+
+  const typedLead = lead as Lead
+  const statusAnterior = typedLead.statusFunil
+  const novoCiclo = typedLead.cicloAtual + 1
   const dataFormatada = new Date().toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -50,33 +58,36 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
 
   const notaRetorno = `\n\n[Ciclo ${novoCiclo} iniciado em ${dataFormatada}]: Contato retornou via WhatsApp. Status anterior: ${statusAnterior}.`
 
-  const [novaConversa] = await prisma.$transaction([
-    prisma.conversa.create({
-      data: {
-        leadId,
-        etapa: "acolhimento",
-        ciclo: novoCiclo,
-      },
-    }),
-    prisma.lead.update({
-      where: { id: leadId },
-      data: {
-        cicloAtual: novoCiclo,
-        ciclosCompletos: lead.ciclosCompletos + 1,
-        ehRetorno: true,
-        statusFunil: "acolhimento",
-        ultimaMovimentacaoEm: new Date(),
-        arquivado: false,
-        arquivadoEm: null,
-        sobreOLead: lead.sobreOLead
-          ? `${lead.sobreOLead}${notaRetorno}`
-          : notaRetorno.trim(),
-      },
-    }),
-  ])
+  const conversaId = gerarId()
+
+  // Criar conversa
+  await supabaseAdmin.from("conversas").insert({
+    id: conversaId,
+    leadId,
+    etapa: "acolhimento",
+    ciclo: novoCiclo,
+  })
+
+  // Atualizar lead
+  await supabaseAdmin
+    .from("leads")
+    .update({
+      cicloAtual: novoCiclo,
+      ciclosCompletos: typedLead.ciclosCompletos + 1,
+      ehRetorno: true,
+      statusFunil: "acolhimento",
+      ultimaMovimentacaoEm: agora(),
+      arquivado: false,
+      arquivadoEm: null,
+      sobreOLead: typedLead.sobreOLead
+        ? `${typedLead.sobreOLead}${notaRetorno}`
+        : notaRetorno.trim(),
+      atualizadoEm: agora(),
+    })
+    .eq("id", leadId)
 
   return {
-    conversaId: novaConversa.id,
+    conversaId,
     cicloAtual: novoCiclo,
     statusAnterior,
   }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(request: NextRequest) {
@@ -12,26 +12,39 @@ export async function GET(request: NextRequest) {
   const porPagina = Number(searchParams.get("porPagina") || "10")
   const status = searchParams.get("status")
 
-  const where: Record<string, unknown> = {}
+  let query = supabaseAdmin
+    .from("solicitacoes_alteracao")
+    .select("*", { count: "exact" })
+    .order("criadoEm", { ascending: false })
+    .range((pagina - 1) * porPagina, pagina * porPagina - 1)
 
-  if (status) where.status = status
+  if (status) query = query.eq("status", status)
 
-  const [dados, total] = await Promise.all([
-    prisma.solicitacaoAlteracao.findMany({
-      where,
-      include: {
-        criadoPor: {
-          select: { id: true, nome: true, email: true },
-        },
-      },
-      skip: (pagina - 1) * porPagina,
-      take: porPagina,
-      orderBy: { criadoEm: "desc" },
-    }),
-    prisma.solicitacaoAlteracao.count({ where }),
-  ])
+  const { data: solicitacoes, count, error } = await query
 
-  return NextResponse.json({ dados, total, pagina, porPagina })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Buscar criadores
+  const criadoPorIds = [...new Set((solicitacoes || []).map((s) => s.criadoPorId))]
+  let criadoresMap: Record<string, { id: string; nome: string; email: string }> = {}
+  if (criadoPorIds.length > 0) {
+    const { data: criadores } = await supabaseAdmin
+      .from("usuarios")
+      .select("id, nome, email")
+      .in("id", criadoPorIds)
+    if (criadores) {
+      criadoresMap = Object.fromEntries(criadores.map((c) => [c.id, c]))
+    }
+  }
+
+  const dados = (solicitacoes || []).map((s) => ({
+    ...s,
+    criadoPor: criadoresMap[s.criadoPorId] || null,
+  }))
+
+  return NextResponse.json({ dados, total: count ?? 0, pagina, porPagina })
 }
 
 export async function POST(request: NextRequest) {
@@ -48,18 +61,27 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const solicitacao = await prisma.solicitacaoAlteracao.create({
-    data: {
+  const { data: solicitacao, error } = await supabaseAdmin
+    .from("solicitacoes_alteracao")
+    .insert({
+      id: gerarId(),
       titulo,
       descricao,
       criadoPorId: auth.session.user.id,
-    },
-    include: {
-      criadoPor: {
-        select: { id: true, nome: true, email: true },
-      },
-    },
-  })
+    })
+    .select()
+    .single()
 
-  return NextResponse.json(solicitacao, { status: 201 })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Buscar criador
+  const { data: criadoPor } = await supabaseAdmin
+    .from("usuarios")
+    .select("id, nome, email")
+    .eq("id", auth.session.user.id)
+    .single()
+
+  return NextResponse.json({ ...solicitacao, criadoPor }, { status: 201 })
 }

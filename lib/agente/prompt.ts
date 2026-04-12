@@ -9,19 +9,20 @@ interface ContextoLead {
   conversaId?: string
 }
 
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { obterSaudacao } from "@/lib/agente/horario-comercial"
 
 /** Carrega base de conhecimento do banco (ou fallback hardcoded) */
 async function carregarBaseConhecimento(): Promise<string> {
   try {
-    const artigos = await prisma.artigoDocumentacao.findMany({
-      where: { secao: "base-conhecimento", ativo: true },
-      orderBy: { ordem: "asc" },
-      select: { titulo: true, conteudo: true },
-    })
+    const { data: artigos } = await supabaseAdmin
+      .from("artigos_documentacao")
+      .select("titulo, conteudo")
+      .eq("secao", "base-conhecimento")
+      .eq("ativo", true)
+      .order("ordem", { ascending: true })
 
-    if (artigos.length > 0) {
+    if (artigos && artigos.length > 0) {
       return artigos.map((a) => `### ${a.titulo}\n${a.conteudo}`).join("\n\n")
     }
   } catch {
@@ -153,7 +154,7 @@ Aguardar resposta do cliente.
 
 "Para começar, qual seria o objetivo do painel?"
 
-"Por exemplo: divulgação, fachada, eventos, comunicação interna..."
+"Por exemplo: divulgação, fachada, eventos, comunica��ão interna..."
 
 - Se resposta clara → Salvar via \`salvar_qualificacao\` e IR PARA Passo 2.2
 - Se resposta vaga → "Só para alinhar melhor: esse painel será usado para mostrar conteúdos como vídeos, imagens ou anúncios, correto?"

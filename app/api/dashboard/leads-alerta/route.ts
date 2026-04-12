@@ -1,38 +1,23 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET() {
   const { error } = await requireAuth()
   if (error) return error
 
-  const ha3dias = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+  const ha3dias = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
-  const whereAlerta = {
-    deletadoEm: null,
-    arquivado: false,
-    statusFunil: { notIn: ["encaminhado"] as never[] },
-    OR: [
-      { ultimaMovimentacaoEm: { not: null, lt: ha3dias } },
-      { ultimaMovimentacaoEm: null, atualizadoEm: { lt: ha3dias } },
-    ],
-  }
+  // Buscar leads em alerta: não encaminhados, com mais de 3 dias sem movimentação
+  const { data: leads, count } = await supabaseAdmin
+    .from("leads")
+    .select("id, nome, statusFunil, ultimaMovimentacaoEm, atualizadoEm", { count: "exact" })
+    .is("deletadoEm", null)
+    .eq("arquivado", false)
+    .neq("statusFunil", "encaminhado")
+    .or(`ultimaMovimentacaoEm.lt.${ha3dias},ultimaMovimentacaoEm.is.null`)
+    .order("atualizadoEm", { ascending: true })
+    .limit(5)
 
-  const [leads, total] = await Promise.all([
-    prisma.lead.findMany({
-      where: whereAlerta,
-      select: {
-        id: true,
-        nome: true,
-        statusFunil: true,
-        ultimaMovimentacaoEm: true,
-        atualizadoEm: true,
-      },
-      orderBy: { atualizadoEm: "asc" },
-      take: 5,
-    }),
-    prisma.lead.count({ where: whereAlerta }),
-  ])
-
-  return NextResponse.json({ leads, total })
+  return NextResponse.json({ leads: leads || [], total: count ?? 0 })
 }

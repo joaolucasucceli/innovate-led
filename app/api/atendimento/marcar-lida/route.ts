@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 import { z } from "zod"
 
@@ -17,14 +17,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "conversaId obrigatório" }, { status: 400 })
   }
 
-  await prisma.mensagemWhatsapp.updateMany({
-    where: {
-      conversaId: parse.data.conversaId,
-      remetente: "paciente",
-      lidaEm: null,
-    },
-    data: { lidaEm: new Date() },
-  })
+  await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .update({ lidaEm: agora() })
+    .eq("conversaId", parse.data.conversaId)
+    .eq("remetente", "paciente")
+    .is("lidaEm", null)
 
   return NextResponse.json({ sucesso: true })
 }

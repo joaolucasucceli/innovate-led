@@ -1,8 +1,9 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { checkRateLimit, registrarTentativa, resetarTentativas } from "@/lib/rate-limit"
+import type { Usuario } from "@/types/database"
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -35,11 +36,14 @@ export const authOptions: NextAuthOptions = {
           // Se o Redis falhar, não bloquear o login
         }
 
-        let usuario
+        let usuario: Usuario | null = null
         try {
-          usuario = await prisma.usuario.findUnique({
-            where: { email: credentials.email },
-          })
+          const { data } = await supabaseAdmin
+            .from("usuarios")
+            .select("*")
+            .eq("email", credentials.email)
+            .single()
+          usuario = data
         } catch (err) {
           console.error("[Auth] Erro ao consultar banco:", err)
           return null

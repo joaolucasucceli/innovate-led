@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { validarCronSecret } from "@/lib/cron-auth"
 import {
   buscarConversasDoDiaAnterior,
@@ -49,15 +49,16 @@ export async function GET(request: NextRequest) {
   const leadsUnicos = new Set(conversas.map((c) => c.lead.whatsapp))
   const analise = await gerarAnalise(PROMPT_PUBLICO, texto)
 
-  await prisma.relatorioIA.create({
-    data: {
+  await supabaseAdmin
+    .from("relatorios_ia")
+    .insert({
+      id: gerarId(),
       tipo: "publico",
       conteudo: analise,
-      dataRef,
+      dataRef: dataRef.toISOString(),
       conversas: conversas.length,
       leads: leadsUnicos.size,
-    },
-  })
+    })
 
   return NextResponse.json({
     tipo: "publico",

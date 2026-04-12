@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { configurarWebhook } from "@/lib/uazapi"
 import { z } from "zod"
@@ -18,11 +18,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "configId obrigatório" }, { status: 400 })
   }
 
-  const config = await prisma.configWhatsapp.findUnique({
-    where: { id: parse.data.configId },
-  })
+  const { data: config, error: findError } = await supabaseAdmin
+    .from("config_whatsapp")
+    .select("*")
+    .eq("id", parse.data.configId)
+    .single()
 
-  if (!config) {
+  if (findError || !config) {
     return NextResponse.json({ error: "Instância não encontrada" }, { status: 404 })
   }
 
@@ -39,10 +41,10 @@ export async function POST(req: Request) {
   try {
     const webhookToken = process.env.WEBHOOK_SECRET || process.env.API_SECRET || ""
     await configurarWebhook(config.uazapiUrl, config.instanceToken, webhookUrl, webhookToken)
-    await prisma.configWhatsapp.update({
-      where: { id: config.id },
-      data: { webhookUrl },
-    })
+    await supabaseAdmin
+      .from("config_whatsapp")
+      .update({ webhookUrl, atualizadoEm: agora() })
+      .eq("id", config.id)
 
     return NextResponse.json({ sucesso: true, webhookUrl })
   } catch (err) {

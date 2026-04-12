@@ -1,7 +1,7 @@
 import { openai } from "@/lib/openai"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { sincronizarFunil, avancarEtapa } from "@/lib/agente/kanban-sync"
-import type { StatusFunil, EtapaConversa } from "@/generated/prisma/client"
+import type { StatusFunil, EtapaConversa } from "@/types/database"
 
 const ETAPAS_CLASSIFICAVEIS: StatusFunil[] = [
   "acolhimento",
@@ -27,29 +27,28 @@ export async function classificarEtapaConversa(
   conversaId: string,
   leadId: string
 ): Promise<void> {
-  const [lead] = await Promise.all([
-    prisma.lead.findUnique({
-      where: { id: leadId },
-      select: { statusFunil: true },
-    }),
-  ])
+  const { data: lead } = await supabaseAdmin
+    .from("leads")
+    .select("statusFunil")
+    .eq("id", leadId)
+    .single()
 
   if (!lead) return
 
-  const etapaAtual = lead.statusFunil
+  const etapaAtual = lead.statusFunil as StatusFunil
 
   // Já na última etapa — não há para onde avançar
   if (etapaAtual === "encaminhado") return
 
   // Buscar últimas 15 mensagens (ordem cronológica)
-  const mensagens = await prisma.mensagemWhatsapp.findMany({
-    where: { conversaId },
-    orderBy: { criadoEm: "desc" },
-    take: 15,
-    select: { remetente: true, conteudo: true },
-  })
+  const { data: mensagens } = await supabaseAdmin
+    .from("mensagens_whatsapp")
+    .select("remetente, conteudo")
+    .eq("conversaId", conversaId)
+    .order("criadoEm", { ascending: false })
+    .limit(15)
 
-  if (mensagens.length === 0) return
+  if (!mensagens || mensagens.length === 0) return
 
   const historico = mensagens
     .reverse()

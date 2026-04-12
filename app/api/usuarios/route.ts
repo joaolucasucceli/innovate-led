@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { hash } from "bcryptjs"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { criarUsuarioSchema } from "@/lib/validations/usuario"
 
@@ -16,41 +16,28 @@ export async function GET(request: NextRequest) {
   const ativo = searchParams.get("ativo")
   const busca = searchParams.get("busca")
 
-  const where: Record<string, unknown> = {
-    deletadoEm: null,
-  }
+  let query = supabaseAdmin
+    .from("usuarios")
+    .select("id, nome, email, perfil, tipo, ativo, criadoEm", { count: "exact" })
+    .is("deletadoEm", null)
+    .order("criadoEm", { ascending: false })
+    .range((pagina - 1) * porPagina, pagina * porPagina - 1)
 
-  if (perfil) where.perfil = perfil
+  if (perfil) query = query.eq("perfil", perfil)
   if (ativo !== null && ativo !== undefined && ativo !== "") {
-    where.ativo = ativo === "true"
+    query = query.eq("ativo", ativo === "true")
   }
   if (busca) {
-    where.OR = [
-      { nome: { contains: busca, mode: "insensitive" } },
-      { email: { contains: busca, mode: "insensitive" } },
-    ]
+    query = query.or(`nome.ilike.%${busca}%,email.ilike.%${busca}%`)
   }
 
-  const [dados, total] = await Promise.all([
-    prisma.usuario.findMany({
-      where,
-      select: {
-        id: true,
-        nome: true,
-        email: true,
-        perfil: true,
-        tipo: true,
-        ativo: true,
-        criadoEm: true,
-      },
-      skip: (pagina - 1) * porPagina,
-      take: porPagina,
-      orderBy: { criadoEm: "desc" },
-    }),
-    prisma.usuario.count({ where }),
-  ])
+  const { data: dados, count, error } = await query
 
-  return NextResponse.json({ dados, total, pagina, porPagina })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ dados: dados || [], total: count ?? 0, pagina, porPagina })
 }
 
 export async function POST(request: NextRequest) {
@@ -69,7 +56,13 @@ export async function POST(request: NextRequest) {
 
   const { nome, email, senha, perfil, tipo } = parsed.data
 
-  const existente = await prisma.usuario.findUnique({ where: { email } })
+  const { data: existente } = await supabaseAdmin
+    .from("usuarios")
+    .select("id")
+    .eq("email", email)
+    .limit(1)
+    .single()
+
   if (existente) {
     return NextResponse.json(
       { error: "Email já cadastrado" },
@@ -79,18 +72,15 @@ export async function POST(request: NextRequest) {
 
   const senhaHash = await hash(senha, 12)
 
-  const usuario = await prisma.usuario.create({
-    data: { nome, email, senha: senhaHash, perfil, tipo },
-    select: {
-      id: true,
-      nome: true,
-      email: true,
-      perfil: true,
-      tipo: true,
-      ativo: true,
-      criadoEm: true,
-    },
-  })
+  const { data: usuario, error } = await supabaseAdmin
+    .from("usuarios")
+    .insert({ id: gerarId(), nome, email, senha: senhaHash, perfil, tipo })
+    .select("id, nome, email, perfil, tipo, ativo, criadoEm")
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   return NextResponse.json(usuario, { status: 201 })
 }

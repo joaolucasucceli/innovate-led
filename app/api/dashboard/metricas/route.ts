@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 const labelsFunil: Record<string, string> = {
@@ -58,11 +58,6 @@ export async function GET(request: NextRequest) {
   const dataInicio = calcularDataInicio(periodo)
   const dataFim = new Date()
 
-  const filtroBase = { deletadoEm: null, arquivado: false }
-  const filtroPeriodo = dataInicio
-    ? { criadoEm: { gte: dataInicio } }
-    : {}
-
   const spHoje = new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",
@@ -72,57 +67,76 @@ export async function GET(request: NextRequest) {
   const [diaH, mesH, anoH] = spHoje.split("/")
   const inicioHoje = new Date(`${anoH}-${mesH}-${diaH}T00:00:00-03:00`)
 
+  // Base query builder
+  const baseQuery = () =>
+    supabaseAdmin
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .is("deletadoEm", null)
+      .eq("arquivado", false)
+
+  const periodoQuery = () => {
+    const q = baseQuery()
+    return dataInicio ? q.gte("criadoEm", dataInicio.toISOString()) : q
+  }
+
   const [
-    totalLeads,
-    leadsNovosNoPeriodo,
-    leadsConvertidos,
-    leadsPorEtapaRaw,
-    leadsPorOrigemRaw,
-    leadsHoje,
+    totalLeadsRes,
+    leadsNovosRes,
+    leadsConvertidosRes,
+    leadsHojeRes,
+    // Por etapa — queries separadas
+    acolhimentoRes,
+    qualificacaoRes,
+    encaminhadoRes,
   ] = await Promise.all([
-    prisma.lead.count({ where: filtroBase }),
-    prisma.lead.count({ where: { ...filtroBase, ...filtroPeriodo } }),
-    prisma.lead.count({
-      where: {
-        ...filtroBase,
-        statusFunil: { in: etapasConvertidas as never[] },
-      },
-    }),
-    prisma.lead.groupBy({
-      by: ["statusFunil"],
-      _count: { id: true },
-      where: filtroBase,
-    }),
-    prisma.lead.groupBy({
-      by: ["origem"],
-      _count: { id: true },
-      where: filtroBase,
-    }),
-    prisma.lead.count({
-      where: { ...filtroBase, criadoEm: { gte: inicioHoje } },
-    }),
+    baseQuery(),
+    periodoQuery(),
+    baseQuery().in("statusFunil", etapasConvertidas),
+    baseQuery().gte("criadoEm", inicioHoje.toISOString()),
+    baseQuery().eq("statusFunil", "acolhimento"),
+    baseQuery().eq("statusFunil", "qualificacao"),
+    baseQuery().eq("statusFunil", "encaminhado"),
   ])
+
+  const totalLeads = totalLeadsRes.count ?? 0
+  const leadsNovosNoPeriodo = leadsNovosRes.count ?? 0
+  const leadsConvertidos = leadsConvertidosRes.count ?? 0
+  const leadsHoje = leadsHojeRes.count ?? 0
+
+  const etapaCounts: Record<string, number> = {
+    acolhimento: acolhimentoRes.count ?? 0,
+    qualificacao: qualificacaoRes.count ?? 0,
+    encaminhado: encaminhadoRes.count ?? 0,
+  }
 
   const taxaConversao =
     totalLeads > 0
       ? Math.round((leadsConvertidos / totalLeads) * 1000) / 10
       : 0
 
-  const leadsPorEtapa = ordemFunil.map((etapa) => {
-    const encontrado = leadsPorEtapaRaw.find(
-      (g) => g.statusFunil === etapa
-    )
-    return {
-      etapa,
-      label: labelsFunil[etapa] || etapa,
-      total: encontrado?._count?.id ?? 0,
-      cor: coresFunil[etapa] || "#94a3b8",
-    }
-  })
+  const leadsPorEtapa = ordemFunil.map((etapa) => ({
+    etapa,
+    label: labelsFunil[etapa] || etapa,
+    total: etapaCounts[etapa] ?? 0,
+    cor: coresFunil[etapa] || "#94a3b8",
+  }))
 
-  const leadsPorOrigem = leadsPorOrigemRaw.map((g) => ({
-    origem: g.origem || "Não informada",
-    total: g._count?.id ?? 0,
+  // Leads por origem
+  const { data: leadsOrigem } = await supabaseAdmin
+    .from("leads")
+    .select("origem")
+    .is("deletadoEm", null)
+    .eq("arquivado", false)
+
+  const origemMap: Record<string, number> = {}
+  for (const l of leadsOrigem || []) {
+    const key = l.origem || "Não informada"
+    origemMap[key] = (origemMap[key] || 0) + 1
+  }
+  const leadsPorOrigem = Object.entries(origemMap).map(([origem, total]) => ({
+    origem,
+    total,
   }))
 
   return NextResponse.json({

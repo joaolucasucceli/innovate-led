@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 
 const labelsFunil: Record<string, string> = {
@@ -35,47 +35,49 @@ export async function GET(request: NextRequest) {
     : agora
   const origem = searchParams.get("origem") || undefined
 
-  const filtroBase = {
-    deletadoEm: null,
-    arquivado: false,
-    criadoEm: { gte: dataInicio, lte: dataFim },
-    ...(origem ? { origem } : {}),
+  const baseQuery = () => {
+    let q = supabaseAdmin
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .is("deletadoEm", null)
+      .eq("arquivado", false)
+      .gte("criadoEm", dataInicio.toISOString())
+      .lte("criadoEm", dataFim.toISOString())
+    if (origem) q = q.eq("origem", origem)
+    return q
   }
 
-  const [leadsPorEtapaRaw, totalEntradas, leadsConvertidos, leadsParaTempoMedio] =
-    await Promise.all([
-      prisma.lead.groupBy({
-        by: ["statusFunil"],
-        _count: { id: true },
-        where: filtroBase,
-      }),
-      prisma.lead.count({ where: filtroBase }),
-      prisma.lead.count({
-        where: {
-          ...filtroBase,
-          statusFunil: "encaminhado",
-        },
-      }),
-      prisma.lead.findMany({
-        where: {
-          ...filtroBase,
-          statusFunil: "encaminhado",
-          ultimaMovimentacaoEm: { not: null },
-        },
-        select: { criadoEm: true, ultimaMovimentacaoEm: true },
-        take: 100,
-      }),
-    ])
+  const [
+    totalEntradasRes,
+    leadsConvertidosRes,
+    acolhimentoRes,
+    qualificacaoRes,
+    encaminhadoRes,
+  ] = await Promise.all([
+    baseQuery(),
+    baseQuery().eq("statusFunil", "encaminhado"),
+    baseQuery().eq("statusFunil", "acolhimento"),
+    baseQuery().eq("statusFunil", "qualificacao"),
+    baseQuery().eq("statusFunil", "encaminhado"),
+  ])
+
+  const totalEntradas = totalEntradasRes.count ?? 0
+  const leadsConvertidos = leadsConvertidosRes.count ?? 0
+
+  const etapaCounts: Record<string, number> = {
+    acolhimento: acolhimentoRes.count ?? 0,
+    qualificacao: qualificacaoRes.count ?? 0,
+    encaminhado: encaminhadoRes.count ?? 0,
+  }
 
   const funil = ordemFunil.map((etapa, idx) => {
-    const encontrado = leadsPorEtapaRaw.find((g) => g.statusFunil === etapa)
-    const total = encontrado?._count?.id ?? 0
+    const total = etapaCounts[etapa] ?? 0
     const anterior =
       idx === 0
         ? totalEntradas
         : (ordemFunil
             .slice(0, idx)
-            .map((e) => leadsPorEtapaRaw.find((g) => g.statusFunil === e)?._count?.id ?? 0)
+            .map((e) => etapaCounts[e] ?? 0)
             .find((v) => v > 0) ?? totalEntradas)
     const conversao = anterior > 0 ? Math.round((total / anterior) * 1000) / 10 : 0
 
@@ -91,14 +93,29 @@ export async function GET(request: NextRequest) {
   const taxaConversaoGeral =
     totalEntradas > 0 ? Math.round((leadsConvertidos / totalEntradas) * 1000) / 10 : 0
 
+  // Tempo médio de etapas
+  let leadsBaseQ = supabaseAdmin
+    .from("leads")
+    .select("criadoEm, ultimaMovimentacaoEm")
+    .is("deletadoEm", null)
+    .eq("arquivado", false)
+    .gte("criadoEm", dataInicio.toISOString())
+    .lte("criadoEm", dataFim.toISOString())
+    .eq("statusFunil", "encaminhado")
+    .not("ultimaMovimentacaoEm", "is", null)
+    .limit(100)
+  if (origem) leadsBaseQ = leadsBaseQ.eq("origem", origem)
+
+  const { data: leadsParaTempoMedio } = await leadsBaseQ
+
   const tempoMedioEtapas =
-    leadsParaTempoMedio.length > 0
+    (leadsParaTempoMedio || []).length > 0
       ? Math.round(
-          leadsParaTempoMedio.reduce((acc, l) => {
+          (leadsParaTempoMedio || []).reduce((acc, l) => {
             if (!l.ultimaMovimentacaoEm) return acc
-            return acc + (l.ultimaMovimentacaoEm.getTime() - l.criadoEm.getTime())
+            return acc + (new Date(l.ultimaMovimentacaoEm).getTime() - new Date(l.criadoEm).getTime())
           }, 0) /
-            leadsParaTempoMedio.length /
+            (leadsParaTempoMedio || []).length /
             (1000 * 60 * 60 * 24)
         )
       : 0

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { supabaseAdmin } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(req: Request) {
@@ -15,17 +15,33 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "conversaId obrigatório" }, { status: 400 })
   }
 
-  const mensagens = await prisma.mensagemWhatsapp.findMany({
-    where: { conversaId },
-    orderBy: { criadoEm: "desc" },
-    take: limite + 1,
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    include: {
-      replyTo: {
-        select: { id: true, conteudo: true, remetente: true },
-      },
-    },
-  })
+  // Para cursor-based pagination com Supabase:
+  // Se temos cursor, buscamos mensagens mais antigas que o cursor
+  let query = supabaseAdmin
+    .from("mensagens_whatsapp")
+    .select("*, replyTo:mensagens_whatsapp!replyToId(id, conteudo, remetente)")
+    .eq("conversaId", conversaId)
+    .order("criadoEm", { ascending: false })
+    .limit(limite + 1)
+
+  if (cursor) {
+    // Buscar criadoEm do cursor para filtrar mensagens anteriores
+    const { data: cursorMsg } = await supabaseAdmin
+      .from("mensagens_whatsapp")
+      .select("criadoEm")
+      .eq("id", cursor)
+      .single()
+
+    if (cursorMsg) {
+      query = query.lt("criadoEm", cursorMsg.criadoEm)
+    }
+  }
+
+  const { data: mensagens } = await query
+
+  if (!mensagens) {
+    return NextResponse.json({ mensagens: [], proximoCursor: null })
+  }
 
   const temMais = mensagens.length > limite
   if (temMais) mensagens.pop()
