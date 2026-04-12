@@ -28,7 +28,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     .from("leads")
     .update({
       arquivado: novoArquivado,
-      arquivadoEm: novoArquivado ? new Date().toISOString() : null,
+      arquivadoEm: novoArquivado ? agora() : null,
       atualizadoEm: agora(),
     })
     .eq("id", id)

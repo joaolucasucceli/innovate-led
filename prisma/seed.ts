@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 import { hash } from "bcryptjs"
 
+function agora(): string {
+  return new Date().toISOString()
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -28,6 +32,7 @@ async function main() {
         senha: senhaHash,
         perfil: "gestor",
         tipo: "humano",
+        atualizadoEm: agora(),
       })
       .select()
       .single()
@@ -55,6 +60,7 @@ async function main() {
         senha: senhaIa,
         perfil: "atendente",
         tipo: "ia",
+        atualizadoEm: agora(),
       })
       .select()
       .single()

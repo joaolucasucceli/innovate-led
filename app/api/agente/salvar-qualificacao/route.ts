@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       .from("leads")
       .update({
         statusFunil: "qualificacao" as StatusFunil,
-        ultimaMovimentacaoEm: new Date().toISOString(),
+        ultimaMovimentacaoEm: agora(),
         atualizadoEm: agora(),
       })
       .eq("id", leadId)

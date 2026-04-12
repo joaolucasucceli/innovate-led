@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       .select("*")
       .eq("ativo", true)
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (configWa?.instanceToken) {
       await enviarDigitando(configWa.uazapiUrl, configWa.instanceToken, chatId, true)

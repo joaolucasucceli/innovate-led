@@ -66,6 +66,7 @@ export async function abrirNovoCiclo(leadId: string): Promise<ResultadoNovoCiclo
     leadId,
     etapa: "acolhimento",
     ciclo: novoCiclo,
+    atualizadoEm: agora(),
   })
 
   // Atualizar lead

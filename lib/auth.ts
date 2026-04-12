@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
             .from("usuarios")
             .select("*")
             .eq("email", credentials.email)
-            .single()
+            .maybeSingle()
           usuario = data
         } catch (err) {
           console.error("[Auth] Erro ao consultar banco:", err)

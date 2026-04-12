@@ -380,7 +380,7 @@ export async function POST(request: NextRequest) {
         .select("*")
         .order("criadoEm", { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
       if (config) {
         await supabaseAdmin
           .from("config_whatsapp")

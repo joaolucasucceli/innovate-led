@@ -75,7 +75,7 @@ async function obterConfigWhatsapp(): Promise<ConfigWhatsapp | null> {
     .select("*")
     .eq("ativo", true)
     .limit(1)
-    .single()
+    .maybeSingle()
   return data
 }
 

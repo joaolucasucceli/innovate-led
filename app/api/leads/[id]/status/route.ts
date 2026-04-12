@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   // Preparar dados de atualização
   const dataUpdate: Record<string, unknown> = {
     statusFunil: novoStatus,
-    ultimaMovimentacaoEm: new Date().toISOString(),
+    ultimaMovimentacaoEm: agora(),
     atualizadoEm: agora(),
   }
 

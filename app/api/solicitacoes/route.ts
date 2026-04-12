@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { supabaseAdmin, gerarId } from "@/lib/supabase"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
 export async function GET(request: NextRequest) {
@@ -68,6 +68,7 @@ export async function POST(request: NextRequest) {
       titulo,
       descricao,
       criadoPorId: auth.session.user.id,
+      atualizadoEm: agora(),
     })
     .select()
     .single()

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { hash } from "bcryptjs"
-import { supabaseAdmin, gerarId } from "@/lib/supabase"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireRole } from "@/lib/auth-helpers"
 import { criarUsuarioSchema } from "@/lib/validations/usuario"
 
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     .select("id")
     .eq("email", email)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (existente) {
     return NextResponse.json(
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   const { data: usuario, error } = await supabaseAdmin
     .from("usuarios")
-    .insert({ id: gerarId(), nome, email, senha: senhaHash, perfil, tipo })
+    .insert({ id: gerarId(), nome, email, senha: senhaHash, perfil, tipo, atualizadoEm: agora() })
     .select("id, nome, email, perfil, tipo, ativo, criadoEm")
     .single()
 

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     .select("id")
     .order("criadoEm", { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (existente) {
     await supabaseAdmin
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   } else {
     await supabaseAdmin
       .from("config_whatsapp")
-      .insert({ id: gerarId(), uazapiUrl, adminToken, instanceToken: "" })
+      .insert({ id: gerarId(), uazapiUrl, adminToken, instanceToken: "", atualizadoEm: agora() })
   }
 
   return NextResponse.json({ sucesso: true })

@@ -62,7 +62,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .select("id")
       .eq("email", dados.email as string)
       .limit(1)
-      .single()
+      .maybeSingle()
     if (emailExistente) {
       return NextResponse.json({ error: "Email já cadastrado" }, { status: 409 })
     }
@@ -115,7 +115,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   await supabaseAdmin
     .from("usuarios")
     .update({
-      deletadoEm: new Date().toISOString(),
+      deletadoEm: agora(),
       ativo: false,
       atualizadoEm: agora(),
     })

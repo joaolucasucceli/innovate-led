@@ -36,7 +36,7 @@ export async function POST(
       whatsapp: whatsappHash,
       email: null,
       sobreOLead: null,
-      deletadoEm: new Date().toISOString(),
+      deletadoEm: agora(),
       atualizadoEm: agora(),
     })
     .eq("id", leadId)

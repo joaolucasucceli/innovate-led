@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { supabaseAdmin, gerarId } from "@/lib/supabase"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { validarApiSecret } from "@/lib/api-auth"
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     .from("leads")
     .select("*")
     .eq("whatsapp", whatsapp)
-    .single()
+    .maybeSingle()
 
   let lead = leadExistente
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       .eq("ativo", true)
       .is("deletadoEm", null)
       .limit(1)
-      .single()
+      .maybeSingle()
 
     const { data: novoLead, error: erroCriar } = await supabaseAdmin
       .from("leads")
@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
         origem: "whatsapp",
         statusFunil: "qualificacao",
         responsavelId: usuarioIa?.id || null,
+        atualizadoEm: agora(),
       })
       .select()
       .single()
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     .eq("ciclo", lead.cicloAtual)
     .order("criadoEm", { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   return NextResponse.json({
     lead: {

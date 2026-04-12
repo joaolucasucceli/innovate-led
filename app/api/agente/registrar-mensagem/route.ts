@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       .eq("leadId", leadId)
       .order("criadoEm", { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (conversaExistente) {
       conversaId = conversaExistente.id
@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
         .insert({
           id: gerarId(),
           leadId,
+          atualizadoEm: agora(),
         })
         .select()
         .single()
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
   await supabaseAdmin
     .from("conversas")
     .update({
-      ultimaMensagemEm: new Date().toISOString(),
+      ultimaMensagemEm: agora(),
       atualizadoEm: agora(),
     })
     .eq("id", conversaId)

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { supabaseAdmin, gerarId } from "@/lib/supabase"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireAuth, requireAnyRole } from "@/lib/auth-helpers"
 import { criarLeadSchema } from "@/lib/validations/lead"
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     .select("id")
     .eq("whatsapp", whatsapp)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (existente) {
     return NextResponse.json(
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
   const { data: lead, error } = await supabaseAdmin
     .from("leads")
-    .insert({ id: gerarId(), ...parsed.data })
+    .insert({ id: gerarId(), ...parsed.data, atualizadoEm: agora() })
     .select("id, nome, whatsapp, statusFunil, origem, criadoEm")
     .single()
 

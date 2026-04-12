@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     .select("*")
     .eq("ativo", true)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (!configWa?.instanceToken) {
     return NextResponse.json({ enviados: 0, motivo: "sem_config" })

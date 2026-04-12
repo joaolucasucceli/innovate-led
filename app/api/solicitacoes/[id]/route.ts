@@ -25,7 +25,7 @@ export async function PATCH(
     .from("solicitacoes_alteracao")
     .update({
       status,
-      concluidoEm: status === "concluida" ? new Date().toISOString() : null,
+      concluidoEm: status === "concluida" ? agora() : null,
       atualizadoEm: agora(),
     })
     .eq("id", id)

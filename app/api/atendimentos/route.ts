@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       ehRetorno: true,
       statusFunil: "qualificacao",
       motivoPerda: null,
-      ultimaMovimentacaoEm: new Date().toISOString(),
+      ultimaMovimentacaoEm: agora(),
       atualizadoEm: agora(),
     })
     .eq("id", leadId)
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       leadId,
       ciclo: novoCiclo,
       etapa: "qualificacao",
+      atualizadoEm: agora(),
     })
 
   return NextResponse.json({ sucesso: true })

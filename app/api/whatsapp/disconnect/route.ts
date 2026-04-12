@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     .select("*")
     .order("criadoEm", { ascending: false })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   const instanceToken = config?.instanceToken || config?.adminToken
 

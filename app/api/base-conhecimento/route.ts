@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { supabaseAdmin, gerarId } from "@/lib/supabase"
+import { supabaseAdmin, gerarId, agora } from "@/lib/supabase"
 import { requireAuth, requireRole } from "@/lib/auth-helpers"
 
 const SECAO = "base-conhecimento"
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       secao: SECAO,
       ordem: (maxOrdem ?? -1) + 1,
       atualizadoPorId: auth.session!.user.id,
+      atualizadoEm: agora(),
     })
     .select()
     .single()

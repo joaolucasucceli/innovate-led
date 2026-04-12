@@ -13,7 +13,7 @@ export async function POST() {
     .select("*")
     .eq("ativo", true)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   const resultado = {
     followups: 0,
@@ -60,7 +60,7 @@ export async function POST() {
         await supabaseAdmin
           .from("conversas")
           .update({
-            encerradaEm: new Date().toISOString(),
+            encerradaEm: agora(),
             atualizadoEm: agora(),
           })
           .eq("id", conversa.id)
