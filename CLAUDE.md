@@ -129,7 +129,7 @@ Relatorios salvos na tabela `relatorios_ia`, visiveis em `/relatorios`.
 ### Convencao de Estrutura de Pastas
 
 - `app/(dashboard)/` — paginas do painel com sidebar
-- `app/api/agente/` — ferramentas do agente IA (5 endpoints)
+- `app/api/agente/` — ferramentas do agente IA (3 ferramentas + 4 endpoints de infraestrutura)
 - `app/api/cron/` — CRONs automaticos (4 endpoints)
 - `app/api/base-conhecimento/` — CRUD da base de conhecimento
 - `lib/agente/` — internos do agente: buffer, memoria, processamento de midia, prompt, ferramentas, sincronizacao do kanban, analise de conversas
