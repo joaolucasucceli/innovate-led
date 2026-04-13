@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createId } from "@paralleldrive/cuid2"
 import { supabaseAdmin, gerarId } from "@/lib/supabase"
 import { requireAuth } from "@/lib/auth-helpers"
 
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 
   const ext = arquivo.name.split(".").pop() || "jpg"
-  const nomeArquivo = `${id}/${createId()}.${ext}`
+  const nomeArquivo = `${id}/${gerarId()}.${ext}`
 
   const buffer = Buffer.from(await arquivo.arrayBuffer())
 
