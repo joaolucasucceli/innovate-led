@@ -24,7 +24,7 @@ export const supabaseAdmin = new Proxy({} as SupabaseClient, {
 })
 
 // ==========================================
-// Helper: gerar ID (substitui Prisma cuid())
+// Helper: gerar ID único (UUID v4)
 // ==========================================
 
 export function gerarId(): string {
@@ -32,7 +32,7 @@ export function gerarId(): string {
 }
 
 // ==========================================
-// Helper: timestamp atual ISO (substitui Prisma @updatedAt)
+// Helper: timestamp atual ISO
 // ==========================================
 
 export function agora(): string {

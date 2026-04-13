@@ -31,7 +31,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install
 
 # Seed (popular banco com usuarios iniciais)
-npx tsx prisma/seed.ts
+npx tsx scripts/seed.ts
 
 # Desenvolvimento
 npm run dev
@@ -129,7 +129,7 @@ Relatorios salvos na tabela `relatorios_ia`, visiveis em `/relatorios`.
 - `app/api/base-conhecimento/` — CRUD da base de conhecimento
 - `lib/agente/` — internos do agente: buffer, memoria, processamento de midia, prompt, ferramentas, sincronizacao do kanban, analise de conversas
 - `lib/kommo.ts` — integracao direta com Kommo CRM
-- `prisma/seed.ts` — seed Supabase com usuario IA Livia + admin
+- `scripts/seed.ts` — seed Supabase com usuario IA Livia + admin
 
 ### Paginas do Painel
 

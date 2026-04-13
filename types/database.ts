@@ -1,5 +1,4 @@
-// Central Innovate — Tipos do banco de dados
-// Equivalentes aos modelos Prisma, mapeados para tabelas PostgreSQL (Supabase)
+// Central Innovate — Tipos do banco de dados (PostgreSQL via Supabase)
 
 // ==========================================
 // Enums
@@ -189,7 +188,7 @@ export interface SolicitacaoComCriador extends SolicitacaoAlteracao {
 }
 
 // ==========================================
-// Mapa de tabelas (Prisma @@map → nome real no PostgreSQL)
+// Mapa de tabelas (nome lógico → nome real no PostgreSQL)
 // ==========================================
 
 export const TABELAS = {
