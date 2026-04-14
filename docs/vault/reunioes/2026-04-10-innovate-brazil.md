@@ -1,3 +1,9 @@
+---
+title: "Ata de Reuniao — Innovate Brazil"
+date: 2026-04-10
+tags: [reuniao, innovate, ata]
+---
+
 # Ata de Reunião — Innovate Brazil
 
 **Data:** 10/04/2026, 09:01
