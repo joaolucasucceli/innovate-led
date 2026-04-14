@@ -37,7 +37,7 @@ export const ferramentasAgente: ChatCompletionTool[] = [
     function: {
       name: "encaminhar_contato",
       description:
-        "Move o lead para a etapa 'encaminhado' no funil do CRM. Usar após salvar a qualificação completa e quando o cliente confirmar interesse em falar com o consultor comercial.",
+        "Move o lead para a etapa 'encaminhado' no funil do CRM. Usar quando a qualificação for SUFICIENTE (não precisa ser completa) e o lead demonstrar interesse. SEMPRE chamar junto com criar_tarefa. Gatilhos: lead pediu preço 2x, lead deu orçamento, lead confirmou horário, lead demonstrou impaciência com perguntas.",
       parameters: {
         type: "object",
         properties: {
@@ -59,7 +59,7 @@ export const ferramentasAgente: ChatCompletionTool[] = [
     function: {
       name: "criar_tarefa",
       description:
-        "Cria uma tarefa de ligação para o consultor comercial entrar em contato com o cliente. Usar APÓS coletar o dia e horário de preferência do cliente e APÓS ter usado as ferramentas salvar_qualificacao e encaminhar_contato.",
+        "Cria uma tarefa de ligação para o consultor comercial entrar em contato com o cliente. Usar JUNTO com encaminhar_contato na mesma resposta. Se o lead não informou horário específico, use 'O mais breve possível' como dataHora.",
       parameters: {
         type: "object",
         properties: {
